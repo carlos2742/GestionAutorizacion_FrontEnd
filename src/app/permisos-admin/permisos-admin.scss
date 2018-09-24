@@ -1,0 +1,32 @@
+@import "../../style/variables";
+@import "~angular-bootstrap-toggle/dist/angular-bootstrap-toggle.css";
+
+
+.permisos-admin {
+
+    btn-exportar-excel > button {
+        margin-bottom: 24px;
+    }
+
+    .contenedor-tabla {
+        max-width: 800px;
+
+        .contenedor-btn-excel {
+            display: flex;
+            justify-content: flex-end;
+        }
+    }
+
+    .contenedor-busqueda {
+        max-width: 800px;
+        margin-bottom: 32px;
+
+        .contenedor-botones {
+            flex-direction: row-reverse;
+
+            button:nth-of-type(2) {
+                margin-right: 12px;
+            }
+        }
+    }
+}

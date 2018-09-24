@@ -1,0 +1,7 @@
+{
+    "url": "http://localhost:44494/api",
+    "formatoFechas": "DD/MM/YYYY",
+    "elementosPorPagina": 25,
+    "elementosPorPaginaParaExcel": 25,
+    "elementosBusquedaSelect": 50
+}

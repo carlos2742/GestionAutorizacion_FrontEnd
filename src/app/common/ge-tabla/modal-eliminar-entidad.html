@@ -1,0 +1,12 @@
+<!-- Este es el modal para la confirmación antes de eliminar un elemento -->
+<div class="modal-header confirmacion-eliminar">
+    <h5 class="modal-title">Advertencia</h5>
+</div>
+<div class="modal-body confirmacion-eliminar" modal-async>
+    <p>¿Está seguro que desea eliminar el siguiente elemento?</p>
+    <p><span ng-bind=":: $modal.entidad"></span> <strong ng-bind=":: $modal.nombre"></strong></p>
+</div>
+<div class="modal-footer confirmacion-eliminar">
+    <button class="btn btn-secondary" type="button" ng-click=":: $modal.cancelar()">Cancelar</button>
+    <button class="btn btn-danger" type="button" ng-click=":: $modal.eliminar()" boton-async>Eliminar</button>
+</div>

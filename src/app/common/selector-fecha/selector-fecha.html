@@ -1,0 +1,22 @@
+<div class="selector-fecha input-group {{ $ctrl.clasesExtra }}">
+    <input id="{{ $ctrl.name }}"
+           name="{{ $ctrl.name }}"
+           class="form-control"
+           type="text"
+           placeholder="{{$ctrl.placeholder}}"
+           ng-model="$ctrl.model"
+           ng-model-options="{timezone: 'utc'}"
+           is-open="$ctrl.popupFechaAbierto"
+           uib-datepicker-popup="dd/MM/yyyy"
+           datepicker-options="{showWeeks: false}"
+           clear-text="Reiniciar"
+           close-text="Cerrar"
+           current-text="Hoy"
+           popup-placement="auto bottom-right"
+           ng-required="$ctrl.requerido"
+           ng-disabled="$ctrl.deshabilitado">
+    <div class="input-group-append">
+        <button class="btn btn-calendario icon-calendar" type="button" ng-click="$ctrl.toggleSelectorFecha()"
+                ng-disabled="$ctrl.deshabilitado" uib-tooltip="Seleccionar fecha"></button>
+    </div>
+</div>

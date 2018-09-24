@@ -1,0 +1,146 @@
+@import "~bootstrap/scss/functions";
+@import "~bootstrap/scss/variables";
+@import "~bootstrap/scss/mixins/breakpoints";
+@import "../../../style/variables";
+
+$fondo-tabla-vacia: rgba(0, 0, 0, 0.03);
+
+
+ge-tabla > div {
+    position: relative;
+
+    btn-exportar-excel {
+        position: absolute;
+        right: 0;
+        top: -64px;
+    }
+}
+
+.ge-tabla.table {
+
+    .tabla-vacia {
+        background-color: $fondo-tabla-vacia;
+        height: 245px;
+        text-align: center;
+        color: $gray-600;
+    }
+
+    thead th {
+        vertical-align: middle;
+    }
+
+    tr.seleccionable {
+        cursor: pointer;
+    }
+
+    td {
+        vertical-align: middle;
+
+        .contenedor-html {
+            display: flex;
+        }
+    }
+
+    th > div {
+        line-height: 1.3;
+
+        &.ordenable {
+            display: inline-flex;
+            flex-flow: row;
+            align-items: center;
+        }
+    }
+
+    .controles-orden {
+        display: inline-flex;
+        flex-flow: column;
+        line-height: 0;
+        margin-left: 8px;
+
+        a {
+            font-weight: bold;
+
+            &:hover {
+                color: $dark !important;
+            }
+
+            &.activo {
+                color: $primary !important;
+            }
+        }
+    }
+
+    @include media-breakpoint-down(sm) {
+        thead th {
+            display: none;
+        }
+
+        td, th {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        td[data-th]:before  {
+            content: attr(data-th);
+            font-weight: bold;
+        }
+
+        td:not(.incluye-html) span,a {
+            text-align: right;
+        }
+
+        td.incluye-html {
+            min-height: 38px;
+
+            span {
+                margin-left: 8px;
+            }
+        }
+    }
+}
+
+.modal-body.confirmacion-eliminar p:nth-child(2) {
+    text-align: center;
+}
+
+
+@keyframes a {
+    0% {
+        transform: translate(30px, 0) rotate(30deg);
+        opacity: 0;
+    }
+    100% {
+        transform: translate(30px, 150px) rotate(-50deg);
+        opacity: 1;
+    }
+}
+@keyframes b {
+    0% {
+        transform: translate(50px, 0) rotate(-40deg);
+        opacity: 0;
+    }
+    100% {
+        transform: translate(40px, 150px) rotate(80deg);
+        opacity: 1;
+    }
+}
+@keyframes c {
+    0% {
+        transform: translate(70px, 0) rotate(10deg);
+        opacity: 0;
+    }
+    100% {
+        transform: translate(60px, 150px) rotate(70deg);
+        opacity: 1;
+    }
+}
+@keyframes d {
+    0% {
+        transform: translate(30px, 0) rotate(-50deg);
+        opacity: 0;
+    }
+    100% {
+        transform: translate(45px, 150px) rotate(30deg);
+        opacity: 1;
+    }
+}

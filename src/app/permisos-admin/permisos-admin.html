@@ -1,0 +1,87 @@
+<div class="permisos-admin">
+    <h1 class="titulo-centrado">Administradores</h1>
+
+    <div class="contenedor-busqueda mx-auto">
+        <uib-accordion>
+            <div uib-accordion-group class="mt-1 acordeon-evaluaciones" is-open="vm.busquedaVisible">
+                <uib-accordion-heading>Búsqueda
+                    <div class="chevron-container" uib-tooltip="{{ vm.busquedaVisible ? 'Ocultar' : 'Mostrar' }}" tooltip-placement="bottom-left">
+                        <span class="chevron down" ng-class="{'up': vm.busquedaVisible}"></span>
+                        <span class="chevron down" ng-class="{'up': vm.busquedaVisible}"></span>
+                    </div>
+                </uib-accordion-heading>
+
+                <form id="busquedaAdminForm" name="busquedaAdminForm" novalidate>
+                    <div class="form-row">
+                        <div class="form-group row col-sm-5">
+                            <label for="nombreParaBusqueda" class="col-sm-4 col-form-label pr-0">Nombre</label>
+                            <div class="col-sm-8">
+                                <input id="nombreParaBusqueda"
+                                   name="nombre"
+                                   class="form-control"
+                                   type="text"
+                                   placeholder="Nombre"
+                                   ng-model="vm.paramsBusqueda.nombre">
+                            </div>
+                        </div>
+                        <div class="form-group row col-sm">
+                            <label for="apellidosParaBusqueda" class="col-sm-3 col-form-label pr-0">Apellidos</label>
+                            <div class="col-sm-9">
+                                <input id="apellidosParaBusqueda"
+                                       name="apellidos"
+                                       class="form-control"
+                                       type="text"
+                                       placeholder="Apellidos"
+                                       ng-model="vm.paramsBusqueda.apellidos">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-5 ml-md-1 ml-lg-3 mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="esGestor" name="esGestor"
+                                   ng-model="vm.paramsBusqueda.esGestor">
+                            <label class="form-check-label" for="esGestor">
+                                Sólo administradores
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-row contenedor-botones">
+                        <button type="button" class="btn btn-primary" ng-click="vm.buscar()" >
+                            <span class="icon-search"></span> Buscar
+                        </button>
+                        <button type="button" class="btn btn-secondary" ng-click="vm.mostrarTodos()">
+                            Limpiar
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </uib-accordion>
+    </div>
+
+    <div class="contenedor-tabla mx-auto">
+        <div class="contenedor-btn-excel">
+            <btn-exportar-excel propiedades=":: vm.columnasExcel"
+                                datos="vm.personalService.personas"
+                                fn-obtencion-datos="vm.obtenerDatosAExportar()"></btn-exportar-excel>
+        </div>
+
+        <ge-tabla datos="vm.datos" presentacion="vm.presentacion"
+                  fn-accion="vm.cambiarPermisoAdministracion(entidad)"
+                  fn-cambio-orden="vm.actualizarOrden(orden)"
+        ></ge-tabla>
+
+        <ul uib-pagination
+            class="justify-content-center"
+            items-per-page=":: vm.ITEMS_POR_PAGINA"
+            total-items="vm.totalItems"
+            previous-text="&lsaquo;" next-text="&rsaquo;"
+            boundary-link-numbers="true"
+            max-size="5"
+            ng-model="vm.paginaActual"
+            ng-change=":: vm.actualizarPagina()"
+            ng-if="vm.totalItems > vm.ITEMS_POR_PAGINA"></ul>
+
+    </div>
+</div>

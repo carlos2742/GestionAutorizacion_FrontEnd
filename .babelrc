@@ -1,0 +1,17 @@
+{
+  "presets": [
+    ["env", {
+      "targets": {
+        "browsers": [">0.5% in ES", "last 3 Edge versions", "IE 11"]
+      }
+    }]
+  ],
+  "env": {
+    "test": {
+      "presets": [["env", {
+        "modules": "commonjs"
+      }]]
+    }
+  },
+  "plugins": ["angularjs-annotate", "lodash"]
+}

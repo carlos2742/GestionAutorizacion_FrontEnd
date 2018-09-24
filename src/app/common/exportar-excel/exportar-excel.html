@@ -1,0 +1,41 @@
+<button class="btn btn-outline-success btn-outline-excel" ng-click=":: $ctrl.mostrarModalExcel()"
+        ng-disabled="$ctrl.datos.length === 0">
+    <span class="icon-microsoftexcel"></span> Exportar
+</button>
+<div id="modalExcel"></div>
+
+<script type="text/ng-template" id="exportarExcel.html">
+    <form id="nombreExcelForm" name="nombreExcelForm" ng-submit=":: $modal.generarExcel(nombreExcelForm)">
+        <div class="modal-header">
+            <h5 class="modal-title">Exportar a Excel</h5>
+            <button type="reset" class="close" aria-label="Close" ng-click=":: $modal.cancelar()">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body" modal-async>
+            <div class="form-group form-row">
+                <label for="nombreExcel" class="col-sm-3 col-form-label">Nombre*</label>
+                <div class="col-sm-9">
+                    <input id="nombreExcel"
+                           name="nombre"
+                           class="form-control"
+                           type="text"
+                           placeholder="Nombre"
+                           required
+                           ng-pattern=":: $modal.patronNombreArchivo"
+                           ng-model="$modal.excel.nombre"
+                           ng-class="{'is-invalid': (nombreExcelForm.$submitted || nombreExcelForm.nombre.$touched) && nombreExcelForm.nombre.$invalid}">
+
+                    <div class="invalid-feedback" ng-messages="nombreExcelForm.nombre.$error"
+                         role="alert" ng-show="nombreExcelForm.nombre.$touched">
+                        <span ng-message="required">El nombre es obligatorio</span>
+                        <span ng-message="pattern">Este nombre no es válido para un archivo</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-success" type="submit" boton-async>Exportar</button>
+        </div>
+    </form>
+</script>

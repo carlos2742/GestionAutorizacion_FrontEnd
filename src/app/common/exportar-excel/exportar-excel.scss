@@ -1,0 +1,13 @@
+@import "../../../style/variables";
+
+
+.btn.btn-outline-excel {
+    span {
+        font-size: 0.875rem;
+        margin-right: 6px;
+    }
+
+    &:not(:disabled):hover span:before {
+        color: $white;
+    }
+}

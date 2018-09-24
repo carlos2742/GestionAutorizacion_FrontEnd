@@ -1,0 +1,99 @@
+@font-face {
+    font-family: 'icomoon';
+    src:  url('../public/fonts/icomoon.eot?c0uyoq');
+    src:  url('../public/fonts/icomoon.eot?c0uyoq#iefix') format('embedded-opentype'),
+    url('../public/fonts/icomoon.ttf?c0uyoq') format('truetype'),
+    url('../public/fonts/icomoon.woff?c0uyoq') format('woff'),
+    url('../public/fonts/icomoon.svg?c0uyoq#icomoon') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+[class^="icon-"], [class*=" icon-"] {
+    /* use !important to prevent issues with browser extensions that change fonts */
+    font-family: 'icomoon' !important;
+    speak: none;
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+
+    /* Better Font Rendering =========== */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-chevron-down:before {
+    content: "\e900";
+}
+.icon-chevron-up:before {
+    content: "\e901";
+}
+.icon-view-show:before {
+    content: "\e902";
+}
+.icon-chevrons-up:before {
+    content: "\e903";
+}
+.icon-chevron-right:before {
+    content: "\e904";
+}
+.icon-microsoftexcel:before {
+    content: "\e905";
+    color: #217346;
+}
+.icon-pencil2:before {
+    content: "\e906";
+}
+.icon-file-plus:before {
+    content: "\e907";
+}
+.icon-file-text:before {
+    content: "\e908";
+}
+.icon-copy:before {
+    content: "\e92c";
+}
+.icon-calendar:before {
+    content: "\e953";
+}
+.icon-printer:before {
+    content: "\e954";
+}
+.icon-floppy-disk:before {
+    content: "\e962";
+}
+.icon-users:before {
+    content: "\e972";
+}
+.icon-search:before {
+    content: "\e986";
+}
+.icon-bin:before {
+    content: "\e9ac";
+}
+.icon-tree:before {
+    content: "\e9bc";
+}
+.icon-download3:before {
+    content: "\e9c7";
+}
+.icon-attachment:before {
+    content: "\e9cd";
+}
+.icon-plus:before {
+    content: "\ea0a";
+}
+.icon-circle-right:before {
+    content: "\ea42";
+}
+.icon-warning:before {
+    content: "\ea07";
+}
+.icon-notification:before {
+    content: "\ea08";
+}
+.icon-list2:before {
+    content: "\e9bb";
+}

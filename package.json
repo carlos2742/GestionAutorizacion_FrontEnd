@@ -1,0 +1,92 @@
+{
+    "name": "gestion-autorizaciones",
+    "version": "0.0.1",
+    "description": "Gestión de Autorizaciones - Front End",
+    "scripts": {
+        "build": "rimraf dist && cross-env MODE=production webpack --bail --progress --profile",
+        "server": "rimraf dist && cross-env MODE=development webpack-serve",
+        "test": "jest",
+        "test-watch": "karma start --auto-watch --no-single-run",
+        "start": "npm run server",
+        "analyze": "cross-env MODE=production webpack --profile --json > dist/stats.json && webpack-bundle-analyzer dist/stats.json -m static -r dist/report.html"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/proyectoRM18/GestionAutorizacion_FrontEnd.git"
+    },
+    "author": "Marian Morgalo Cabal",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/proyectoRM18/GestionAutorizacion_FrontEnd/issues"
+    },
+    "jest": {
+        "moduleNameMapper": {
+            "\\.(html|jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/__mocks__/fileMock.js",
+            "\\.(scss|css|less)$": "<rootDir>/__mocks__/styleMock.js"
+        },
+        "transformIgnorePatterns": [
+            "node_modules/(?!zipcelx)"
+        ]
+    },
+    "dependencies": {
+        "angular": "1.7.0",
+        "angular-animate": "^1.6.9",
+        "angular-bootstrap-toggle": "git+https://github.com/ziscloud/angular-bootstrap-toggle.git",
+        "angular-file-upload": "^2.5.0",
+        "angular-messages": "^1.6.9",
+        "angular-read-more": "^1.0.7",
+        "angular-route": "^1.6.9",
+        "angular-sanitize": "^1.6.9",
+        "angular-toastr": "^2.1.1",
+        "bootstrap": "^4.1.2",
+        "bootswatch": "^4.0.0",
+        "date-fns": "2.0.0-alpha.7",
+        "file-saver": "^1.3.8",
+        "lodash": "^4.17.5",
+        "promise-polyfill": "7.1.2",
+        "selectize": "^0.12.5",
+        "ui-bootstrap4": "^3.0.3",
+        "ui-select": "github:Greenek/ui-select#header-footer-2",
+        "whatwg-fetch": "^2.0.4",
+        "zipcelx": "^1.4.2"
+    },
+    "devDependencies": {
+        "angular-mocks": "^1.6.9",
+        "autoprefixer": "^8.3.0",
+        "babel-core": "^6.26.3",
+        "babel-jest": "^23.0.0",
+        "babel-loader": "^7.1.4",
+        "babel-plugin-angularjs-annotate": "^0.8.2",
+        "babel-plugin-lodash": "^3.3.2",
+        "babel-polyfill": "^6.26.0",
+        "babel-preset-env": "^1.6.1",
+        "babel-preset-es2015": "^6.1.18",
+        "copy-webpack-plugin": "^4.5.1",
+        "cross-env": "^5.1.4",
+        "css-loader": "0.28.11",
+        "extract-loader": "^2.0.1",
+        "extract-text-webpack-plugin": "3.0.2",
+        "file-loader": "^1.1.11",
+        "html-loader": "^0.5.5",
+        "html-webpack-plugin": "^3.2.0",
+        "jest": "^23.0.0",
+        "jest-html-reporter": "^2.3.0",
+        "lodash-webpack-plugin": "^0.11.5",
+        "mini-css-extract-plugin": "^0.4.0",
+        "node-libs-browser": "2.1.0",
+        "node-sass": "4.9.0",
+        "null-loader": "^0.1.1",
+        "postcss-loader": "2.1.4",
+        "raw-loader": "^0.5.1",
+        "regenerator-runtime": "^0.11.1",
+        "rimraf": "^2.5.1",
+        "sass-loader": "^7.0.1",
+        "style-loader": "^0.20.3",
+        "uglifyjs-webpack-plugin": "^1.2.5",
+        "url-loader": "^1.0.1",
+        "webpack": "^4.5.0",
+        "webpack-bundle-analyzer": "^2.11.1",
+        "webpack-cli": "^2.0.14",
+        "webpack-serve": "^0.3.1"
+    }
+}

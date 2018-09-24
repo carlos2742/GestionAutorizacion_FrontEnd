@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de Autorizaciones</title>
+    <link rel="icon" type="image/x-icon" href="/img/favicon.ico">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <base href="/">
+</head>
+<body>
+    <div id="app" ng-controller="AppCtrl as app">
+        <nav ng-if="!app.mostrarLoadingGlobal" class="navbar navbar-expand-sm navbar-dark bg-accent" role="navigation">
+            <!--<div class="navbar-header">-->
+            <a class="navbar-brand" href="/">Autorizaciones</a>
+            <button class="navbar-toggler" type="button" ng-click="app.menuColapsado = !app.menuColapsado" aria-expanded="false" aria-label="Mostrar/ocultar navegación">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <!--</div>-->
+            <div class="collapse navbar-collapse" uib-collapse="app.menuColapsado">
+                <ul class="navbar-nav">
+                    <li class="nav-item" uib-dropdown ng-if=":: app.usuario.esGestor">
+                        <a class="nav-link dropdown-toggle" uib-dropdown-toggle href id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Gestión Aplicación
+                        </a>
+
+                        <div class="dropdown-menu" uib-dropdown-menu aria-labelledby="navbarDropdown">
+                            <a class="dropdown-item" href="#/admins">Administradores</a>
+                            <div class="dropdown-divider"></div>
+                            <span class="dropdown-item text-muted text-uppercase disabled">Mantenimientos Generales</span>
+                        </div>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="#/central-autorizaciones">Central de Autorizaciones</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <main ng-if="!app.mostrarLoadingGlobal" class="container-fluid" ng-view>
+        </main>
+
+        <main ng-if="app.mostrarLoadingGlobal" class="container-fluid loading-container">
+            <!-- Animación tomada de aquí: https://codepen.io/tomchewitt/pen/yNdQrO?editors=1100 -->
+            <div class="loader JS_on mx-auto">
+                <span class="binary"></span>
+                <span class="binary"></span>
+                <span class="getting-there">Recibiendo datos...</span>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

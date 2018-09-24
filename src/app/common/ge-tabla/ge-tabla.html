@@ -1,0 +1,77 @@
+<div>
+    <btn-exportar-excel datos="$ctrl.datos" propiedades="$ctrl.camposExcel"
+                        ng-if=":: $ctrl.camposExcelDefinidos"></btn-exportar-excel>
+
+    <div class="table-responsive">
+
+        <table class="ge-tabla table table-striped table-hover" id="tabla{{$ctrl.presentacion.entidad}}">
+            <thead>
+            <tr>
+                <th ng-repeat="columna in ::$ctrl.presentacion.columnas"
+                    scope="col"
+                    ng-style=":: {'width': columna.ancho}">
+                    <div ng-class=":: {'ordenable': columna.ordenable}">
+                        {{ :: columna.display }}
+                        <span ng-if=":: columna.ordenable" class="controles-orden">
+                        <a ng-click=":: $ctrl.ordenar(columna, 'asc', true)"
+                           class="icon-chevron-up text-muted"
+                           ng-class="{'activo': $ctrl.ordenEstaActivo(columna, 'asc')}">
+                        </a>
+                        <a ng-click=":: $ctrl.ordenar(columna, 'desc', true)"
+                           class="icon-chevron-down text-muted"
+                           ng-class="{'activo': $ctrl.ordenEstaActivo(columna, 'desc')}">
+                        </a>
+                    </span>
+                    </div>
+                </th>
+                <th ng-if="$ctrl.editable" scope="col" style="width: 40px"></th>
+                <th ng-if="$ctrl.eliminable" scope="col" style="width: 40px"></th>
+            </tr>
+            </thead>
+            <tbody>
+
+            <tr class="tabla-vacia" ng-if="$ctrl.mostrarLoader">
+                <td colspan="{{ $ctrl.totalColumnas }}">
+                    <!-- Animación tomada de aquí: https://codepen.io/tomchewitt/pen/yNdQrO?editors=1100 -->
+                    <div class="loader JS_on mx-auto">
+                        <span class="binary"></span>
+                        <span class="binary"></span>
+                        <span class="getting-there">Recibiendo datos...</span>
+                    </div>
+                </td>
+            </tr>
+
+            <tr class="tabla-vacia" ng-if="!$ctrl.mostrarLoader && $ctrl.datos.length === 0">
+                <td colspan="{{ $ctrl.totalColumnas }}">
+                    (no hay datos para mostrar)
+                </td>
+            </tr>
+
+            <tr ng-if="!$ctrl.mostrarLoader && $ctrl.datos.length > 0"
+                ng-repeat="elemento in $ctrl.datos track by elemento.codigo"
+                ng-click=":: $ctrl.seleccionarFila(elemento)"
+                ng-class="{'table-primary': elemento.codigo === $ctrl.filaSeleccionada.codigo, 'seleccionable': $ctrl.accionSeleccionDefinida}">
+                <td ng-repeat="columna in $ctrl.presentacion.columnas" data-th="{{:: columna.display}}" ng-class="::{'incluye-html': columna.html}">
+                    <span ng-if=":: !columna.html" ng-bind="$ctrl.obtenerValor(elemento, columna.nombre)"></span>
+                    <div class="contenedor-html" ng-if=":: columna.html" custom-compile="elemento[columna.nombre]"></div>
+                </td>
+                <td class="incluye-html" ng-if="elemento.editable" data-th="">
+                    <a href="" ng-click=":: $ctrl.fnEdicion({entidad: elemento})" uib-tooltip="Editar">
+                        <span class="icon-pencil2"></span>
+                    </a>
+                </td>
+                <td ng-if="!elemento.editable && $ctrl.editable"></td>
+                <td class="incluye-html" ng-if="elemento.eliminable" data-th="">
+                    <a href="" ng-click=":: $ctrl.confirmarEliminacion(elemento)" uib-tooltip="Eliminar">
+                        <span class="icon-bin"></span>
+                    </a></td>
+                <td ng-if="!elemento.eliminable && $ctrl.eliminable"></td>
+            </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div id="modalEliminar{{:: $ctrl.presentacion.entidad}}">
+    </div>
+</div>
