@@ -12,6 +12,7 @@ import 'promise-polyfill/src/polyfill';
 import apiInterceptor from './common/api-interceptor';
 import personalModule from './common/personal';
 import permisosAdminModule from './permisos-admin';
+import mantenimientosMaestrosModule from './mantenimientos-maestros';
 import homeModule from './home';
 
 import '../style/app.scss';
@@ -60,6 +61,7 @@ angular.module(MODULE_NAME, [
 
     personalModule.name,
     permisosAdminModule.name,
+    mantenimientosMaestrosModule.name,
     homeModule.name
 ])
     .controller('AppCtrl', AppCtrl)
@@ -97,6 +99,11 @@ angular.module(MODULE_NAME, [
             .when('/admins', {
                 template: require('./permisos-admin/permisos-admin.html'),
                 controller: 'PermisosAdminController',
+                controllerAs: 'vm'
+            })
+            .when('/modulos', {
+                template: require('./mantenimientos-maestros/modulos/modulos.html'),
+                controller: 'ModulosController',
                 controllerAs: 'vm'
             })
             .when('/acceso-denegado', {

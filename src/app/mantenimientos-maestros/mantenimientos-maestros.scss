@@ -1,0 +1,45 @@
+@import "~angular-bootstrap-toggle/dist/angular-bootstrap-toggle.css";
+
+
+.contenedor-tabla {
+    > button {
+        margin-bottom: 24px;
+
+        span {
+            font-size: 11px;
+            margin-right: 8px;
+        }
+    }
+}
+
+.mantenimiento-maestro {
+    &.modal-body,  &.modal-footer {
+        padding: 1.5rem;
+    }
+
+    &.modal-body .form-group{
+        margin-bottom: 32px;
+    }
+
+    &.modal-body .form-group:last-of-type{
+        margin-bottom: 0;
+    }
+
+    input[type=number] {
+        width: 50%;
+    }
+
+    button.adjunto {
+        width: 128px;
+        display: inline-flex;
+        justify-content: center;
+
+        &.disabled {
+            pointer-events: none;
+        }
+    }
+
+    label.btn-primary.adjunto {
+        width: 128px;
+    }
+}
