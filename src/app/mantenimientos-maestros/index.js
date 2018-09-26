@@ -13,6 +13,9 @@ import ModulosService from './modulos/modulos.service';
 import ModulosController from './modulos/modulos.controller';
 import ModalEdicionModulosController from './modulos/modal-edicion-modulos.controller';
 
+import RolesService from './roles/roles.service';
+import RolesController from './roles/roles.controller';
+
 import './mantenimientos-maestros.scss';
 
 
@@ -35,4 +38,7 @@ export default angular.module('mantimientos-maestros', [
     })
     .service('ModulosService', ModulosService)
     .controller('ModulosController', ModulosController)
-    .controller('ModalEdicionModulosController', ModalEdicionModulosController);
+    .controller('ModalEdicionModulosController', ModalEdicionModulosController)
+
+    .service('RolesService', RolesService)
+    .controller('RolesController', RolesController);

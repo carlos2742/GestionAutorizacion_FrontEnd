@@ -106,6 +106,11 @@ angular.module(MODULE_NAME, [
                 controller: 'ModulosController',
                 controllerAs: 'vm'
             })
+            .when('/roles', {
+                template: require('./mantenimientos-maestros/roles/roles.html'),
+                controller: 'RolesController',
+                controllerAs: 'vm'
+            })
             .when('/acceso-denegado', {
                 template: require('./401.html')
             })

@@ -35,3 +35,6 @@ export const ENTIDAD_NO_ELIMINABLE = -11;
 
 /** @type {number} */
 export const ELEMENTO_YA_ESTA_INACTIVO = -12;
+
+/** @type {number} */
+export const FUNCION_ROL_NO_IMPLEMENTADA = -15;
