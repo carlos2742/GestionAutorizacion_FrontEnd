@@ -1,0 +1,25 @@
+.flujos {
+
+    .contenedor-busqueda, .contenedor-tabla {
+        max-width: 800px;
+    }
+
+    .contenedor-busqueda {
+        margin-bottom: 32px;
+
+        .contenedor-botones {
+            flex-direction: row-reverse;
+
+            button:nth-of-type(2) {
+                margin-right: 12px;
+            }
+        }
+    }
+
+    .contenedor-tabla .contenedor-botones {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 24px;
+    }
+
+}

@@ -2,6 +2,7 @@ import angular from 'angular';
 import ngSanitize from "angular-sanitize";
 import modal from 'ui-bootstrap4/src/modal';
 import alert from "ui-bootstrap4/src/alert";
+import pagination from "ui-bootstrap4/src/pagination";
 import 'angular-bootstrap-toggle/dist/angular-bootstrap-toggle.js';
 
 import geTablaModule from '../common/ge-tabla';
@@ -16,6 +17,10 @@ import ModalEdicionModulosController from './modulos/modal-edicion-modulos.contr
 import RolesService from './roles/roles.service';
 import RolesController from './roles/roles.controller';
 
+import FlujosService from './flujos/flujos.service';
+import FlujosController from './flujos/flujos.controller';
+import ModalEdicionFlujosController from './flujos/modal-edicion-flujos.controller';
+
 import './mantenimientos-maestros.scss';
 
 
@@ -23,6 +28,7 @@ export default angular.module('mantimientos-maestros', [
     ngSanitize,
     modal,
     alert,
+    pagination,
     'ui.toggle',
 
     geTablaModule.name,
@@ -41,4 +47,8 @@ export default angular.module('mantimientos-maestros', [
     .controller('ModalEdicionModulosController', ModalEdicionModulosController)
 
     .service('RolesService', RolesService)
-    .controller('RolesController', RolesController);
+    .controller('RolesController', RolesController)
+
+    .service('FlujosService', FlujosService)
+    .controller('FlujosController', FlujosController)
+    .controller('ModalEdicionFlujosController', ModalEdicionFlujosController);
