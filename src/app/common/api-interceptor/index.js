@@ -44,8 +44,7 @@ export default function apiInterceptor($rootScope, $q, $injector, $location, App
         } else if (rejection.error.errorCode === ERROR_DE_VALIDACION) {
             toastr.warning('Se produjo un error mientras se validaba este elemento');
         } else if (rejection.error.errorCode === ELEMENTO_YA_EXISTE) {
-            toastr.warning('No se pudo crear este elemento en la base de datos porque ya existe uno igual');
-            return rejection;
+            toastr.warning('No se pudo guardar este elemento en la base de datos porque ya existe otro igual');
         }
 
         return $q.reject(rejection);

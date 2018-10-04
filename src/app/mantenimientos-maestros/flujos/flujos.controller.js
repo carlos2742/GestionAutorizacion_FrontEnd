@@ -71,6 +71,7 @@ export default class FlujosController {
                 {nombre: 'modulo.display', display: 'Módulo', ordenable: true},
                 {nombre: 'observacionesInput', display: 'Observaciones', ancho: '250px', html: true},
                 {nombre: 'estadoToggle', display: 'Activo', ordenable: false, html: true, ancho:'100px'},
+                {nombre: 'enlaceAutorizaciones', display: '', ordenable: false, html: true, ancho: '40px'}
             ]
         };
 
@@ -97,6 +98,9 @@ export default class FlujosController {
                                             placeholder="Observaciones" 
                                             disabled
                                             style="width: 100%;">${!isNil(entidad.observaciones) ? entidad.observaciones : ''}</textarea>`;
+
+        clon.enlaceAutorizaciones = `<a href class="icon-user-check d-print-none" ng-href="#/autorizaciones?flujo=${entidad.id}" uib-tooltip="Ver Autorizaciones"></a>`;
+
         return clon;
     }
 

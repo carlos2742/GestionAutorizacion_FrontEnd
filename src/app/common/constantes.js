@@ -38,3 +38,6 @@ export const ELEMENTO_YA_ESTA_INACTIVO = -12;
 
 /** @type {number} */
 export const FUNCION_ROL_NO_IMPLEMENTADA = -15;
+
+/** @type {number} */
+export const PROPIEDAD_NO_EDITABLE = -16;

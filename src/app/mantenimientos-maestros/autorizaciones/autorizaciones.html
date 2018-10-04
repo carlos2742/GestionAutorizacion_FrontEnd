@@ -1,0 +1,101 @@
+<div class="autorizaciones">
+    <h1 class="titulo-centrado">Autorizaciones</h1>
+
+    <div class="contenedor-busqueda mx-auto">
+        <uib-accordion>
+            <div uib-accordion-group class="mt-1 acordeon-evaluaciones" is-open="vm.busquedaVisible">
+                <uib-accordion-heading>Búsqueda
+                    <div class="chevron-container" uib-tooltip="{{ vm.busquedaVisible ? 'Ocultar' : 'Mostrar' }}" tooltip-placement="bottom-left">
+                        <span class="chevron down" ng-class="{'up': vm.busquedaVisible}"></span>
+                        <span class="chevron down" ng-class="{'up': vm.busquedaVisible}"></span>
+                    </div>
+                </uib-accordion-heading>
+
+                <form id="busquedaAutorizacionesForm" name="busquedaAutorizacionesForm" novalidate>
+                    <div class="form-row">
+                        <div class="form-group col-md form-row">
+                            <label for="flujoBusqueda" class="col-sm-3 col-form-label">Flujo</label>
+                            <div class="col-sm-9">
+                                <ui-select ng-model="vm.paramsBusqueda.flujo" name="flujo" input-id="flujoBusqueda" ng-animate-children="false">
+                                    <ui-select-match placeholder="Seleccione o busque un flujo">
+                                        <span ng-bind="$select.selected.evento"></span>
+                                    </ui-select-match>
+                                    <ui-select-choices repeat="flujo in vm.filtrarFlujos($select.search) track by flujo.id">
+                                        <span ng-bind-html="flujo.evento | highlight: $select.search"></span>
+                                    </ui-select-choices>
+                                    <ui-select-footer class="text-muted" >
+                                        <span ng-show="vm.mostrandoResultadosParcialesFlujos">Demasiados resultados, debe refinar la búsqueda</span>
+                                    </ui-select-footer>
+                                </ui-select>
+                            </div>
+                        </div>
+                        <div class="form-group col-md form-row">
+                            <label for="rolBusqueda" class="col-sm-3 col-form-label">Rol</label>
+                            <div class="col-sm-9">
+                                <select class="form-control" id="rolBusqueda" name="rol" ng-model="vm.paramsBusqueda.rol"
+                                        ng-options="rol.nombre for rol in vm.roles track by rol.id">
+
+                                    <option></option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md form-row">
+                            <label for="nombreBusqueda" class="col-sm-3 col-form-label">Nombre</label>
+                            <div class="col-sm-9">
+                                <input id="nombreBusqueda"
+                                       name="nombre"
+                                       class="form-control"
+                                       type="text"
+                                       placeholder="Nombre"
+                                       ng-model="vm.paramsBusqueda.nombre">
+                            </div>
+                        </div>
+                        <div class="form-group col-md form-row"></div>
+                    </div>
+
+                    <div class="form-row mr-0 contenedor-botones">
+                        <button type="button" class="btn btn-primary" ng-click="vm.buscar()">
+                            <span class="icon-search"></span> Buscar
+                        </button>
+                        <button type="button" class="btn btn-secondary" ng-click="vm.mostrarTodos(busquedaAutorizacionesForm)">
+                            Limpiar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </uib-accordion>
+    </div>
+
+    <div class="contenedor-tabla mx-auto">
+        <div class="contenedor-botones">
+            <button type="button" class="btn btn-primary" ng-click="vm.mostrarModalAutorizacion()">
+                <span class="icon-plus"></span> Añadir autorización
+            </button>
+
+            <btn-exportar-excel propiedades=":: vm.columnasExcel"
+                                datos="vm.autorizacionesService.autorizaciones"
+                                fn-obtencion-datos="vm.obtenerDatosAExportar()"></btn-exportar-excel>
+        </div>
+
+        <ge-tabla datos="vm.datos" presentacion="vm.presentacion"
+                  fn-edicion="vm.editarAutorizacion(entidad)"
+                  fn-eliminacion="vm.eliminarAutorizacion(entidad)"
+                  fn-cambio-orden="vm.actualizarOrden(orden)"></ge-tabla>
+
+        <ul uib-pagination
+            class="justify-content-center"
+            items-per-page=":: vm.ITEMS_POR_PAGINA"
+            total-items="vm.totalItems"
+            previous-text="&lsaquo;" next-text="&rsaquo;"
+            boundary-link-numbers="true"
+            max-size="5"
+            ng-model="vm.paginaActual"
+            ng-change=":: vm.actualizarPagina()"
+            ng-show="vm.totalItems > vm.ITEMS_POR_PAGINA"></ul>
+    </div>
+
+    <div id="modalEdicionAutorizacion">
+    </div>
+</div>
