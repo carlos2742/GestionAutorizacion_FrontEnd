@@ -121,6 +121,11 @@ angular.module(MODULE_NAME, [
                 controller: 'AutorizacionesController',
                 controllerAs: 'vm'
             })
+            .when('/etiquetas', {
+                template: require('./mantenimientos-maestros/etiquetas/etiquetas.html'),
+                controller: 'EtiquetasController',
+                controllerAs: 'vm'
+            })
             .when('/acceso-denegado', {
                 template: require('./401.html')
             })

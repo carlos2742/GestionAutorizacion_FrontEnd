@@ -1,0 +1,76 @@
+<div class="etiquetas">
+    <h1 class="titulo-centrado">Etiquetas</h1>
+
+    <div class="contenedor-busqueda mx-auto">
+        <uib-accordion>
+            <div uib-accordion-group class="mt-1 acordeon-evaluaciones" is-open="vm.busquedaVisible">
+                <uib-accordion-heading>Búsqueda
+                    <div class="chevron-container" uib-tooltip="{{ vm.busquedaVisible ? 'Ocultar' : 'Mostrar' }}" tooltip-placement="bottom-left">
+                        <span class="chevron down" ng-class="{'up': vm.busquedaVisible}"></span>
+                        <span class="chevron down" ng-class="{'up': vm.busquedaVisible}"></span>
+                    </div>
+                </uib-accordion-heading>
+
+                <form id="busquedaEtiquetasForm" name="busquedaEtiquetasForm" novalidate>
+                    <div class="form-row">
+                        <div class="form-group form-row col-sm">
+                            <label for="descripcionBusqueda" class="col-sm-3 col-form-label">Descripción</label>
+                            <div class="col-sm-9">
+                                <input id="descripcionBusqueda"
+                                       name="descripcion"
+                                       class="form-control"
+                                       type="text"
+                                       placeholder="Descripción"
+                                       ng-model="vm.paramsBusqueda.descripcion">
+                            </div>
+                        </div>
+                        <div class="form-group form-row col-sm">
+                            <label for="moduloBusqueda" class="col-sm-3 col-form-label">Módulo</label>
+                            <div class="col-sm-9">
+                                <select class="form-control" id="moduloBusqueda" name="modulo" ng-model="vm.paramsBusqueda.modulo"
+                                        ng-options="modulo.nombre for modulo in vm.modulos track by modulo.id">
+                                    <option></option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group form-row col-sm">
+                            <label for="estadoBusqueda" class="col-sm-3 col-form-label">Estado</label>
+                            <div class="col-sm-9">
+                                <select class="form-control" id="estadoBusqueda" name="estado" ng-model="vm.paramsBusqueda.estado"
+                                        ng-options="estado for estado in ::vm.estados">
+                                    <option></option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group form-row col-sm"></div>
+                    </div>
+
+                    <div class="form-row contenedor-botones">
+                        <button type="button" class="btn btn-primary" ng-click="vm.buscar()" >
+                            <span class="icon-search"></span> Buscar
+                        </button>
+                        <button type="button" class="btn btn-secondary" ng-click="vm.mostrarTodos()">
+                            Limpiar
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </uib-accordion>
+    </div>
+
+    <div class="contenedor-tabla mx-auto">
+        <button type="button" class="btn btn-primary" ng-click="vm.mostrarModalEtiqueta()">
+            <span class="icon-plus"></span> Añadir etiqueta</button>
+
+        <ge-tabla datos="vm.datos" presentacion="vm.presentacion"
+                  fn-edicion="vm.editarEtiqueta(entidad)"
+                  fn-eliminacion="vm.eliminarEtiqueta(entidad)"
+                  campos-excel=":: vm.columnasExcel"></ge-tabla>
+    </div>
+
+    <div id="modalEdicionEtiqueta">
+    </div>
+</div>

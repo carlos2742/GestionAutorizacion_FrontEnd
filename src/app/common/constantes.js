@@ -7,6 +7,17 @@ export const MANTENIMIENTO_MAESTRO_INACTIVO = 'I';
 export const MANTENIMIENTO_MAESTRO_PENDIENTE = 'P';
 
 /** @type {string} */
+export const ETIQUETA_OK = 'OK';
+/** @type {string} */
+export const ETIQUETA_OK_DESC = 'Aprobado';
+/** @type {string} */
+export const ETIQUETA_NOK = 'NOK';
+/** @type {string} */
+export const ETIQUETA_NOK_DESC = 'Rechazado';
+/** @type {string} */
+export const ETIQUETA_PENDIENTE = 'Pendiente';
+
+/** @type {string} */
 export const TEXTO_CAMBIOS_GUARDADOS = `<i class="icon-floppy-disk"></i> Cambios guardados`;
 /** @type {string} */
 export const TITULO_CAMBIOS_GUARDADOS = 'Cambios guardados';

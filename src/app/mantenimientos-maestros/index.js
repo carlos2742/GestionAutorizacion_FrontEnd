@@ -27,6 +27,10 @@ import AutorizacionesService from './autorizaciones/autorizaciones.service';
 import AutorizacionesController from './autorizaciones/autorizaciones.controller';
 import ModalEdicionAutorizacionesController from './autorizaciones/modal-edicion-autorizaciones.controller';
 
+import EtiquetasService from './etiquetas/etiquetas.service';
+import EtiquetasController from './etiquetas/etiquetas.controller';
+import ModalEdicionEtiquetasController from './etiquetas/modal-edicion-etiquetas.controller';
+
 import './mantenimientos-maestros.scss';
 
 
@@ -48,7 +52,8 @@ export default angular.module('mantimientos-maestros', [
         FALTA_REQUERIDO: -1,
         YA_EXISTE_NOMBRE: -2,
         YA_EXISTE_ORDEN: -3,
-        FECHA_FINAL_MENOR_QUE_FECHA_INICIAL: -4
+        FECHA_FINAL_MENOR_QUE_FECHA_INICIAL: -4,
+        ELEMENTO_DUPLICADO: -5
     })
     .service('ModulosService', ModulosService)
     .controller('ModulosController', ModulosController)
@@ -60,6 +65,10 @@ export default angular.module('mantimientos-maestros', [
     .service('FlujosService', FlujosService)
     .controller('FlujosController', FlujosController)
     .controller('ModalEdicionFlujosController', ModalEdicionFlujosController)
+
+    .service('EtiquetasService', EtiquetasService)
+    .controller('EtiquetasController', EtiquetasController)
+    .controller('ModalEdicionEtiquetasController', ModalEdicionEtiquetasController)
 
     .service('AutorizacionesService', AutorizacionesService)
     .controller('AutorizacionesController', AutorizacionesController)
