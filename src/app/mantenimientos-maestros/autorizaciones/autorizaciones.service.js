@@ -39,6 +39,7 @@ export default class AutorizacionesService {
     /**
      * @param $q                        -  Servicio de Angular para utilizar Promesas
      * @param $http                     -  Servicio de Angular para hacer llamadas HTTP
+     * @param $timeout                  -  Servicio de Angular para diferir ejecución de funciones.
      * @param ErroresValidacionMaestros
      * @param AppConfig                 -  Contiene la configuración del app.
      * @param Mediator

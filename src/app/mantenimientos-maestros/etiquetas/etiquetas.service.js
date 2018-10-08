@@ -40,11 +40,12 @@ export default class EtiquetasService {
     /**
      * @param $q                        -  Servicio de Angular para utilizar Promesas
      * @param $http                     -  Servicio de Angular para hacer llamadas HTTP
+     * @param $timeout                  -  Servicio de Angular para diferir ejecución de funciones.
      * @param ErroresValidacionMaestros -  Contiene los errores que pueden devolver las validaciones. Ver {@link ErroresValidacionMaestros}
      * @param Mediator
      *
      **/
-    constructor($q, $http, ErroresValidacionMaestros, Mediator) {
+    constructor($q, $http, $timeout, ErroresValidacionMaestros, Mediator) {
         // Constantes del servicio
         /** @private */
         this.ENDPOINT = '/etiquetas';
@@ -53,6 +54,8 @@ export default class EtiquetasService {
         this.$q = $q;
         /** @private */
         this.$http = $http;
+        /** @private */
+        this.$timeout = $timeout;
         /** @private */
         this.ErroresValidacionMaestros = ErroresValidacionMaestros;
         /** @private */
@@ -272,6 +275,12 @@ export default class EtiquetasService {
                     })
                         .then(response => {
                             this.etiquetas[indiceExistente] = this.procesarEntidadRecibida(response.data, etiqueta.modulo);
+
+                            // Notifica a las entidades que contengan una referencia a esta etiqueta que fue actualizada.
+                            this.$timeout(() => {
+                                this.Mediator.publish('etiqueta:edicion', this.etiquetas[indiceExistente]);
+                            }, 1000, false);
+
                             return this.etiquetas[indiceExistente];
                         })
                         .catch(response => {
