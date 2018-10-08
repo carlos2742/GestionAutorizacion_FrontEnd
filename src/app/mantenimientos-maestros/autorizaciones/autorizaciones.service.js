@@ -70,6 +70,9 @@ export default class AutorizacionesService {
         this.ordenActivo = null;
         /** @private */
         this.filtrosBusqueda = null;
+
+        // No es necesario subscribirse a las ediciones de flujos porque al tener paginación el /get de autorizaciones,
+        // siempre se piden cuando se entra a esa vista.
     }
 
     /**

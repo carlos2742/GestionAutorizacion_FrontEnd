@@ -39,11 +39,12 @@ export default class FlujosService {
     /**
      * @param $q                        -  Servicio de Angular para utilizar Promesas
      * @param $http                     -  Servicio de Angular para hacer llamadas HTTP
+     * @param $timeout                  -  Servicio de Angular para diferir ejecución de funciones.
      * @param ErroresValidacionMaestros -  Contiene los errores que pueden devolver las validaciones. Ver {@link ErroresValidacionMaestros}
      * @param Mediator
      *
      **/
-    constructor($q, $http, ErroresValidacionMaestros, Mediator) {
+    constructor($q, $http, $timeout, ErroresValidacionMaestros, Mediator) {
         // Constantes del servicio
         /** @private */
         this.ENDPOINT = '/flujos';
@@ -52,6 +53,8 @@ export default class FlujosService {
         this.$q = $q;
         /** @private */
         this.$http = $http;
+        /** @private */
+        this.$timeout = $timeout;
         /** @private */
         this.ErroresValidacionMaestros = ErroresValidacionMaestros;
         /** @private */
@@ -258,6 +261,12 @@ export default class FlujosService {
                 return this.$http.put(`${this.ENDPOINT}/${flujo.codigo}`, datosAEnviar)
                     .then(response => {
                         this.flujos[indiceExistente] = this.procesarEntidadRecibida(response.data, modulo);
+
+                        // Notifica a las entidades que contengan una referencia a este flujo que fue actualizado.
+                        this.$timeout(() => {
+                            this.Mediator.publish('flujo:edicion', this.flujos[indiceExistente]);
+                        }, 1000, false);
+
                         return this.flujos[indiceExistente];
                     })
                     .catch(response => {
