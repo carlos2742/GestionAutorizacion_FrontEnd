@@ -2,7 +2,7 @@ import findIndex from 'lodash/findIndex';
 import isNil from 'lodash/isNil';
 import isMatchWith from 'lodash/isMatchWith';
 import sortBy from 'lodash/sortBy';
-import filter from 'lodash/filter';
+import forEach from 'lodash/forEach';
 import map from 'lodash/map';
 import pick from 'lodash/pick';
 import clone from 'lodash/clone';
@@ -41,9 +41,10 @@ export default class EtiquetasService {
      * @param $q                        -  Servicio de Angular para utilizar Promesas
      * @param $http                     -  Servicio de Angular para hacer llamadas HTTP
      * @param ErroresValidacionMaestros -  Contiene los errores que pueden devolver las validaciones. Ver {@link ErroresValidacionMaestros}
+     * @param Mediator
      *
      **/
-    constructor($q, $http, ErroresValidacionMaestros) {
+    constructor($q, $http, ErroresValidacionMaestros, Mediator) {
         // Constantes del servicio
         /** @private */
         this.ENDPOINT = '/etiquetas';
@@ -54,9 +55,22 @@ export default class EtiquetasService {
         this.$http = $http;
         /** @private */
         this.ErroresValidacionMaestros = ErroresValidacionMaestros;
+        /** @private */
+        this.Mediator = Mediator;
 
         /** @type {Etiqueta[]} */
         this.etiquetas = [];
+
+        this.Mediator.subscribe('modulo:edicion', (data) => {
+            forEach(this.etiquetas, etiqueta => {
+                if (etiqueta.modulo.valor && etiqueta.modulo.valor.id === data.id) {
+                    etiqueta.modulo = {
+                        valor: data,
+                        display: data.nombre
+                    }
+                }
+            });
+        });
     }
 
     /**

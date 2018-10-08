@@ -33,10 +33,12 @@ export default class ModulosService {
     /**
      * @param $q                        -  Servicio de Angular para utilizar Promesas
      * @param $http                     -  Servicio de Angular para hacer llamadas HTTP
+     * @param $timeout                  -  Servicio de Angular para ejecutar código asíncrono
      * @param ErroresValidacionMaestros -  Contiene los errores que pueden devolver las validaciones. Ver {@link ErroresValidacionMaestros}
+     * @param Mediator
      *
      **/
-    constructor($q, $http, ErroresValidacionMaestros) {
+    constructor($q, $http, $timeout, ErroresValidacionMaestros, Mediator) {
         // Constantes del servicio
         /** @private */
         this.ENDPOINT = '/modulos';
@@ -46,7 +48,11 @@ export default class ModulosService {
         /** @private */
         this.$http = $http;
         /** @private */
+        this.$timeout = $timeout;
+        /** @private */
         this.ErroresValidacionMaestros = ErroresValidacionMaestros;
+        /** @private */
+        this.Mediator = Mediator;
 
         /** @type {Modulo[]} */
         this.modulos = [];
@@ -217,6 +223,12 @@ export default class ModulosService {
                 return this.$http.put(`${this.ENDPOINT}/${modulo.codigo}`, datosAEnviar)
                     .then(response => {
                         this.modulos[indiceExistente] = this.procesarEntidadRecibida(response.data);
+
+                        // Notifica a las entidades que contengan una referencia a este módulo que fue actualizado.
+                        this.$timeout(() => {
+                            this.Mediator.publish('modulo:edicion', this.modulos[indiceExistente]);
+                        }, 1000, false);
+
                         return this.modulos[indiceExistente];
                     })
                     .catch(response => {

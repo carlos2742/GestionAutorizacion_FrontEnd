@@ -6,6 +6,7 @@ import filter from 'lodash/filter';
 import map from 'lodash/map';
 import pick from 'lodash/pick';
 import clone from 'lodash/clone';
+import forEach from 'lodash/forEach';
 import get from 'lodash/get';
 
 import {
@@ -39,9 +40,10 @@ export default class FlujosService {
      * @param $q                        -  Servicio de Angular para utilizar Promesas
      * @param $http                     -  Servicio de Angular para hacer llamadas HTTP
      * @param ErroresValidacionMaestros -  Contiene los errores que pueden devolver las validaciones. Ver {@link ErroresValidacionMaestros}
+     * @param Mediator
      *
      **/
-    constructor($q, $http, ErroresValidacionMaestros) {
+    constructor($q, $http, ErroresValidacionMaestros, Mediator) {
         // Constantes del servicio
         /** @private */
         this.ENDPOINT = '/flujos';
@@ -52,9 +54,22 @@ export default class FlujosService {
         this.$http = $http;
         /** @private */
         this.ErroresValidacionMaestros = ErroresValidacionMaestros;
+        /** @private */
+        this.Mediator = Mediator;
 
         /** @type {Flujo[]} */
         this.flujos = [];
+
+        this.Mediator.subscribe('modulo:edicion', (data) => {
+            forEach(this.flujos, flujo => {
+               if (flujo.modulo.valor && flujo.modulo.valor.id === data.id) {
+                   flujo.modulo = {
+                       valor: data,
+                       display: data.nombre
+                   }
+               }
+            });
+        });
     }
 
     /**
