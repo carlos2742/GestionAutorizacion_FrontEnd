@@ -33,10 +33,11 @@ export default class Roles {
     /**
      * @param $q                        -  Servicio de Angular para utilizar Promesas
      * @param $http                     -  Servicio de Angular para hacer llamadas HTTP
-     * @param ErroresValidacionMaestros -  Contiene los errores que pueden devolver las validaciones. Ver {@link ErroresValidacionMaestros}
+     * @param $timeout                  -  Servicio de Angular para diferir ejecución de funciones.
+     * @param Mediator
      *
      **/
-    constructor($q, $http) {
+    constructor($q, $http, $timeout, Mediator) {
         // Constantes del servicio
         /** @private */
         this.ENDPOINT = '/roles';
@@ -45,6 +46,10 @@ export default class Roles {
         this.$q = $q;
         /** @private */
         this.$http = $http;
+        /** @private */
+        this.$timeout = $timeout;
+        /** @private */
+        this.Mediator = Mediator;
 
         /** @type {Rol[]} */
         this.roles = [];
@@ -178,6 +183,12 @@ export default class Roles {
                 return this.$http.put(`${this.ENDPOINT}/${rol.codigo}`, datosAEnviar)
                     .then(response => {
                         this.roles[indiceExistente] = this.procesarEntidadRecibida(response.data);
+
+                        // Notifica a las entidades que contengan una referencia a este rol que fue actualizado.
+                        this.$timeout(() => {
+                            this.Mediator.publish('rol:edicion', this.roles[indiceExistente]);
+                        }, 1000, false);
+
                         return this.roles[indiceExistente];
                     })
                     .catch(response => {
