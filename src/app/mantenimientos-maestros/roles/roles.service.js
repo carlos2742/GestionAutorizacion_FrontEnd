@@ -14,6 +14,9 @@ import {
 import {elementoRequeridoEsNulo, elementoYaExiste} from "../../common/validadores";
 
 
+export const EVENTO_ACTUALIZACION_ROL = 'rol:edicion';
+
+
 /* @ngInject */
 /**
  * Esta clase es un servicio de Angular donde se almacena la lista de todos los roles disponibles.
@@ -186,7 +189,7 @@ export default class Roles {
 
                         // Notifica a las entidades que contengan una referencia a este rol que fue actualizado.
                         this.$timeout(() => {
-                            this.Mediator.publish('rol:edicion', this.roles[indiceExistente]);
+                            this.Mediator.publish(EVENTO_ACTUALIZACION_ROL, this.roles[indiceExistente]);
                         }, 1000, false);
 
                         return this.roles[indiceExistente];

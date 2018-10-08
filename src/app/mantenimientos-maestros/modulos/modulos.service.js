@@ -14,6 +14,9 @@ import {
 import {elementoRequeridoEsNulo, elementoYaExiste} from "../../common/validadores";
 
 
+export const EVENTO_ACTUALIZACION_MODULO = 'modulo:edicion';
+
+
 /* @ngInject */
 /**
  * Esta clase es un servicio de Angular donde se almacena la lista de todos los módulos disponibles.
@@ -226,7 +229,7 @@ export default class ModulosService {
 
                         // Notifica a las entidades que contengan una referencia a este módulo que fue actualizado.
                         this.$timeout(() => {
-                            this.Mediator.publish('modulo:edicion', this.modulos[indiceExistente]);
+                            this.Mediator.publish(EVENTO_ACTUALIZACION_MODULO, this.modulos[indiceExistente]);
                         }, 1000, false);
 
                         return this.modulos[indiceExistente];

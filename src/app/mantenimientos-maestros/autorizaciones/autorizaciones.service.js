@@ -10,6 +10,7 @@ import format from 'date-fns/format';
 import assign from 'lodash/assign';
 import {elementoRequeridoEsNulo} from "../../common/validadores";
 
+export const EVENTO_ACTUALIZACION_AUTORIZACION = 'autorizacion:edicion';
 
 /* @ngInject */
 /**
@@ -356,7 +357,7 @@ export default class AutorizacionesService {
                         .then(resultado => {
                             // Notifica a las entidades que contengan una referencia a esta autorización que fue actualizada.
                             this.$timeout(() => {
-                                this.Mediator.publish('autorizacion:edicion', autorizacionEditada);
+                                this.Mediator.publish(EVENTO_ACTUALIZACION_AUTORIZACION, autorizacionEditada);
                             }, 1000, false);
 
                             return {autorizacion: autorizacionEditada, pagina: resultado.pagina, autorizacionesPagina: resultado.autorizacionesPagina};

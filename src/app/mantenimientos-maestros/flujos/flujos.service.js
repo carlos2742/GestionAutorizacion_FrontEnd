@@ -14,6 +14,10 @@ import {
     MANTENIMIENTO_MAESTRO_INACTIVO
 } from "../../common/constantes";
 import {elementoRequeridoEsNulo, elementoYaExiste} from "../../common/validadores";
+import {EVENTO_ACTUALIZACION_MODULO} from "../modulos/modulos.service";
+
+
+export const EVENTO_ACTUALIZACION_FLUJO = 'flujo:edicion';
 
 
 /* @ngInject */
@@ -63,7 +67,7 @@ export default class FlujosService {
         /** @type {Flujo[]} */
         this.flujos = [];
 
-        this.Mediator.subscribe('modulo:edicion', (data) => {
+        this.Mediator.subscribe(EVENTO_ACTUALIZACION_MODULO, (data) => {
             forEach(this.flujos, flujo => {
                if (flujo.modulo.valor && flujo.modulo.valor.id === data.id) {
                    flujo.modulo = {
@@ -264,7 +268,7 @@ export default class FlujosService {
 
                         // Notifica a las entidades que contengan una referencia a este flujo que fue actualizado.
                         this.$timeout(() => {
-                            this.Mediator.publish('flujo:edicion', this.flujos[indiceExistente]);
+                            this.Mediator.publish(EVENTO_ACTUALIZACION_FLUJO, this.flujos[indiceExistente]);
                         }, 1000, false);
 
                         return this.flujos[indiceExistente];

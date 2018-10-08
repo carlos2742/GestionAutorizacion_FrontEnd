@@ -14,6 +14,9 @@ import {
     MANTENIMIENTO_MAESTRO_INACTIVO
 } from "../../common/constantes";
 import {elementoRequeridoEsNulo, elementoYaExiste} from "../../common/validadores";
+import {EVENTO_ACTUALIZACION_MODULO} from "../modulos/modulos.service";
+
+export const EVENTO_ACTUALIZACION_ETIQUETA = 'etiqueta:edicion';
 
 
 /* @ngInject */
@@ -64,7 +67,7 @@ export default class EtiquetasService {
         /** @type {Etiqueta[]} */
         this.etiquetas = [];
 
-        this.Mediator.subscribe('modulo:edicion', (data) => {
+        this.Mediator.subscribe(EVENTO_ACTUALIZACION_MODULO, (data) => {
             forEach(this.etiquetas, etiqueta => {
                 if (etiqueta.modulo.valor && etiqueta.modulo.valor.id === data.id) {
                     etiqueta.modulo = {
@@ -278,7 +281,7 @@ export default class EtiquetasService {
 
                             // Notifica a las entidades que contengan una referencia a esta etiqueta que fue actualizada.
                             this.$timeout(() => {
-                                this.Mediator.publish('etiqueta:edicion', this.etiquetas[indiceExistente]);
+                                this.Mediator.publish(EVENTO_ACTUALIZACION_ETIQUETA, this.etiquetas[indiceExistente]);
                             }, 1000, false);
 
                             return this.etiquetas[indiceExistente];
