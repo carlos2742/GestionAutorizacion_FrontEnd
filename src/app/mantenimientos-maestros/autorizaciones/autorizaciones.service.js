@@ -41,9 +41,10 @@ export default class AutorizacionesService {
      * @param $http                     -  Servicio de Angular para hacer llamadas HTTP
      * @param ErroresValidacionMaestros
      * @param AppConfig                 -  Contiene la configuración del app.
+     * @param Mediator
      *
      **/
-    constructor($q, $http, ErroresValidacionMaestros, AppConfig) {
+    constructor($q, $http, $timeout, ErroresValidacionMaestros, AppConfig, Mediator) {
         // Constantes del servicio
         /** @private */
         this.ENDPOINT = '/autorizaciones';
@@ -53,9 +54,13 @@ export default class AutorizacionesService {
         /** @private */
         this.$http = $http;
         /** @private */
+        this.$timeout = $timeout;
+        /** @private */
         this.ErroresValidacionMaestros = ErroresValidacionMaestros;
         /** @private */
         this.AppConfig = AppConfig;
+        /** @private */
+        this.Mediator = Mediator;
 
         /** @type {Autorizacion[]} */
         this.autorizaciones = [];
@@ -345,6 +350,11 @@ export default class AutorizacionesService {
                             return this._posicionarAutorizacionCambiada(autorizacionEditada, paginaActual);
                         })
                         .then(resultado => {
+                            // Notifica a las entidades que contengan una referencia a esta autorización que fue actualizada.
+                            this.$timeout(() => {
+                                this.Mediator.publish('autorizacion:edicion', autorizacionEditada);
+                            }, 1000, false);
+
                             return {autorizacion: autorizacionEditada, pagina: resultado.pagina, autorizacionesPagina: resultado.autorizacionesPagina};
                         })
                         .catch(response => {
