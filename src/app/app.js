@@ -5,7 +5,8 @@ import ngMessages from 'angular-messages';
 import toastr from 'angular-toastr';
 import collapse from 'ui-bootstrap4/src/collapse';
 import dropdown from 'ui-bootstrap4/src/dropdown';
-import assign from'lodash/assign';
+import assign from 'lodash/assign';
+import Mediator from 'mediator-js';
 import 'whatwg-fetch';
 import 'promise-polyfill/src/polyfill';
 
@@ -66,6 +67,7 @@ angular.module(MODULE_NAME, [
 ])
     .controller('AppCtrl', AppCtrl)
     .constant('AppConfig', {})
+    .constant('Mediator', new Mediator())
     .config(($httpProvider, $sceProvider, $locationProvider, $routeProvider, $compileProvider, toastrConfig, AppConfig) => {
         assign(AppConfig, RESPUESTA_CONF);
 
