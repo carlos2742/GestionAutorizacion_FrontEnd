@@ -1,0 +1,147 @@
+<div class="peticiones">
+    <h1 class="titulo-centrado">Central de Autorizaciones</h1>
+
+    <div class="contenedor-busqueda col-xl-8 pl-0">
+        <uib-accordion>
+            <div uib-accordion-group class="mt-1 acordeon-evaluaciones" is-open="vm.busquedaVisible">
+                <uib-accordion-heading>Búsqueda
+                    <div class="chevron-container" uib-tooltip="{{ vm.busquedaVisible ? 'Ocultar' : 'Mostrar' }}" tooltip-placement="bottom-left">
+                        <span class="chevron down" ng-class="{'up': vm.busquedaVisible}"></span>
+                        <span class="chevron down" ng-class="{'up': vm.busquedaVisible}"></span>
+                    </div>
+                </uib-accordion-heading>
+
+                <form id="busquedaPeticionesForm" name="busquedaPeticionesForm" novalidate>
+                    <div class="form-row">
+                        <div class="form-group form-row col-lg">
+                            <label for="moduloBusqueda" class="col-sm-3 col-form-label">Módulo</label>
+                            <div class="col-sm-9">
+                                <select class="form-control" id="moduloBusqueda" name="modulo" ng-model="vm.paramsBusqueda.modulo"
+                                        ng-options="modulo.nombre for modulo in vm.modulos track by modulo.id">
+                                    <option></option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group col-lg form-row">
+                            <label for="flujoBusqueda" class="col-sm-3 col-form-label">Flujo</label>
+                            <div class="col-sm-9">
+                                <ui-select ng-model="vm.paramsBusqueda.flujo" name="flujo" input-id="flujoBusqueda" ng-animate-children="false">
+                                    <ui-select-match placeholder="Seleccione o busque un flujo">
+                                        <span ng-bind="$select.selected.evento"></span>
+                                    </ui-select-match>
+                                    <ui-select-choices repeat="flujo in vm.filtrarFlujos($select.search) track by flujo.id">
+                                        <span ng-bind-html="flujo.evento | highlight: $select.search"></span>
+                                    </ui-select-choices>
+                                    <ui-select-footer class="text-muted" >
+                                        <span ng-show="vm.mostrandoResultadosParcialesFlujos">Demasiados resultados, debe refinar la búsqueda</span>
+                                    </ui-select-footer>
+                                </ui-select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-lg form-row">
+                            <label for="solicitanteParaBusqueda" class="col-sm-3 col-form-label">Solicitante</label>
+                            <div class="col-sm-9">
+                                <ui-select ng-model="vm.paramsBusqueda.solicitante" name="solicitante" input-id="solicitanteParaBusqueda" ng-animate-children="false">
+                                    <ui-select-match placeholder="Seleccione o busque una persona">
+                                        <span ng-bind="$select.selected.apellidosNombre"></span>
+                                    </ui-select-match>
+                                    <ui-select-choices repeat="persona in vm.personas track by persona.codigo"
+                                                       refresh="vm.filtrarPersonas($select.search)" refresh-delay="1000">
+                                        <span ng-bind-html="persona.apellidosNombre | highlight: $select.search"></span>
+                                    </ui-select-choices>
+                                    <ui-select-footer class="text-muted" >
+                                        <span ng-show="vm.mostrandoResultadosParcialesPersonas">Demasiados resultados, debe refinar la búsqueda</span>
+                                        <span ng-show="vm.obteniendoPersonas">Buscando...</span>
+                                    </ui-select-footer>
+                                </ui-select>
+                            </div>
+                        </div>
+
+                        <div class="form-group form-row col-lg">
+                            <label for="estadoBusqueda" class="col-sm-3 col-form-label">Estado</label>
+                            <div class="col-sm-9">
+                                <select class="form-control" id="estadoBusqueda" name="estado" ng-model="vm.paramsBusqueda.estado"
+                                        ng-options="etiqueta.descripcion for etiqueta in vm.etiquetas track by etiqueta.id"
+                                        ng-disabled="!vm.paramsBusqueda.modulo">
+                                    <option></option>
+                                </select>
+                                <small class="text-muted">Para seleccionar un estado debe primero seleccionar un módulo.</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row mr-0 contenedor-botones">
+                        <button type="button" class="btn btn-primary" ng-click="vm.buscar()">
+                            <span class="icon-search"></span> Buscar
+                        </button>
+                        <button type="button" class="btn btn-secondary" ng-click="vm.mostrarTodos(busquedaPeticionesForm)">
+                            Limpiar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </uib-accordion>
+    </div>
+
+    <div class="contenedor-tabla mx-auto">
+        <div class="row">
+            <div class="col-xl-8 contenedor-botones">
+                <button type="button" class="btn btn-primary" ng-click="vm.actualizarPeticiones()">
+                    <span class="icon-spinner11"></span> Actualizar
+                </button>
+
+                <btn-exportar-excel propiedades=":: vm.columnasExcel"
+                                    datos="vm.datosAExportar"
+                                    fn-obtencion-datos="vm.obtenerDatosAExportar()"></btn-exportar-excel>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-xl-8">
+                <ge-tabla datos="vm.datos" presentacion="vm.presentacion" fila-seleccionada="vm.peticionSeleccionada"
+                          fn-seleccion="vm.mostrarInfoPeticion(entidad)"
+                          fn-cambio-orden="vm.actualizarOrden(orden)"></ge-tabla>
+
+                <ul uib-pagination
+                    class="justify-content-center"
+                    items-per-page=":: vm.ITEMS_POR_PAGINA"
+                    total-items="vm.totalItems"
+                    previous-text="&lsaquo;" next-text="&rsaquo;"
+                    boundary-link-numbers="true"
+                    max-size="5"
+                    ng-model="vm.paginaActual"
+                    ng-change=":: vm.actualizarPagina()"
+                    ng-show="vm.totalItems > vm.ITEMS_POR_PAGINA"></ul>
+            </div>
+
+            <div class="col-xl-4">
+                <div class="card detalles sticky-top">
+                    <div class="card-header">Detalles</div>
+                    <div class="card-body empty" ng-show="!vm.peticionSeleccionada">
+                        <p class="text-muted">Seleccione una petición para ver sus detalles.</p>
+                    </div>
+                    <div class="card-body" ng-show="vm.peticionSeleccionada">
+                        <div class="row">
+                            <label class="col-4 text-right">Observaciones</label>
+                            <div class="col-8">
+                                <textarea id="observacionesPeticion"
+                                          name="observaciones"
+                                          class="form-control"
+                                          rows="5"
+                                          ng-model="vm.peticionSeleccionada.observaciones"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-header" ng-show="vm.peticionSeleccionada">Historial de Autorizaciones</div>
+                    <div class="card-body" ng-if="vm.peticionSeleccionada">
+                        <ge-tabla datos="vm.historialAutorizaciones"
+                                  presentacion="vm.presentacionHistorialAutorizaciones"></ge-tabla>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

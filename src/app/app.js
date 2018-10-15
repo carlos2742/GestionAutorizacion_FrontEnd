@@ -13,6 +13,7 @@ import apiInterceptor from './common/api-interceptor';
 import personalModule from './common/personal';
 import permisosAdminModule from './permisos-admin';
 import mantenimientosMaestrosModule from './mantenimientos-maestros';
+import centralAutorizacionesModule from './central-autorizaciones';
 import homeModule from './home';
 
 import '../style/app.scss';
@@ -62,7 +63,8 @@ angular.module(MODULE_NAME, [
     personalModule.name,
     permisosAdminModule.name,
     mantenimientosMaestrosModule.name,
-    homeModule.name
+    homeModule.name,
+    centralAutorizacionesModule.name
 ])
     .controller('AppCtrl', AppCtrl)
     .constant('AppConfig', {})
@@ -124,6 +126,11 @@ angular.module(MODULE_NAME, [
             .when('/etiquetas', {
                 template: require('./mantenimientos-maestros/etiquetas/etiquetas.html'),
                 controller: 'EtiquetasController',
+                controllerAs: 'vm'
+            })
+            .when('/central-autorizaciones', {
+                template: require('./central-autorizaciones/peticiones/peticiones.html'),
+                controller: 'PeticionesController',
                 controllerAs: 'vm'
             })
             .when('/acceso-denegado', {

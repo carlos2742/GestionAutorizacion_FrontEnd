@@ -22,6 +22,13 @@ export const TEXTO_CAMBIOS_GUARDADOS = `<i class="icon-floppy-disk"></i> Cambios
 /** @type {string} */
 export const TITULO_CAMBIOS_GUARDADOS = 'Cambios guardados';
 
+/** @type {string} */
+export const AUTORIZACION_APROBADA = 'A';
+/** @type {string} */
+export const AUTORIZACION_PENDIENTE = 'P';
+/** @type {string} */
+export const AUTORIZACION_RECHAZADA = 'R';
+
 
 // Errores que puede devolver el backend
 /** @type {number} */
