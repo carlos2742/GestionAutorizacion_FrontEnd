@@ -33,6 +33,7 @@ export default class FlujosService {
      * @property {Object} estado                -  Determina si un flujo está activo o inactivo
      * @property {boolean} estado.activo
      * @property {string} estado.valor          -  Puede tener los valores 'A' (para activo), o 'I' (para inactivo).
+     * @property {number} cantidadAutorizaciones - Total de autorizaciones asociadas a este flujo.
      */
 
     /**
@@ -201,6 +202,7 @@ export default class FlujosService {
                 return this.$http.post(this.ENDPOINT, datosAEnviar)
             }).then(response => {
                 let nuevoFlujo = this.procesarEntidadRecibida(response.data, datosFlujo.modulo);
+                nuevoFlujo.cantidadAutorizaciones = 0;
                 this.flujos.push(nuevoFlujo);
                 return nuevoFlujo;
             });
@@ -242,7 +244,9 @@ export default class FlujosService {
                 datosAEnviar.estado = flujoEditado.estado.valor;
                 return this.$http.put(`${this.ENDPOINT}/${flujo.codigo}`, datosAEnviar)
                     .then(response => {
-                        this.flujos[indiceExistente] = this.procesarEntidadRecibida(response.data, modulo);
+                        const flujoEditado = this.procesarEntidadRecibida(response.data, modulo);
+                        flujoEditado.cantidadAutorizaciones = flujo.cantidadAutorizaciones;
+                        this.flujos[indiceExistente] = flujoEditado;
                         return this.flujos[indiceExistente];
                     })
                     .catch(response => {

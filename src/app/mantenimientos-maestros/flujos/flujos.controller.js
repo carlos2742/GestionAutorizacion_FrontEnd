@@ -69,6 +69,7 @@ export default class FlujosController {
                 {nombre: 'codigo', display: 'ID', ordenable: true},
                 {nombre: 'evento', display: 'Evento', ordenable: true},
                 {nombre: 'modulo.display', display: 'Módulo', ordenable: true},
+                {nombre: 'totalAutorizacionesConFormato', display: 'Total Autorizaciones', html: true, ordenable:'cantidadAutorizaciones'},
                 {nombre: 'observacionesInput', display: 'Observaciones', ancho: '250px', html: true},
                 {nombre: 'estadoToggle', display: 'Activo', ordenable: false, html: true, ancho:'100px'},
                 {nombre: 'enlaceAutorizaciones', display: '', ordenable: false, html: true, ancho: '40px'}
@@ -76,8 +77,8 @@ export default class FlujosController {
         };
 
         this.columnasExcel = {
-            titulos: ['ID', 'Evento', 'Módulo', 'Observaciones', 'Activo'],
-            campos: ['codigo', 'evento', 'modulo.display', 'observaciones', 'estado.activo']
+            titulos: ['ID', 'Evento', 'Módulo', 'Total Autorizaciones', 'Observaciones', 'Activo'],
+            campos: ['codigo', 'evento', 'modulo.display', 'cantidadAutorizaciones', 'observaciones', 'estado.activo']
         }
     }
 
@@ -90,6 +91,13 @@ export default class FlujosController {
      */
     _procesarEntidadVisualizacion(entidad) {
         let clon = clone(entidad);
+
+        if (entidad.cantidadAutorizaciones > 0) {
+            clon.totalAutorizacionesConFormato = entidad.cantidadAutorizaciones;
+        } else {
+            clon.totalAutorizacionesConFormato = `<span class="text-danger">${entidad.cantidadAutorizaciones || 0}</span>`;
+        }
+
         clon.estado = clone(entidad.estado);
         clon.estadoToggle = `<toggle ng-model="elemento.estado.activo" 
                                             ng-change="$ctrl.fnAccion({entidad: elemento})" on="Si" off="No" 
