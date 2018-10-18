@@ -55,7 +55,15 @@ export const ENTIDAD_NO_ELIMINABLE = -11;
 export const ELEMENTO_YA_ESTA_INACTIVO = -12;
 
 /** @type {number} */
+export const PETICION_NO_PENDIENTE = -13;
+
+/** @type {number} */
 export const FUNCION_ROL_NO_IMPLEMENTADA = -15;
 
 /** @type {number} */
 export const PROPIEDAD_NO_EDITABLE = -16;
+
+/** @type {number} */
+export const ACTUALIZACION_EN_BULTO_CON_ERRORES = -18;
+
+/** @type {number} */

@@ -20,15 +20,7 @@ export default class HomeController {
         this.$location = $location;
 
         if (!DEBUG_MODE) {
-            SesionService.obtenerUsuarioAutenticado()
-                .then(usuario => {
-                    if (usuario.esGestor) {
-                        // TODO Reemplazar por path real
-                        this.$location.path('/');
-                    } else {
-                        this.$location.path('/acceso-denegado');
-                    }
-                });
+            this.$location.path('/central-autorizaciones');
         }
     }
 

@@ -1,20 +1,27 @@
 import findIndex from 'lodash/findIndex';
 import find from 'lodash/find';
+import filter from 'lodash/filter';
+import includes from 'lodash/includes';
 import isNil from 'lodash/isNil';
 import isMatch from 'lodash/isMatch';
-import isMatchWith from 'lodash/isMatchWith';
+import assign from 'lodash/assign';
+import pick from 'lodash/pick';
 import fill from 'lodash/fill';
 import map from 'lodash/map';
 import forEach from 'lodash/forEach';
-import assign from 'lodash/assign';
 import reduce from 'lodash/reduce';
+import remove from 'lodash/remove';
 import orderBy from 'lodash/orderBy';
 import get from 'lodash/get';
 import format from 'date-fns/format';
 import {
-    AUTORIZACION_APROBADA, AUTORIZACION_PENDIENTE, AUTORIZACION_RECHAZADA, ETIQUETA_NOK_DESC,
-    ETIQUETA_OK_DESC
+    ACTUALIZACION_EN_BULTO_CON_ERRORES,
+    AUTORIZACION_APROBADA, AUTORIZACION_PENDIENTE, AUTORIZACION_RECHAZADA, ENTIDAD_NO_ELIMINABLE, ERROR_DE_RED,
+    ERROR_GENERAL,
+    ETIQUETA_NOK_DESC,
+    ETIQUETA_OK_DESC, PROPIEDAD_NO_EDITABLE
 } from "../../common/constantes";
+import {procesarFechaAEnviar} from "../../common/utiles";
 
 
 /* @ngInject */
@@ -67,6 +74,8 @@ export default class PeticionesService {
         // Constantes del servicio
         /** @private */
         this.ENDPOINT = '/peticiones';
+        this.ENDPOINT_APROBAR = `${this.ENDPOINT}/autorizar`;
+        this.ENDPOINT_RECHAZAR = `${this.ENDPOINT}/rechazar`;
 
         /** @private */
         this.$q = $q;
@@ -289,6 +298,163 @@ export default class PeticionesService {
             } else {
                 return this.$q.resolve(this.peticiones);
             }
+        }
+    }
+
+    aprobar(peticiones, aprobacionFinal, paginaActual) {
+        return this._cambiarEstadoPeticiones(peticiones, { forzarEstadoFinal: aprobacionFinal }, paginaActual, this.ENDPOINT_APROBAR);
+    }
+
+    rechazar(peticiones, paginaActual) {
+        return this._cambiarEstadoPeticiones(peticiones, {}, paginaActual, this.ENDPOINT_RECHAZAR);
+    }
+
+    /**
+     * Elimina una petición de la lista
+     *
+     * @param {Peticion} peticion
+     * @private
+     */
+    _eliminarEntidad(peticion) {
+        let indiceExistente = findIndex(this.peticiones, ['id', peticion.id]);
+        if (indiceExistente > -1) {
+            this.peticiones.splice(indiceExistente, 1);
+        }
+    }
+
+    /**
+     * Actualiza una petición existente. Sólo se llama al API si los datos de la petición cambiaron.
+     *
+     * @param {Peticion} peticion
+     * @return {Promise<Peticion>}    -  Se resuelve con la petición actualizada.
+     */
+    editar(peticion) {
+        let error;
+        const indicePeticionCambiada = findIndex(this.peticiones, ['id', peticion.id]);
+        if (indicePeticionCambiada < 0) {
+            return this.$q.reject();
+        }
+
+        const peticionCorrespondiente = this.peticiones[indicePeticionCambiada];
+        if (peticion.observaciones !== peticionCorrespondiente.observaciones) {
+            const datosAEnviar = {
+                'id': peticion.id,
+                'flujo': peticion.flujo.valor.id,
+                'estado': peticion.estado.valor,
+                'fechaNecesaria': procesarFechaAEnviar(peticion.fechaNecesaria.valor),
+                'observaciones': peticion.observaciones,
+                'solicitante': peticion.solicitante.valor.nInterno
+            };
+            return this.$http.put(`${this.ENDPOINT}/${peticion.id}`, datosAEnviar)
+                .then(response => {
+                    peticionCorrespondiente.observaciones = peticion.observaciones;
+                    return peticionCorrespondiente;
+                })
+                .catch(response => {
+                    error = response;
+
+                    // Si en el servidor no se encontró una entidad con este código, o ya no tiene permiso para editarla,
+                    // se quita de la lista local
+                    if (response && (response.status === 404 || response.status === 401) ) {
+                        this._eliminarEntidad(peticion);
+                    } else if (get(response, 'error.errorCode') === PROPIEDAD_NO_EDITABLE) {
+                        // Este error se da por problemas de sincronización, es necesario volver a pedir la petición
+                        return this.obtener(peticion.id);
+                    }
+                })
+                .then(peticion => {
+                    if (!error) {
+                        return peticion;
+                    } else {
+                        throw error;
+                    }
+                });
+        } else {
+            return this.$q.reject();
+        }
+    }
+
+    _cambiarEstadoPeticiones(peticiones, dataExtra, paginaActual, endpoint) {
+        const ids = map(peticiones, peticion => {
+            return peticion.id
+        });
+        let pagina = paginaActual;
+
+        const fnActualizarPeticionesLocales = (peticionesActualizadas) => {
+            const idsActualizados = map(peticionesActualizadas, peticion => {
+                return peticion.id
+            });
+
+            // Se verifica si hay una búsqueda activa o no
+            const filtroDefinido = find(this.filtrosBusqueda, filtro => {
+                return !isNil(filtro);
+            });
+            const busquedaActiva = !isNil(filtroDefinido);
+            const cantidadPeticiones = busquedaActiva ? this.resultadosBusqueda.length : this.peticiones.length;
+
+            // Si la lista de peticiones está paginada, se vuelve a pedir la página en la que estaba el usuario
+            if (cantidadPeticiones > this.AppConfig.elementosPorPagina) {
+                const fin = paginaActual * this.AppConfig.elementosPorPagina;
+                const inicio = fin - this.AppConfig.elementosPorPagina;
+                // Si es la última página y se aprobaron/rechazaron todos los elementos, hay que cambiar de página
+                if (inicio + peticionesActualizadas.length >= cantidadPeticiones && paginaActual > 1) {
+                    pagina = paginaActual - 1;
+                }
+                return this.obtenerTodos(pagina, undefined, undefined, true);
+            } else {
+                // Se eliminan de la lista de peticiones pendientes, porque ya este usuario no tiene que autorizarlas.
+                remove(this.peticiones, peticion => {
+                    return includes(idsActualizados, peticion.id);
+                });
+                // Se eliminan también de los resultados de búsqueda
+                remove(this.resultadosBusqueda, peticion => {
+                    return includes(idsActualizados, peticion.id);
+                });
+
+                return busquedaActiva ? this.resultadosBusqueda : this.peticiones;
+            }
+        };
+
+        if (ids.length > 0) {
+            let error = false;
+            let peticionesConError, peticionesExitosas = [];
+
+            return this.$http.post(endpoint, assign({}, {
+                ids
+            }, dataExtra)).then(response => {
+                return fnActualizarPeticionesLocales(peticiones);
+            }).catch(response => {
+                error = true;
+
+                if (get(response, 'error.errorCode') === ACTUALIZACION_EN_BULTO_CON_ERRORES) {
+                    peticionesConError = response.error.fallos;
+                    peticionesExitosas = response.error.exitos;
+                    const peticionesErrorNoRecuperable = filter(peticionesConError, fallo => {
+                        return ( (fallo.httpStatusCode === 500 && (fallo.errorCode !== ERROR_GENERAL && fallo.errorCode !== ERROR_DE_RED))
+                                    || fallo.httpStatusCode === 401 || fallo.httpStatusCode === 404);
+                    });
+
+                    return fnActualizarPeticionesLocales(peticionesExitosas.concat(peticionesErrorNoRecuperable));
+                } else {
+                    throw response;
+                }
+            }).then(peticionesLocales => {
+                if (!error) {
+                    return  {
+                        peticiones: peticionesLocales,
+                        pagina: paginaActual
+                    };
+                } else {
+                    throw {
+                        peticiones: peticionesLocales,
+                        peticionesExitosas,
+                        peticionesConError,
+                        pagina: paginaActual
+                    }
+                }
+            });
+        } else {
+            return this.$q.reject();
         }
     }
 

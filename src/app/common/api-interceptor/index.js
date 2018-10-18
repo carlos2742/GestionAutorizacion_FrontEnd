@@ -1,6 +1,7 @@
 import isNil from 'lodash/isNil';
 import isUndefined from 'lodash/isUndefined';
 import startsWith from 'lodash/startsWith';
+import includes from 'lodash/includes';
 
 import {ERROR_GENERAL, ERROR_DE_VALIDACION, ELEMENTO_YA_EXISTE} from "../constantes";
 
@@ -131,8 +132,10 @@ export default function apiInterceptor($rootScope, $q, $injector, $location, App
                     extendedTimeOut: 0
                 });
             } else if (rejection.status === 401|| rejection.status === 403) {
-                $location.path('/acceso-denegado');
-                return rejection;
+                if (!(includes(rejection.config.url, '/peticiones/') && rejection.config.method === "PUT")) {
+                    $location.path('/acceso-denegado');
+                    return rejection;
+                }
             } else if (rejection.status === 404 && startsWith(rejection.config.url, AppConfig.url)) {
                 toastr.warning('Lo sentimos, este elemento no fue encontrado en la base de datos');
             } else if (rejection.status === 500) {

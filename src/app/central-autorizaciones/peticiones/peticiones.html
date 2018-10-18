@@ -88,10 +88,21 @@
 
     <div class="contenedor-tabla mx-auto">
         <div class="row">
-            <div class="col-xl-8 contenedor-botones">
-                <button type="button" class="btn btn-primary" ng-click="vm.actualizarPeticiones()">
-                    <span class="icon-spinner11"></span> Actualizar
-                </button>
+            <div class="col-xl-8 contenedor-botones flex-column flex-lg-row">
+                <div class="d-flex flex-column flex-lg-row justify-content-between">
+                    <button type="button" class="btn btn-success mr-0 mr-lg-2" ng-click="vm.aprobarPeticiones()"
+                            ng-disabled="vm.peticionesSeleccionadas.length === 0 || vm.procesando">
+                        <span class="icon-checkmark"></span> Aprobar Seleccionadas
+                    </button>
+                    <button type="button" class="btn btn-danger mr-0 mr-lg-2" ng-click="vm.rechazarPeticiones()"
+                            ng-disabled="vm.peticionesSeleccionadas.length === 0 || vm.procesando">
+                        <span class="icon-cross"></span> Rechazar Seleccionadas
+                    </button>
+                    <button type="button" class="btn btn-primary" ng-click="vm.actualizarPeticiones()"
+                            ng-disabled="vm.procesando">
+                        <span class="icon-spinner11"></span> Actualizar
+                    </button>
+                </div>
 
                 <btn-exportar-excel propiedades=":: vm.columnasExcel"
                                     datos="vm.datosAExportar"
@@ -101,8 +112,17 @@
 
         <div class="row">
             <div class="col-xl-8">
+                <div class="d-flex align-items-center mb-3 mb-md-0">
+                    <input type="checkbox" id="seleccionarTodo" class="checkbox-visible mr-2 checkbox-seleccionar-todo" ng-model="vm.seleccionarTodos" ng-change="vm.cambiarSeleccion()"
+                    uib-tooltip="{{ vm.seleccionarTodos ? 'Limpiar selección' : 'Seleccionar todos' }}">
+                    <label class="form-check-label d-block d-md-none" for="seleccionarTodo">
+                        Seleccionar todas las filas
+                    </label>
+                </div>
+
                 <ge-tabla datos="vm.datos" presentacion="vm.presentacion" fila-seleccionada="vm.peticionSeleccionada"
                           fn-seleccion="vm.mostrarInfoPeticion(entidad)"
+                          fn-accion="vm.manejarAccion(entidad, accion)"
                           fn-cambio-orden="vm.actualizarOrden(orden)"></ge-tabla>
 
                 <ul uib-pagination
@@ -131,7 +151,9 @@
                                           name="observaciones"
                                           class="form-control"
                                           rows="5"
-                                          ng-model="vm.peticionSeleccionada.observaciones"></textarea>
+                                          ng-model="vm.peticionSeleccionada.observaciones"
+                                          ng-model-options="{ updateOn: 'blur' }"
+                                          ng-change="vm.guardarCambiosObservaciones()"></textarea>
                             </div>
                         </div>
                     </div>
@@ -145,3 +167,31 @@
         </div>
     </div>
 </div>
+
+<div id="modalConfirmacionAutorizacion"></div>
+
+<!-- Este es el modal para la confirmación antes de aprobar o rechazar una o varias peticiones -->
+<script type="text/ng-template" id="modalConfirmacionAutorizacion.html">
+    <div class="modal-header confirmacion-estado">
+        <h5 class="modal-title">Confirmación</h5>
+    </div>
+    <div class="modal-body confirmacion-estado" modal-async>
+        <p ng-if="peticiones.length === 1">
+            ¿Está seguro de que desea <strong ng-bind="accion"></strong> esta petición?
+        </p>
+        <p ng-if="peticiones.length > 1">
+            ¿Está seguro de que desea <strong ng-bind="accion"></strong> estas peticiones?
+        </p>
+        <div class="d-flex align-items-center" ng-if="usuarioEsGestor && accion==='aprobar'">
+            <input type="checkbox" id="aprobacionFinal" class="checkbox-visible" ng-model="estado.aprobacionFinal">
+            <label class="form-check-label label-estado-final" for="aprobacionFinal">
+                <span ng-if="peticiones.length === 1">Marcar esta petición como finalizada además de aprobada.</span>
+                <span ng-if="peticiones.length > 1">Marcar estas peticiones como finalizadas además de aprobadas.</span>
+            </label>
+        </div>
+    </div>
+    <div class="modal-footer confirmacion-eliminar">
+        <button class="btn btn-secondary" type="button" ng-click="$dismiss()">No</button>
+        <button class="btn btn-primary" type="button" ng-click="actualizarPeticion(estado.aprobacionFinal)" boton-async>Sí</button>
+    </div>
+</script>
