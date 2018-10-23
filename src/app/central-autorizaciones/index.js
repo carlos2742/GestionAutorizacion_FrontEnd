@@ -18,6 +18,9 @@ import mantenimientosMaestrosModule from '../mantenimientos-maestros/index';
 
 import PeticionesService from "./peticiones/peticiones.service";
 import PeticionesController from "./peticiones/peticiones.controller";
+import AdjuntosService from "./adjuntos/adjuntos.service";
+import ModalAdjuntosController from "./adjuntos/modal-adjuntos-controller";
+
 
 export default angular.module('central-autorizacion', [
     ngSanitize,
@@ -38,4 +41,17 @@ export default angular.module('central-autorizacion', [
     mantenimientosMaestrosModule.name
 ])
     .service('PeticionesService', PeticionesService)
-    .controller('PeticionesController', PeticionesController);
+    .controller('PeticionesController', PeticionesController)
+    .service('AdjuntosService', AdjuntosService)
+    .controller('ModalAdjuntosController', ModalAdjuntosController)
+
+    .config(($provide) => {
+        // Esto es necesario para que lo siguiente funcione:
+        // 1 - Añadir un adjunto,   2 - Seleccionar otro sin cerrar el modal,     3 - Añadir el mismo adjunto sin cerrar el modal
+        $provide.decorator('FileSelect', ['$delegate', (FileSelect) => {
+            FileSelect.prototype.isEmptyAfterSelection = () => {
+                return true
+            };
+            return FileSelect;
+        }]);
+    });

@@ -1,0 +1,23 @@
+<!-- Este es el modal para añadir/descargar adjuntos -->
+<div class="modal-header adjuntos">
+    <h5 class="modal-title">Adjuntos</h5>
+    <button type="button" class="close" aria-label="Close" ng-click=":: $modal.cancelar()">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+<div class="modal-body adjuntos">
+    <form id="adjuntoForm" name="adjuntoForm" ng-if=":: $modal.modoEdicion">
+        <label class="btn btn-primary">
+            <span class="icon-plus"></span> Añadir adjunto <input name="contenido" type="file" nv-file-select uploader="$modal.uploader" hidden>
+        </label>
+        <div class="progress" ng-show="$modal.uploader.isUploading">
+            <div class="progress-bar bg-success" role="progressbar" aria-valuenow="{{$modal.uploader.progress}}" aria-valuemin="0" aria-valuemax="100"
+                 ng-style="{ 'width': $modal.uploader.progress + '%' }" style="width: 100%;"></div>
+        </div>
+    </form>
+
+    <div class="contenedor-tabla">
+        <ge-tabla datos="$modal.adjuntos" presentacion=":: $modal.presentacion"
+                  fn-accion=":: $modal.ejecutarAccion(entidad, accion)"></ge-tabla>
+    </div>
+</div>

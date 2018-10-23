@@ -1,0 +1,29 @@
+
+#adjuntoForm {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    label.btn {
+        margin-bottom: 0;
+    }
+
+    .progress {
+        width: 100%;
+        margin-left: 24px;
+    }
+}
+
+.adjuntos div.contenedor-tabla {
+    margin-top: 24px;
+}
+
+.adjuntos {
+    &.modal-body {
+        padding: 1.5rem;
+    }
+
+    &.modal-footer {
+        padding: 1rem 1.5rem;
+    }
+}

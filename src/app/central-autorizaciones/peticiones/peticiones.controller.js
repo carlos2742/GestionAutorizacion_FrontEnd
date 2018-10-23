@@ -28,12 +28,13 @@ export default class PeticionesController {
      * @param $uibModal
      * @param toastr
      * @param {PeticionesService} PeticionesService
+     * @param {AdjuntosService} AdjuntosService
      * @param {ModulosService} ModulosService
      * @param {FlujosService} FlujosService
      * @param {PersonalService} PersonalService
      * @param AppConfig
      **/
-    constructor($scope, $q, $timeout, $uibModal, toastr, PeticionesService, ModulosService, FlujosService, EtiquetasService,
+    constructor($scope, $q, $timeout, $uibModal, toastr, PeticionesService, AdjuntosService, ModulosService, FlujosService, EtiquetasService,
                 PersonalService, SesionService, AppConfig) {
         /** @type {number} */
         this.ITEMS_POR_PAGINA = AppConfig.elementosPorPagina;
@@ -66,6 +67,8 @@ export default class PeticionesController {
         this.toastr = toastr;
         /** @private */
         this.peticionesService = PeticionesService;
+        /** @private */
+        this.adjuntosService = AdjuntosService;
         /** @private */
         this.personalService = PersonalService;
         /** @private */
@@ -107,7 +110,8 @@ export default class PeticionesController {
                 {nombre: 'flujo.display', display: 'Flujo', ordenable: 'flujo'},
                 {nombre: 'estado.display', display: 'Estado', ordenable: false},
                 {nombre: 'accionAprobar', display: '', html: true, ancho: '40px'},
-                {nombre: 'accionRechazar', display: '', html: true, ancho: '40px'}
+                {nombre: 'accionRechazar', display: '', html: true, ancho: '40px'},
+                {nombre: 'accionAdjuntos', display: '', html: true, ancho: '40px'}
             ]
         };
         this.presentacionHistorialAutorizaciones = {
@@ -199,6 +203,9 @@ export default class PeticionesController {
         clon.accionRechazar = `<a href="" ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'rechazar'})" uib-tooltip="Rechazar">
                                 <span class="icon-cross text-danger"></span>
                                </a>`;
+        clon.accionAdjuntos =  `<a href ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'adjuntos'})"
+                                   class="icon-attachment" uib-tooltip="Adjuntos">
+                                </a>`;
 
         return clon;
     }
@@ -475,7 +482,11 @@ export default class PeticionesController {
     }
 
     manejarAccion(entidad, accion) {
-        return this._cambiarEstado([entidad], accion);
+        if (accion === 'aprobar' || accion === 'rechazar') {
+            return this._cambiarEstado([entidad], accion);
+        } else if (accion === 'adjuntos') {
+            return this.mostrarPopupAdjuntos(entidad);
+        }
     }
 
     _cambiarEstado(peticiones, accion) {
@@ -619,6 +630,22 @@ export default class PeticionesController {
                     } else {
                         this.actualizacionEnProgreso = false;
                     }
+                }
+            });
+    }
+
+    /**
+     * Muestra el modal que contiene la lista de adjuntos vinculados a una petición determinada.
+     * @param {Peticion} entidad
+     */
+    mostrarPopupAdjuntos(entidad) {
+        const contenedor = angular.element(document.getElementById("modalAdjuntosPeticion"));
+        this.adjuntosService.mostrar(entidad, { contenedor, modoEdicion: true })
+            .then(adjuntos => {
+                if (!isNil(adjuntos)) {
+                    entidad.adjuntos = adjuntos;
+                } else {
+                    this.actualizarPagina();
                 }
             });
     }

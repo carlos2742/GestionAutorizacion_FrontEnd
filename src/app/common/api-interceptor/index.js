@@ -132,7 +132,8 @@ export default function apiInterceptor($rootScope, $q, $injector, $location, App
                     extendedTimeOut: 0
                 });
             } else if (rejection.status === 401|| rejection.status === 403) {
-                if (!(includes(rejection.config.url, '/peticiones/') && rejection.config.method === "PUT")) {
+                if (!(includes(rejection.config.url, '/peticiones/') && rejection.config.method === "PUT")
+                    && !includes(rejection.config.url, '/peticiones_adjuntos')) {
                     $location.path('/acceso-denegado');
                     return rejection;
                 }

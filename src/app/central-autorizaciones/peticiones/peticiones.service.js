@@ -60,6 +60,8 @@ export default class PeticionesService {
      * @property {Date} autorizaciones[0].fecha.valor            -  Su valor actual.
      * @property {string} autorizaciones[0].fecha.display        -  Cómo debe representarse esta fecha.
      *
+     * @property {Adjunto[]} adjuntos                -  Lista de adjuntos de la petición.
+     *
      */
 
     /**
@@ -313,9 +315,8 @@ export default class PeticionesService {
      * Elimina una petición de la lista
      *
      * @param {Peticion} peticion
-     * @private
      */
-    _eliminarEntidad(peticion) {
+    eliminarEntidad(peticion) {
         let indiceExistente = findIndex(this.peticiones, ['id', peticion.id]);
         if (indiceExistente > -1) {
             this.peticiones.splice(indiceExistente, 1);
@@ -356,7 +357,7 @@ export default class PeticionesService {
                     // Si en el servidor no se encontró una entidad con este código, o ya no tiene permiso para editarla,
                     // se quita de la lista local
                     if (response && (response.status === 404 || response.status === 401) ) {
-                        this._eliminarEntidad(peticion);
+                        this.eliminarEntidad(peticion);
                     } else if (get(response, 'error.errorCode') === PROPIEDAD_NO_EDITABLE) {
                         // Este error se da por problemas de sincronización, es necesario volver a pedir la petición
                         return this.obtener(peticion.id);
