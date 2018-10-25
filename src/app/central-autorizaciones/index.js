@@ -7,7 +7,8 @@ import timepicker from 'ui-bootstrap4/src/timepicker';
 import uiSelect from "ui-select";
 import readMore from "angular-read-more";
 
-import "angular-file-upload";
+import 'angular-file-upload';
+import scrollGlue from 'angularjs-scroll-glue';
 
 import geTablaModule from '../common/ge-tabla/index';
 import botonAsyncModule from '../common/boton-async/index';
@@ -20,6 +21,8 @@ import PeticionesService from "./peticiones/peticiones.service";
 import PeticionesController from "./peticiones/peticiones.controller";
 import AdjuntosService from "./adjuntos/adjuntos.service";
 import ModalAdjuntosController from "./adjuntos/modal-adjuntos-controller";
+import MensajesService from "./mensajes/mensajes.service";
+import ModalMensajesController from "./mensajes/modal-mensajes.controller";
 
 
 export default angular.module('central-autorizacion', [
@@ -30,6 +33,7 @@ export default angular.module('central-autorizacion', [
     timepicker,
     uiSelect,
     readMore,
+    scrollGlue,
     'angularFileUpload',
 
     geTablaModule.name,
@@ -44,6 +48,8 @@ export default angular.module('central-autorizacion', [
     .controller('PeticionesController', PeticionesController)
     .service('AdjuntosService', AdjuntosService)
     .controller('ModalAdjuntosController', ModalAdjuntosController)
+    .service('MensajesService', MensajesService)
+    .controller('ModalMensajesController', ModalMensajesController)
 
     .config(($provide) => {
         // Esto es necesario para que lo siguiente funcione:

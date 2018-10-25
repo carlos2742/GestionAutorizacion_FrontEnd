@@ -29,13 +29,14 @@ export default class PeticionesController {
      * @param toastr
      * @param {PeticionesService} PeticionesService
      * @param {AdjuntosService} AdjuntosService
+     * @param {MensajesService} MensajesService
      * @param {ModulosService} ModulosService
      * @param {FlujosService} FlujosService
      * @param {PersonalService} PersonalService
      * @param AppConfig
      **/
-    constructor($scope, $q, $timeout, $uibModal, toastr, PeticionesService, AdjuntosService, ModulosService, FlujosService, EtiquetasService,
-                PersonalService, SesionService, AppConfig) {
+    constructor($scope, $q, $timeout, $uibModal, toastr, PeticionesService, AdjuntosService, MensajesService,
+                ModulosService, FlujosService, EtiquetasService, PersonalService, SesionService, AppConfig) {
         /** @type {number} */
         this.ITEMS_POR_PAGINA = AppConfig.elementosPorPagina;
         /** @private */
@@ -69,6 +70,8 @@ export default class PeticionesController {
         this.peticionesService = PeticionesService;
         /** @private */
         this.adjuntosService = AdjuntosService;
+        /** @private */
+        this.mensajesService = MensajesService;
         /** @private */
         this.personalService = PersonalService;
         /** @private */
@@ -111,7 +114,8 @@ export default class PeticionesController {
                 {nombre: 'estado.display', display: 'Estado', ordenable: false},
                 {nombre: 'accionAprobar', display: '', html: true, ancho: '40px'},
                 {nombre: 'accionRechazar', display: '', html: true, ancho: '40px'},
-                {nombre: 'accionAdjuntos', display: '', html: true, ancho: '40px'}
+                {nombre: 'accionAdjuntos', display: '', html: true, ancho: '40px'},
+                {nombre: 'accionMensajes', display: '', html: true, ancho: '40px'}
             ]
         };
         this.presentacionHistorialAutorizaciones = {
@@ -205,6 +209,9 @@ export default class PeticionesController {
                                </a>`;
         clon.accionAdjuntos =  `<a href ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'adjuntos'})"
                                    class="icon-attachment" uib-tooltip="Adjuntos">
+                                </a>`;
+        clon.accionMensajes =  `<a href ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'mensajes'})"
+                                   class="icon-bubbles4" uib-tooltip="Conversación">
                                 </a>`;
 
         return clon;
@@ -486,6 +493,8 @@ export default class PeticionesController {
             return this._cambiarEstado([entidad], accion);
         } else if (accion === 'adjuntos') {
             return this.mostrarPopupAdjuntos(entidad);
+        } else if (accion === 'mensajes') {
+            return this.mostrarPopupMensajes(entidad);
         }
     }
 
@@ -645,6 +654,22 @@ export default class PeticionesController {
                 if (!isNil(adjuntos)) {
                     entidad.adjuntos = adjuntos;
                 } else {
+                    this.actualizarPagina();
+                }
+            });
+    }
+
+    /**
+     * Muestra el modal que contiene la lista de mensajes vinculados a una petición determinada.
+     * @param {Peticion} entidad
+     */
+    mostrarPopupMensajes(entidad) {
+        const contenedor = angular.element(document.getElementById("modalMensajesPeticion"));
+        this.mensajesService.mostrar(entidad, { contenedor })
+            .then(mensajes => {
+                // Si no se devuelve la lista de mensajes cuando se cierra el modal, es porque se produjo algún error
+                // y es necesario actualizar la lista de peticiones.
+                if (isNil(mensajes)) {
                     this.actualizarPagina();
                 }
             });

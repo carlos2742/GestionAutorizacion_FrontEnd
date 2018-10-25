@@ -1,0 +1,82 @@
+@import "../../../style/variables";
+
+
+.contenedor-mensajes {
+    height: 400px;
+    background-color: $gray-100;
+    margin-bottom: 16px;
+    border-radius: 8px;
+    padding: 8px;
+    overflow-y: scroll;
+
+    .separador-fecha {
+        color: $gray-600;
+        font-size: 12px;
+        text-align: center;
+        margin-bottom: 8px;
+    }
+
+    .mensaje {
+        > div {
+            display: inline-block;
+            padding: 8px 8px 0 8px;
+            border-radius: 8px;
+            margin: 0 0 8px 0;
+        }
+    }
+
+    span.enviado-por {
+        font-size: 11px;
+        display: inline-block;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+
+    span.hora {
+        color: $gray-600;
+        font-size: 12px;
+        display: inline-block;
+        width: 100%;
+        text-align: right;
+    }
+
+    .mensaje.recibido {
+        > div {
+            margin-right: 8px;
+            background-color: #e0f7fa;
+        }
+    }
+
+    .mensaje.enviado {
+        text-align: right;
+
+        > div {
+            text-align: left;
+            margin-left: 8px;
+            background-color: #e0e0e0;
+        }
+    }
+}
+
+.contenedor-envio form {
+    display: flex;
+    flex-direction: row;
+
+    textarea {
+        min-height: 40px;
+        margin-right: 6px !important;
+        margin-bottom: 0 !important;
+    }
+
+    .btn-enviar {
+        border-radius: 50px;
+        line-height: 1;
+        padding: 0 8px;
+        height: 40px;
+
+        i {
+            font-size: 20px;
+            margin-left: 4px;
+        }
+    }
+}
