@@ -103,7 +103,6 @@ export default class FlujosController {
                                             ng-change="$ctrl.fnAccion({entidad: elemento})" on="Si" off="No" 
                                             onstyle="btn-success" offstyle="btn-secondary"></toggle>`;
         clon.observacionesInput = `<textarea rows="3" 
-                                            placeholder="Observaciones" 
                                             disabled
                                             style="width: 100%;">${!isNil(entidad.observaciones) ? entidad.observaciones : ''}</textarea>`;
 

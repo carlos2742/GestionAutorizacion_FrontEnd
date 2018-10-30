@@ -1,10 +1,13 @@
 import angular from 'angular';
 import clone from 'lodash/clone';
+import cloneDeep from 'lodash/cloneDeep';
 import map from 'lodash/map';
 import sortBy from 'lodash/sortBy';
+import isNil from 'lodash/isNil';
 import get from 'lodash/get';
 
 import './roles.scss';
+import template from './modal-edicion-roles.html';
 import {FUNCION_ROL_NO_IMPLEMENTADA} from "../../common/constantes";
 
 /* @ngInject */
@@ -40,13 +43,15 @@ export default class RolesController {
             columnas: [
                 {nombre: 'codigo', display: 'ID', ordenable: true},
                 {nombre: 'nombre', display: 'Nombre', ordenable: true},
+                {nombre: 'nombreProcedimiento', display: 'Procedimiento', ordenable: true},
+                {nombre: 'observacionesInput', display: 'Observaciones', ancho: '250px', html: true},
                 {nombre: 'estadoToggle', display: 'Activo', ordenable: false, html: true, ancho:'100px'}
             ]
         };
 
         this.columnasExcel = {
-            titulos: ['ID', 'Nombre', 'Activo'],
-            campos: ['codigo', 'nombre', 'estado.activo']
+            titulos: ['ID', 'Nombre', 'Procedimiento', 'Observaciones', 'Activo'],
+            campos: ['codigo', 'nombre', 'nombreProcedimiento', 'observaciones', 'estado.activo']
         }
     }
 
@@ -63,6 +68,9 @@ export default class RolesController {
         clon.estadoToggle = `<toggle ng-model="elemento.estado.activo" 
                                             ng-change="$ctrl.fnAccion({entidad: elemento})" on="Si" off="No" 
                                             onstyle="btn-success" offstyle="btn-secondary"></toggle>`;
+        clon.observacionesInput = `<textarea rows="3" 
+                                            disabled
+                                            style="width: 100%;">${!isNil(entidad.observaciones) ? entidad.observaciones : ''}</textarea>`;
 
         return clon;
     }
@@ -92,5 +100,41 @@ export default class RolesController {
                 entidad.estado.activo =  !entidad.estado.activo;
             }
         });
+    }
+
+    /**
+     * Abre el modal que se utiliza para crear/editar un rol. Cuando se termina de trabajar con el rol,
+     * actualiza o crea una fila correspondiente en la tabla.
+     *
+     * @param {Rol} [rol]   Si no se pasa un rol, el modal se abre en modo de creación.
+     */
+    mostrarModalRol(rol) {
+        const contenedor = angular.element(document.getElementById("modalEdicionRol"));
+        const modal = this.$uibModal.open({
+            template,
+            appendTo: contenedor,
+            size: 'dialog-centered',    // hack para que el modal salga centrado verticalmente
+            controller: 'ModalEdicionRolesController',
+            controllerAs: '$modal',
+            resolve: {
+                // Los elementos que se inyectan al controlador del modal se deben pasar de esta forma:
+                entidad: () => { return rol },
+                entidadesExistentes: () => { return this.datos }
+            }
+        });
+
+        modal.result.then((resultado) => {
+            this.datos = map(this.rolesService.roles, entidad => { return this._procesarEntidadVisualizacion(entidad) });
+        });
+        modal.result.catch(() => { });
+    }
+
+    /**
+     * Edita los datos de un rol.
+     * @param {Rol} rol
+     */
+    editarRol(rol) {
+        let clon = cloneDeep(rol);
+        this.mostrarModalRol(clon);
     }
 }

@@ -185,16 +185,9 @@
         <p ng-if="peticiones.length > 1">
             ¿Está seguro de que desea <strong ng-bind="accion"></strong> estas peticiones?
         </p>
-        <div class="d-flex align-items-center" ng-if="usuarioEsGestor && accion==='aprobar'">
-            <input type="checkbox" id="aprobacionFinal" class="checkbox-visible" ng-model="estado.aprobacionFinal">
-            <label class="form-check-label label-estado-final" for="aprobacionFinal">
-                <span ng-if="peticiones.length === 1">Marcar esta petición como finalizada además de aprobada.</span>
-                <span ng-if="peticiones.length > 1">Marcar estas peticiones como finalizadas además de aprobadas.</span>
-            </label>
-        </div>
     </div>
     <div class="modal-footer confirmacion-eliminar">
         <button class="btn btn-secondary" type="button" ng-click="$dismiss()">No</button>
-        <button class="btn btn-primary" type="button" ng-click="actualizarPeticion(estado.aprobacionFinal)" boton-async>Sí</button>
+        <button class="btn btn-primary" type="button" ng-click="actualizarPeticion()" boton-async>Sí</button>
     </div>
 </script>

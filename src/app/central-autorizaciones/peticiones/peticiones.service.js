@@ -41,6 +41,7 @@ export default class PeticionesService {
      * @property {Flujo} solicitante.valor          -  Su valor actual.
      * @property {string} solicitante.display       -  Cómo debe ser representado.
      * @property {string} observaciones             -  Observaciones.
+     * @property {string} observaciones             -  Observaciones.
      * @property {string} estadoInterno             -  Estado final de la petición.
      * @property {Object} estado                    -  Estado actual de la petición.
      * @property {Object} estado.valor              -  Su valor actual.
@@ -60,7 +61,10 @@ export default class PeticionesService {
      * @property {Date} autorizaciones[0].fecha.valor            -  Su valor actual.
      * @property {string} autorizaciones[0].fecha.display        -  Cómo debe representarse esta fecha.
      *
-     * @property {Adjunto[]} adjuntos                -  Lista de adjuntos de la petición.
+     * @property {Adjunto[]} adjuntos                            -  Lista de adjuntos de la petición.
+     *
+     * @property {number} cantidadAutorizacionesCompletadas      -  Número de autorizaciones realizadas para la petición.
+     * @property {number} cantidadAutorizacionesTotales          -  Número total de autorizaciones requeridas por la petición.
      *
      */
 
@@ -69,10 +73,11 @@ export default class PeticionesService {
      * @param $http                     -  Servicio de Angular para hacer llamadas HTTP
      * @param EtiquetasService
      * @param PersonalService
+     * @param SesionService
      * @param AppConfig                 -  Contiene la configuración del app.
      *
      **/
-    constructor($q, $http, EtiquetasService, PersonalService, AppConfig) {
+    constructor($q, $http, EtiquetasService, PersonalService, SesionService, AppConfig) {
         // Constantes del servicio
         /** @private */
         this.ENDPOINT = '/peticiones';
@@ -99,6 +104,12 @@ export default class PeticionesService {
         this.ordenActivo = null;
         /** @private */
         this.filtrosBusqueda = null;
+
+        SesionService.obtenerUsuarioAutenticado()
+            .then(usuario => {
+                /** @private */
+                this.usuario = usuario;
+            });
     }
 
     reiniciarEstado() {
@@ -167,13 +178,15 @@ export default class PeticionesService {
                     display: descripcion
                 };
             } else if (prop === 'autorizaciones') {
-                peticionProcesada[prop] = map(entidad[prop], autorizacion => {
-                    return this._procesarAutorizacion(autorizacion);
+                peticionProcesada[prop] = map(entidad[prop], (autorizacion, indice) => {
+                    return this._procesarAutorizacion(autorizacion, indice, entidad.cantidadAutorizacionesTotales);
                 })
             } else {
                 peticionProcesada[prop] = entidad[prop];
             }
         }
+
+        peticionProcesada.displayOrden = `Aut. ${entidad.cantidadAutorizacionesCompletadas+1}/${entidad.cantidadAutorizacionesTotales}`;
 
         peticionProcesada.editable = false;
         peticionProcesada.eliminable = false;
@@ -181,7 +194,7 @@ export default class PeticionesService {
         return peticionProcesada;
     }
 
-    _procesarAutorizacion(autorizacion) {
+    _procesarAutorizacion(autorizacion, indice, totalAutorizaciones) {
         let autorizacionProcesada = {
             codigo: autorizacion.autorizacion
         };
@@ -206,6 +219,8 @@ export default class PeticionesService {
             } else {
                 autorizacionProcesada[prop] = autorizacion[prop];
             }
+
+            autorizacionProcesada.displayOrden = `Aut. ${indice+1}/${totalAutorizaciones}`;
         }
         return autorizacionProcesada;
     }
@@ -303,12 +318,137 @@ export default class PeticionesService {
         }
     }
 
-    aprobar(peticiones, aprobacionFinal, paginaActual) {
-        return this._cambiarEstadoPeticiones(peticiones, { forzarEstadoFinal: aprobacionFinal }, paginaActual, this.ENDPOINT_APROBAR);
+    aprobar(peticiones, paginaActual) {
+        const fnActualizacion = (peticionesActualizadas) => {
+            let pagina = paginaActual;
+
+            // Se verifica si hay una búsqueda activa o no
+            const filtroDefinido = find(this.filtrosBusqueda, filtro => {
+                return !isNil(filtro);
+            });
+            const busquedaActiva = !isNil(filtroDefinido);
+            const cantidadPeticiones = busquedaActiva ? this.resultadosBusqueda.length : this.peticiones.length;
+
+            if (!this.usuario.esGestor || cantidadPeticiones > this.AppConfig.elementosPorPagina) {
+                const fin = paginaActual * this.AppConfig.elementosPorPagina;
+                const inicio = fin - this.AppConfig.elementosPorPagina;
+                // Si es la última página y se aprobaron/rechazaron todos los elementos, hay que cambiar de página
+                if (inicio + peticionesActualizadas.length >= cantidadPeticiones && paginaActual > 1) {
+                    //Se comprueba si todas las peticiones ya están en su aprobación final
+                    const peticionesFinales = filter(peticionesActualizadas, peticion => {
+                        return peticion.cantidadAutorizacionesTotales === peticion.cantidadAutorizacionesCompletadas + 1
+                                || !isNil(peticion.errorCode);
+                    });
+
+                    if (peticionesFinales.length === peticionesActualizadas.length) {
+                        pagina = paginaActual - 1;
+                    }
+                }
+
+                return this.obtenerTodos(pagina, undefined, undefined, true)
+                    .then(peticionesPagina => {
+                        return {
+                            peticiones: peticionesPagina,
+                            pagina
+                        }
+                    });
+            } else {
+                // Se eliminan de la lista de peticiones las que ya no tienen más autorizaciones pendientes
+                remove(this.peticiones, peticion => {
+                    const indiceCoincidencia = findIndex(peticionesActualizadas, ['id', peticion.id]);
+                    if (indiceCoincidencia > -1) {
+                        return !isNil(peticionesActualizadas[indiceCoincidencia].errorCode) || peticion.cantidadAutorizacionesTotales === peticion.cantidadAutorizacionesCompletadas + 1;
+                    }
+                    return false;
+                });
+                // Se eliminan también de los resultados de búsqueda
+                remove(this.resultadosBusqueda, peticion => {
+                    const indiceCoincidencia = findIndex(peticionesActualizadas, ['id', peticion.id]);
+                    if (indiceCoincidencia > -1) {
+                        return !isNil(peticionesActualizadas[indiceCoincidencia].errorCode) || peticion.cantidadAutorizacionesTotales === peticion.cantidadAutorizacionesCompletadas + 1;
+                    }
+                    return false;
+                });
+
+                // Se actualizan las peticiones que quedan
+                const idsActualizados = map(peticionesActualizadas, peticion => {
+                    return peticion.id
+                });
+                const peticionesCambiadas = filter(busquedaActiva ? this.resultadosBusqueda : this.peticiones, peticion => {
+                    return includes(idsActualizados, peticion.id);
+                });
+                forEach(peticionesCambiadas, peticion => {
+                    peticion.autorizaciones.push(this._procesarAutorizacion({
+                        autorizacion: peticion.cantidadAutorizacionesCompletadas + 1,
+                        autorizador: this.usuario,
+                        estado: AUTORIZACION_APROBADA,
+                        fecha: new Date().toISOString().replace('Z', '')
+                    }, peticion.cantidadAutorizacionesCompletadas, peticion.cantidadAutorizacionesTotales));
+
+                    peticion.cantidadAutorizacionesCompletadas++;
+                    peticion.displayOrden = `Aut. ${peticion.cantidadAutorizacionesCompletadas+1}/${peticion.cantidadAutorizacionesTotales}`;
+                });
+
+                const peticionesPagina = busquedaActiva ? this.resultadosBusqueda : this.peticiones;
+                return {
+                    peticiones: peticionesPagina,
+                    pagina
+                }
+            }
+        };
+
+        return this._cambiarEstadoPeticiones(peticiones, {}, paginaActual, this.ENDPOINT_APROBAR, fnActualizacion);
     }
 
     rechazar(peticiones, paginaActual) {
-        return this._cambiarEstadoPeticiones(peticiones, {}, paginaActual, this.ENDPOINT_RECHAZAR);
+        const fnActualizacion = (peticionesActualizadas) => {
+            let pagina = paginaActual;
+
+            const idsActualizados = map(peticionesActualizadas, peticion => {
+                return peticion.id
+            });
+
+            // Se verifica si hay una búsqueda activa o no
+            const filtroDefinido = find(this.filtrosBusqueda, filtro => {
+                return !isNil(filtro);
+            });
+            const busquedaActiva = !isNil(filtroDefinido);
+            const cantidadPeticiones = busquedaActiva ? this.resultadosBusqueda.length : this.peticiones.length;
+
+            // Si la lista de peticiones está paginada, se vuelve a pedir la página en la que estaba el usuario
+            if (cantidadPeticiones > this.AppConfig.elementosPorPagina) {
+                const fin = paginaActual * this.AppConfig.elementosPorPagina;
+                const inicio = fin - this.AppConfig.elementosPorPagina;
+                // Si es la última página y se aprobaron/rechazaron todos los elementos, hay que cambiar de página
+                if (inicio + peticionesActualizadas.length >= cantidadPeticiones && paginaActual > 1) {
+                    pagina = paginaActual - 1;
+                }
+                return this.obtenerTodos(pagina, undefined, undefined, true)
+                    .then(peticionesPagina => {
+                        return {
+                            peticiones: peticionesPagina,
+                            pagina
+                        }
+                    });
+            } else {
+                // Se eliminan de la lista de peticiones pendientes, porque ya este usuario no tiene que autorizarlas.
+                remove(this.peticiones, peticion => {
+                    return includes(idsActualizados, peticion.id);
+                });
+                // Se eliminan también de los resultados de búsqueda
+                remove(this.resultadosBusqueda, peticion => {
+                    return includes(idsActualizados, peticion.id);
+                });
+
+                const peticionesPagina = busquedaActiva ? this.resultadosBusqueda : this.peticiones;
+                return {
+                    peticiones: peticionesPagina,
+                    pagina
+                }
+            }
+        };
+
+        return this._cambiarEstadoPeticiones(peticiones, {}, paginaActual, this.ENDPOINT_RECHAZAR, fnActualizacion);
     }
 
     /**
@@ -375,85 +515,47 @@ export default class PeticionesService {
         }
     }
 
-    _cambiarEstadoPeticiones(peticiones, dataExtra, paginaActual, endpoint) {
+    _cambiarEstadoPeticiones(peticiones, dataExtra, paginaActual, endpoint, fnActualizacion) {
         const ids = map(peticiones, peticion => {
             return peticion.id
         });
-        let pagina = paginaActual;
-
-        const fnActualizarPeticionesLocales = (peticionesActualizadas) => {
-            const idsActualizados = map(peticionesActualizadas, peticion => {
-                return peticion.id
-            });
-
-            // Se verifica si hay una búsqueda activa o no
-            const filtroDefinido = find(this.filtrosBusqueda, filtro => {
-                return !isNil(filtro);
-            });
-            const busquedaActiva = !isNil(filtroDefinido);
-            const cantidadPeticiones = busquedaActiva ? this.resultadosBusqueda.length : this.peticiones.length;
-
-            // Si la lista de peticiones está paginada, se vuelve a pedir la página en la que estaba el usuario
-            if (cantidadPeticiones > this.AppConfig.elementosPorPagina) {
-                const fin = paginaActual * this.AppConfig.elementosPorPagina;
-                const inicio = fin - this.AppConfig.elementosPorPagina;
-                // Si es la última página y se aprobaron/rechazaron todos los elementos, hay que cambiar de página
-                if (inicio + peticionesActualizadas.length >= cantidadPeticiones && paginaActual > 1) {
-                    pagina = paginaActual - 1;
-                }
-                return this.obtenerTodos(pagina, undefined, undefined, true);
-            } else {
-                // Se eliminan de la lista de peticiones pendientes, porque ya este usuario no tiene que autorizarlas.
-                remove(this.peticiones, peticion => {
-                    return includes(idsActualizados, peticion.id);
-                });
-                // Se eliminan también de los resultados de búsqueda
-                remove(this.resultadosBusqueda, peticion => {
-                    return includes(idsActualizados, peticion.id);
-                });
-
-                return busquedaActiva ? this.resultadosBusqueda : this.peticiones;
-            }
-        };
 
         if (ids.length > 0) {
             let error = false;
             let peticionesConError, peticionesExitosas = [];
 
-            return this.$http.post(endpoint, assign({}, {
-                ids
-            }, dataExtra)).then(response => {
-                return fnActualizarPeticionesLocales(peticiones);
-            }).catch(response => {
-                error = true;
+            return this.$http.post(endpoint, assign({}, {ids}, dataExtra))
+                .then(response => {
+                    return fnActualizacion(peticiones);
+                })
+                .catch(response => {
+                    error = true;
 
-                if (get(response, 'error.errorCode') === ACTUALIZACION_EN_BULTO_CON_ERRORES) {
-                    peticionesConError = response.error.fallos;
-                    peticionesExitosas = response.error.exitos;
-                    const peticionesErrorNoRecuperable = filter(peticionesConError, fallo => {
-                        return ( (fallo.httpStatusCode === 500 && (fallo.errorCode !== ERROR_GENERAL && fallo.errorCode !== ERROR_DE_RED))
-                                    || fallo.httpStatusCode === 401 || fallo.httpStatusCode === 404);
-                    });
+                    if (get(response, 'error.errorCode') === ACTUALIZACION_EN_BULTO_CON_ERRORES) {
+                        peticionesConError = response.error.fallos;
+                        peticionesExitosas = response.error.exitos;
+                        const peticionesErrorNoRecuperable = filter(peticionesConError, fallo => {
+                            return ( (fallo.httpStatusCode === 500 && (fallo.errorCode !== ERROR_GENERAL && fallo.errorCode !== ERROR_DE_RED))
+                                || fallo.httpStatusCode === 401 || fallo.httpStatusCode === 404);
+                        });
 
-                    return fnActualizarPeticionesLocales(peticionesExitosas.concat(peticionesErrorNoRecuperable));
-                } else {
-                    throw response;
-                }
-            }).then(peticionesLocales => {
-                if (!error) {
-                    return  {
-                        peticiones: peticionesLocales,
-                        pagina: paginaActual
-                    };
-                } else {
-                    throw {
-                        peticiones: peticionesLocales,
-                        peticionesExitosas,
-                        peticionesConError,
-                        pagina: paginaActual
+                        return fnActualizacion(peticionesExitosas.concat(peticionesErrorNoRecuperable));
+                    } else {
+                        throw response;
                     }
-                }
-            });
+                })
+                .then(resultado => {
+                    if (!error) {
+                        return resultado;
+                    } else {
+                        throw {
+                            peticiones: resultado.peticiones,
+                            pagina: resultado.pagina,
+                            peticionesExitosas,
+                            peticionesConError
+                        }
+                    }
+                });
         } else {
             return this.$q.reject();
         }

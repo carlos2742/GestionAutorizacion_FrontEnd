@@ -67,16 +67,16 @@ export default class AutorizacionesController {
             ordenInicial: ['id', 'asc'],
             columnas: [
                 {nombre: 'id', display: 'Código', ordenable: true},
-                {nombre: 'nombre', display: 'Nombre', ordenable: true},
                 {nombre: 'flujo.display', display: 'Flujo', ordenable: true},
                 {nombre: 'orden', display: 'Orden', ordenable: true},
+                {nombre: 'nombre', display: 'Nombre', ordenable: true},
                 {nombre: 'rol.display', display: 'Rol', ordenable: true},
                 {nombre: 'fechaLimite.display', display: 'Fecha Límite', ordenable: false},
             ]
         };
         this.columnasExcel = {
-            titulos: ['Codigo', 'Nombre', 'Flujo', 'Orden', 'Rol', 'Fecha Límite'],
-            campos: ['codigo', 'nombre', 'flujo.display', 'orden', 'rol.display', 'fechaLimite.display']
+            titulos: ['Codigo', 'Flujo', 'Orden', 'Nombre', 'Rol', 'Fecha Límite'],
+            campos: ['codigo', 'flujo.display', 'orden', 'nombre', 'rol.display', 'fechaLimite.display']
         };
 
         RolesService.obtenerTodos(false)

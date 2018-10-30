@@ -65,5 +65,3 @@ export const PROPIEDAD_NO_EDITABLE = -16;
 
 /** @type {number} */
 export const ACTUALIZACION_EN_BULTO_CON_ERRORES = -18;
-
-/** @type {number} */

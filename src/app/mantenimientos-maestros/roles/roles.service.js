@@ -25,6 +25,9 @@ export default class Roles {
      * @property {number} id                    -  De sólo lectura. Se genera automáticamente en la Base de Datos para roles nuevos.
      * @property {number} codigo                -  Lo mismo que id, se añade para mantener consistencia con otras entidades.
      * @property {string} nombre                -  Nombre del rol.
+     * @property {string} nombreProcedimiento   -  Nombre del procedimiento SQL que se ejecuta para determinar si un usuario está
+     *                                              autorizado a ver una petición.
+     * @property {string} observaciones         -  Observaciones.
      * @property {Object} estado                -  Determina si un rol está activo o inactivo
      * @property {boolean} estado.activo
      * @property {string} estado.valor          -  Puede tener los valores 'A' (para activo), o 'I' (para inactivo).
@@ -33,10 +36,9 @@ export default class Roles {
     /**
      * @param $q                        -  Servicio de Angular para utilizar Promesas
      * @param $http                     -  Servicio de Angular para hacer llamadas HTTP
-     * @param ErroresValidacionMaestros -  Contiene los errores que pueden devolver las validaciones. Ver {@link ErroresValidacionMaestros}
      *
      **/
-    constructor($q, $http) {
+    constructor($q, $http, ErroresValidacionMaestros) {
         // Constantes del servicio
         /** @private */
         this.ENDPOINT = '/roles';
@@ -45,6 +47,8 @@ export default class Roles {
         this.$q = $q;
         /** @private */
         this.$http = $http;
+        /** @private */
+        this.ErroresValidacionMaestros = ErroresValidacionMaestros;
 
         /** @type {Rol[]} */
         this.roles = [];
@@ -65,10 +69,34 @@ export default class Roles {
             activo: entidad.estado === MANTENIMIENTO_MAESTRO_ACTIVO
         };
 
-        entidad.editable = false;
+        entidad.editable = true;
         entidad.eliminable = false;
 
         return entidad;
+    }
+
+    /**
+     * Determina si un rol es válido. Se debe llamar a este método antes de crear o editar un rol.
+     * Realiza varias comprobaciones:
+     *  1 - Que el nombre no esté vacío, ya que es un campo requerido.
+     *  2 - Que el nombre del procedimiento no esté vacío, ya que es un campo requerido.
+     *
+     * @param {number} codigo
+     * @param {string} nombre
+     * @param {string} nombreProcedimiento
+     * @return {Promise<void>}                  - Se resuelve si la entidad es válida. En caso contrario, rechaza la promesa con
+     *                                            el error específico.
+     * @private
+     */
+    _validarEntidad(codigo, nombre, nombreProcedimiento) {
+        if (elementoRequeridoEsNulo(nombre)) {
+            return this.$q.reject(this.ErroresValidacionMaestros.FALTA_REQUERIDO);
+        }
+        if (elementoRequeridoEsNulo(nombreProcedimiento)) {
+            return this.$q.reject(this.ErroresValidacionMaestros.FALTA_REQUERIDO);
+        }
+
+        return this.$q.resolve();
     }
 
     /**
@@ -144,6 +172,27 @@ export default class Roles {
     }
 
     /**
+     * Crea un nuevo rol.
+     *
+     * @param {Rol} rol
+     * @return {Promise<Rol>}     - Se resuelve con el rol creado
+     */
+    crear(rol) {
+        return this._validarEntidad(null, rol.nombre, rol.nombreProcedimiento)
+            .then(() => {
+                return this.$http.post(this.ENDPOINT, {
+                    nombre: rol.nombre,
+                    nombreProcedimiento: rol.nombreProcedimiento,
+                    observaciones: rol.observaciones,
+                })
+            }).then(response => {
+                let nuevoObj = this.procesarEntidadRecibida(response.data);
+                this.roles.push(nuevoObj);
+                return nuevoObj;
+            });
+    }
+
+    /**
      * Actualiza un rol existente. Sólo se puede cambiar su estado.
      *
      * @param {Rol} rol
@@ -151,7 +200,7 @@ export default class Roles {
      */
     editar(rol) {
         // Se seleccionan los campos que interesan para la edición
-        let objEditado = pick(rol, ['codigo', 'id', 'nombre', 'estado', 'editable', 'eliminable']);
+        let objEditado = pick(rol, ['codigo', 'id', 'nombre', 'nombreProcedimiento', 'observaciones', 'estado', 'editable', 'eliminable']);
 
         // Si lo que se editó fue el estado de la entidad, hay que actualizar el valor del estado, ya que con el UI
         // lo que se actualiza es la propiedad "activo"
@@ -167,7 +216,7 @@ export default class Roles {
 
         const fnValidacion = () => {
             if (cambioEstado) { return this.$q.resolve(); }
-            return this.$q.reject();
+            return this._validarEntidad(rol.codigo, rol.nombre, rol.nombreProcedimiento);
         };
 
         return fnValidacion().then(() => {
@@ -204,7 +253,7 @@ export default class Roles {
         let indiceExistente = findIndex(this.roles, ['id', rol.id]);
         if (indiceExistente < 0 ){ return this.$q.reject() }
 
-        let objAEliminar = pick(rol, ['codigo', 'id', 'nombre', 'estado', 'editable', 'eliminable']);
+        let objAEliminar = pick(rol, ['codigo', 'id', 'nombre', 'nombreProcedimiento', 'observaciones', 'estado', 'editable', 'eliminable']);
         objAEliminar.estado.valor = rol.estado.activo ? MANTENIMIENTO_MAESTRO_ACTIVO : MANTENIMIENTO_MAESTRO_INACTIVO;
 
         return this.$http.delete(`${this.ENDPOINT}/${rol.id}`)

@@ -1,6 +1,7 @@
 import isNil from 'lodash/isNil';
 import find from 'lodash/find';
 import findIndex from 'lodash/findIndex';
+import forEach from 'lodash/forEach';
 import clone from 'lodash/clone';
 import cloneDeep from 'lodash/cloneDeep';
 import map from 'lodash/map';
@@ -111,6 +112,7 @@ export default class PeticionesController {
                 {nombre: 'fechaNecesaria.display', display: 'Fecha Necesaria', ordenable: 'fecha.valor'},
                 {nombre: 'solicitante.display', display: 'Solicitante', ordenable: 'solicitante'},
                 {nombre: 'flujo.display', display: 'Flujo', ordenable: 'flujo'},
+                {nombre: 'displayOrden', display: 'Autorización', ordenable: false},
                 {nombre: 'estado.display', display: 'Estado', ordenable: false},
                 {nombre: 'accionAprobar', display: '', html: true, ancho: '40px'},
                 {nombre: 'accionRechazar', display: '', html: true, ancho: '40px'},
@@ -124,13 +126,14 @@ export default class PeticionesController {
             ordenInicial: ['fecha.valor', 'asc'],
             columnas: [
                 {nombre: 'fecha.display', display: 'Fecha', ordenable: false},
+                {nombre: 'displayOrden', display: 'Autorización', ordenable: false},
                 {nombre: 'autorizador.display', display: 'Autorizador', ordenable: false},
-                {nombre: 'estado.display', display: 'Estado', ordenable: false},
+                {nombre: 'estado.display', display: 'Estado', ordenable: false}
             ]
         };
         this.columnasExcel = {
-            titulos: ['Código', 'Fecha Necesaria', 'Solicitante', 'Flujo', 'Estado', 'Observaciones'],
-            campos: ['id', 'fechaNecesaria.display', 'solicitante.display', 'flujo.display', 'estado.display', 'observaciones']
+            titulos: ['Código', 'Fecha Necesaria', 'Solicitante', 'Flujo', 'Autorización', 'Estado', 'Observaciones'],
+            campos: ['id', 'fechaNecesaria.display', 'solicitante.display', 'flujo.display', 'displayOrden', 'estado.display', 'observaciones']
         };
 
         /** @type {Peticion} */
@@ -513,7 +516,7 @@ export default class PeticionesController {
                     $scope.usuarioEsGestor = this.usuarioEsGestor;
                     $scope.estado = {};
 
-                    $scope.actualizarPeticion = (aprobacionFinal) => {
+                    $scope.actualizarPeticion = () => {
                         this.seleccionarTodos = false;
                         this.cambiarSeleccion();
 
@@ -525,6 +528,32 @@ export default class PeticionesController {
 
                             if (!this.filaEsVisible(this.peticionSeleccionada)) {
                                 this.peticionSeleccionada = null;
+                            } else {
+                                this.peticionSeleccionada = find(this.datos, ['id', this.peticionSeleccionada.id]);
+                            }
+
+                            const listaPeticionesTodaviaVisibles = reduce(peticiones, (resultado, peticion) => {
+                                const indiceCorrespondiente = findIndex(this.datos, ['id', peticion.id]);
+                                if (indiceCorrespondiente > -1) {
+                                    if (this.datos[indiceCorrespondiente].cantidadAutorizacionesCompletadas > peticion.cantidadAutorizacionesCompletadas) {
+                                        resultado += `<li>
+                                                        <strong>${peticion.id}</strong>
+                                                      </li>`;
+                                    }
+                                }
+                                return resultado;
+                            }, '');
+                            if (listaPeticionesTodaviaVisibles !== '') {
+                                const mensaje = `Las siguientes peticiones requieren de otras aprobaciones:
+                                         <ul>${listaPeticionesTodaviaVisibles}</ul>`;
+                                this.toastr.info(mensaje, null, {
+                                    allowHtml: true,
+                                    closeButton: true,
+                                    tapToDismiss: false,
+                                    timeOut: 0,
+                                    extendedTimeOut: 0,
+                                    iconClass: 'toast-info alerta-peticiones'
+                                });
                             }
 
                             this.$timeout(() => {
@@ -534,13 +563,21 @@ export default class PeticionesController {
 
                         let promesa;
                         if (accion === 'aprobar') {
-                            promesa = this.peticionesService.aprobar(peticiones, aprobacionFinal, this.paginaActual);
+                            promesa = this.peticionesService.aprobar(peticiones, this.paginaActual);
                         } else if (accion === 'rechazar') {
                             promesa = this.peticionesService.rechazar(peticiones, this.paginaActual);
                         }
 
                         this.actualizacionEnProgreso = true;
                         return promesa.then(resultado => {
+                            let message = '';
+                            if (peticiones.length === 1) {
+                                message = accion === 'aprobar' ? 'Se aprobó la petición' : 'Se rechazó la petición';
+                            } else {
+                                message = accion === 'aprobar' ? 'Se aprobaron las peticiones' : 'Se rechazaron las peticiones';
+                            }
+                            this.toastr.success(message);
+
                             this.paginaActual = resultado.pagina;
                             fnActualizarTabla(resultado.peticiones);
                             resolve();
@@ -557,7 +594,7 @@ export default class PeticionesController {
                                           </li>`;
                                     return resultado;
                                 }, '');
-                                const mensaje = `Las peticiones con los siguentes códigos no se pudieron ${accion}:
+                                const mensaje = `Las peticiones con los siguientes códigos no se pudieron ${accion}:
                                          <ul>${listaErrores}</ul>`;
                                 this.toastr.warning(mensaje, null, {
                                     allowHtml: true,

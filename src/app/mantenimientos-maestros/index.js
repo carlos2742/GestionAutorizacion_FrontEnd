@@ -18,6 +18,7 @@ import ModalEdicionModulosController from './modulos/modal-edicion-modulos.contr
 
 import RolesService from './roles/roles.service';
 import RolesController from './roles/roles.controller';
+import ModalEdicionRolesController from './roles/modal-edicion-roles.controller';
 
 import FlujosService from './flujos/flujos.service';
 import FlujosController from './flujos/flujos.controller';
@@ -61,6 +62,7 @@ export default angular.module('mantimientos-maestros', [
 
     .service('RolesService', RolesService)
     .controller('RolesController', RolesController)
+    .controller('ModalEdicionRolesController', ModalEdicionRolesController)
 
     .service('FlujosService', FlujosService)
     .controller('FlujosController', FlujosController)
