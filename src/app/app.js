@@ -133,6 +133,11 @@ angular.module(MODULE_NAME, [
                 controller: 'PeticionesController',
                 controllerAs: 'vm'
             })
+            .when('/peticion/:id', {
+                template: require('./central-autorizaciones/detalles-peticion/detalles-peticion.html'),
+                controller: 'DetallesPeticionController',
+                controllerAs: 'vm'
+            })
             .when('/acceso-denegado', {
                 template: require('./401.html')
             })

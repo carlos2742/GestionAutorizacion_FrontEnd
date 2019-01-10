@@ -140,7 +140,9 @@ export default function apiInterceptor($rootScope, $q, $injector, $location, App
                     return rejection;
                 }
             } else if (rejection.status === 404 && startsWith(rejection.config.url, AppConfig.url)) {
-                toastr.warning('Lo sentimos, este elemento no fue encontrado en la base de datos');
+                if (!(includes(rejection.config.url, '/peticiones/') && rejection.config.method === "GET")) {
+                    toastr.warning('Lo sentimos, este elemento no fue encontrado en la base de datos');
+                }
             } else if (rejection.status === 500) {
                 return _manejarErroresBackend(rejection);
             }

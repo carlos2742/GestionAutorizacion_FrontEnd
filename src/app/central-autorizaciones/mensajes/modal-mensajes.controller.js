@@ -1,11 +1,8 @@
-import map from 'lodash/map';
 import clone from 'lodash/clone';
 import get from 'lodash/get';
-import isNil from 'lodash/isNil';
-import isSameDay from 'date-fns/isSameDay';
 
 import './modal-mensajes.scss';
-import {ELEMENTO_NO_ENCONTRADO, ERROR_GENERAL} from "../../common/constantes";
+import {ELEMENTO_NO_ENCONTRADO, ERROR_GENERAL} from '../../common/constantes';
 
 
 /* @ngInject */
@@ -73,6 +70,9 @@ export default class ModalMensajesController {
     enviar() {
         if (this.mensaje) {
             return this.fnEnvioMensaje(this.mensaje)
+                .then(() => {
+                    this.mensajes = clone(this.peticion.mensajes);
+                })
                 .catch(response => {
                     let eliminarPeticion = false;
                     if (response.status === 401) {
@@ -100,9 +100,5 @@ export default class ModalMensajesController {
      */
     cancelar() {
         this.$uibModalInstance.close();
-    }
-
-    mostrarSeparadorFecha(indiceMensaje) {
-        return indiceMensaje === 0 || !isSameDay(this.mensajes[indiceMensaje].fechaEnvio.valor, this.mensajes[indiceMensaje - 1].fechaEnvio.valor);
     }
 }

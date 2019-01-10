@@ -5,7 +5,9 @@ import includes from 'lodash/includes';
 import isNil from 'lodash/isNil';
 import isMatch from 'lodash/isMatch';
 import assign from 'lodash/assign';
-import pick from 'lodash/pick';
+import lowerCase from 'lodash/lowerCase';
+import capitalize from 'lodash/capitalize';
+import join from 'lodash/join';
 import fill from 'lodash/fill';
 import map from 'lodash/map';
 import forEach from 'lodash/forEach';
@@ -41,7 +43,7 @@ export default class PeticionesService {
      * @property {Flujo} solicitante.valor          -  Su valor actual.
      * @property {string} solicitante.display       -  Cómo debe ser representado.
      * @property {string} observaciones             -  Observaciones.
-     * @property {string} observaciones             -  Observaciones.
+     * @property {Object} informacionExtra          -  Información adicional relacionada con la petición.
      * @property {string} estadoInterno             -  Estado final de la petición.
      * @property {Object} estado                    -  Estado actual de la petición.
      * @property {Object} estado.valor              -  Su valor actual.
@@ -150,6 +152,19 @@ export default class PeticionesService {
                     valor: fechaNecesariaObj,
                     display: fechaNecesariaObj ? format(fechaNecesariaObj, this.AppConfig.formatoFechas) : ''
                 };
+            } else if (prop === 'informacionExtra') {
+                const info = entidad.informacionExtra;
+                peticionProcesada[prop] = Object.keys(info).length > 0 ? {} : null;
+                for (let key in info) {
+                    const arregloPalabras = lowerCase(key).split(' ');
+                    forEach(arregloPalabras, (palabra, indice) => {
+                        arregloPalabras[indice] = capitalize(palabra);
+                    });
+                    peticionProcesada[prop][key] = {
+                        valor: info[key],
+                        label: join(arregloPalabras, ' ')
+                    };
+                }
             } else if (prop === 'estado') {
                 const etiqueta = find(etiquetas, etiqueta => {
                     return etiqueta.estado === entidad[prop] && etiqueta.modulo.valor.id === entidad.flujo.modulo.id;

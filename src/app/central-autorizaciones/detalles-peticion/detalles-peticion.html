@@ -1,0 +1,107 @@
+<div class="detalles-peticion">
+
+    <h1 class="titulo-centrado">Detalles de Solicitud</h1>
+
+    <div class="row">
+        <div class="col-lg-7">
+
+            <section class="cabecera">
+                <div class="row">
+                    <label class="col-md-3 font-weight-bold text-md-right">ID</label>
+                    <p class="col-md-9" ng-bind="vm.peticion.id"></p>
+                </div>
+                <div class="row">
+                    <label class="col-md-3 font-weight-bold text-md-right">Solicitante</label>
+                    <p class="col-md-9" ng-bind="vm.peticion.solicitante.display"></p>
+                </div>
+                <div class="row">
+                    <label class="col-md-3 font-weight-bold text-md-right">Flujo</label>
+                    <p class="col-md-9" ng-bind="vm.peticion.flujo.display"></p>
+                </div>
+                <div class="row">
+                    <label class="col-md-3 font-weight-bold text-md-right">Fecha Necesaria</label>
+                    <p class="col-md-9" ng-bind="vm.peticion.fechaNecesaria.display"></p>
+                </div>
+                <div class="row">
+                    <label class="col-md-3 font-weight-bold text-md-right">Estado</label>
+                    <p class="col-md-9" ng-bind="vm.peticion.estado.display"></p>
+                </div>
+                <div class="row">
+                    <label class="col-md-3 font-weight-bold text-md-right">Observaciones</label>
+                    <div class="col-md-9 contenedor-texto-truncado">
+                        <hm-read-more
+                                hm-text="{{ vm.peticion.observaciones }}"
+                                hm-limit="170"
+                                hm-more-text="Leer más"
+                                hm-less-text="Leer menos"
+                                hm-dots-class="dots"
+                                hm-link-class="enlaceLeerMas">
+                        </hm-read-more>
+                    </div>
+                </div>
+            </section>
+
+            <section class="info-extra mt-4" ng-if=":: vm.peticion.informacionExtra">
+
+                <h5 class="text-info">Información Extra</h5>
+
+                <div class="row" ng-repeat="item in :: vm.peticion.informacionExtra">
+                    <label class="col-md-3 font-weight-bold text-md-right" ng-bind="item.label"></label>
+                    <div class="col-md-9 contenedor-texto-truncado">
+                        <hm-read-more
+                                hm-text="{{ item.valor }}"
+                                hm-limit="170"
+                                hm-more-text="Leer más"
+                                hm-less-text="Leer menos"
+                                hm-dots-class="dots"
+                                hm-link-class="enlaceLeerMas">
+                        </hm-read-more>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="col-lg-5">
+
+            <section class="adjuntos mt-4 mt-lg-0">
+                <h5 class="text-info">Adjuntos</h5>
+
+                <form id="adjuntoForm" name="adjuntoForm">
+                    <label class="btn btn-primary">
+                        <span class="icon-plus"></span> Añadir adjunto <input name="contenido" type="file" nv-file-select uploader="vm.uploader" hidden>
+                    </label>
+                    <div class="progress" ng-show="vm.uploader.isUploading">
+                        <div class="progress-bar bg-success" role="progressbar" aria-valuenow="{{vm.uploader.progress}}" aria-valuemin="0" aria-valuemax="100"
+                             ng-style="{ 'width': vm.uploader.progress + '%' }" style="width: 100%;"></div>
+                    </div>
+                </form>
+
+                <div class="contenedor-tabla">
+                    <ge-tabla datos="vm.adjuntos" presentacion=":: vm.presentacionAdjuntos"
+                              fn-accion=":: vm.descargarAdjunto(entidad)"></ge-tabla>
+                </div>
+            </section>
+
+            <section class="conversacion mt-4">
+                <h5 class="text-info">Conversación</h5>
+
+                <conversacion mensajes="vm.mensajes"></conversacion>
+
+                <div class="contenedor-envio">
+                    <form id="envioMensajeForm" name="envioMensajeForm" ng-submit=":: vm.enviar()" novalidate>
+                        <textarea class="form-control mb-2 mr-sm-2"
+                                  id="mensaje"
+                                  placeholder="Escriba su mensaje"
+                                  rows="1"
+                                  ng-model="vm.mensaje"></textarea>
+
+                        <button class="btn btn-success btn-enviar" type="submit" ng-disabled="!vm.mensaje" boton-async>
+                            <i class="icon-send"></i>
+                        </button>
+                    </form>
+                </div>
+            </section>
+        </div>
+    </div>
+
+</div>

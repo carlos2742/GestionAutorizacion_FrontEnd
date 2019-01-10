@@ -157,6 +157,22 @@
                             </div>
                         </div>
                     </div>
+                    <div class="card-header" ng-show="vm.peticionSeleccionada.informacionExtra">Información Extra</div>
+                    <div class="card-body" ng-if="vm.peticionSeleccionada.informacionExtra">
+                        <div class="row" ng-repeat="item in vm.peticionSeleccionada.informacionExtra">
+                            <label class="col-4 text-right" ng-bind="item.label"></label>
+                            <div class="col-8 contenedor-texto-truncado">
+                                <hm-read-more
+                                        hm-text="{{ item.valor }}"
+                                        hm-limit="170"
+                                        hm-more-text="Leer más"
+                                        hm-less-text="Leer menos"
+                                        hm-dots-class="dots"
+                                        hm-link-class="enlaceLeerMas">
+                                </hm-read-more>
+                            </div>
+                        </div>
+                    </div>
                     <div class="card-header" ng-show="vm.peticionSeleccionada">Historial de Autorizaciones</div>
                     <div class="card-body" ng-if="vm.peticionSeleccionada">
                         <ge-tabla datos="vm.historialAutorizaciones"
