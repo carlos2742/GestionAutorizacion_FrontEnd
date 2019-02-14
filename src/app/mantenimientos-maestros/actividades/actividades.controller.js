@@ -1,3 +1,4 @@
+import angular from 'angular';
 import isNil from 'lodash/isNil';
 import find from 'lodash/find';
 import findIndex from 'lodash/findIndex';
@@ -9,27 +10,27 @@ import filter from 'lodash/filter';
 import includes from 'lodash/includes';
 import get from 'lodash/get';
 
-import './autorizaciones.scss';
-import templateModal from './modal-edicion-autorizaciones.html';
-import {ELEMENTO_NO_ENCONTRADO, ENTIDAD_NO_ELIMINABLE} from "../../common/constantes";
+import './actividades.scss';
+import templateModal from './modal-edicion-actividades.html';
+import {ENTIDAD_NO_ELIMINABLE} from '../../common/constantes';
 
 /* @ngInject */
 /**
- * Esta clase representa un controlador de Angular usado en la vista de la lista de autorizaciones.
+ * Esta clase representa un controlador de Angular usado en la vista de la lista de actividades.
  */
-export default class AutorizacionesController {
+export default class ActividadesController {
     /**
      * @param $scope
      * @param $location
      * @param $q
      * @param $uibModal
      * @param toastr
-     * @param {AutorizacionesService} AutorizacionesService
-     * @param {FlujosService} FlujosService
+     * @param {ActividadesService} ActividadesService
+     * @param {ProcesosService} ProcesosService
      * @param {RolesService} RolesService
      * @param AppConfig
      **/
-    constructor($scope, $location, $q, $uibModal, toastr, AutorizacionesService, FlujosService, RolesService, AppConfig) {
+    constructor($scope, $location, $q, $uibModal, toastr, ActividadesService, ProcesosService, RolesService, AppConfig) {
         /** @type {number} */
         this.ITEMS_POR_PAGINA = AppConfig.elementosPorPagina;
         /** @private */
@@ -52,22 +53,22 @@ export default class AutorizacionesController {
         /** @private */
         this.toastr = toastr;
         /** @private */
-        this.autorizacionesService = AutorizacionesService;
+        this.actividadesService = ActividadesService;
         /** @private */
-        this.flujosService = FlujosService;
+        this.procesosService = ProcesosService;
 
         /** @private */
-        this.totalFlujos = 0;
-        /** @type {Flujo[]} */
-        this.flujos = [];
+        this.totalProcesos = 0;
+        /** @type {Proceso[]} */
+        this.procesos = [];
 
         this.presentacion = {
-            entidad: 'Autorización',
-            atributoPrincipal: 'id',
+            entidad: 'Actividad',
+            atributoPrincipal: 'nombre',
             ordenInicial: ['id', 'asc'],
             columnas: [
                 {nombre: 'id', display: 'Código', ordenable: true},
-                {nombre: 'flujo.display', display: 'Flujo', ordenable: true},
+                {nombre: 'proceso.display', display: 'Proceso', ordenable: true},
                 {nombre: 'orden', display: 'Orden', ordenable: true},
                 {nombre: 'nombre', display: 'Nombre', ordenable: true},
                 {nombre: 'rol.display', display: 'Rol', ordenable: true},
@@ -75,8 +76,8 @@ export default class AutorizacionesController {
             ]
         };
         this.columnasExcel = {
-            titulos: ['Codigo', 'Flujo', 'Orden', 'Nombre', 'Rol', 'Fecha Límite'],
-            campos: ['codigo', 'flujo.display', 'orden', 'nombre', 'rol.display', 'fechaLimite.display']
+            titulos: ['Codigo', 'Proceso', 'Orden', 'Nombre', 'Rol', 'Fecha Límite'],
+            campos: ['codigo', 'proceso.display', 'orden', 'nombre', 'rol.display', 'fechaLimite.display']
         };
 
         RolesService.obtenerTodos(false)
@@ -84,22 +85,22 @@ export default class AutorizacionesController {
                 /** @type {Rol[]} */
                 this.roles = roles;
             });
-        FlujosService.obtenerTodos(false)
-            .then(flujos => {
-                /** @type {Flujo[]} */
-                this.flujos = [].concat(...flujos);
-                this.flujos.unshift({codigo: undefined, evento: ''});
+        ProcesosService.obtenerTodos(false)
+            .then(procesos => {
+                /** @type {Proceso[]} */
+                this.procesos = [].concat(...procesos);
+                this.procesos.unshift({codigo: undefined, evento: ''});
 
-                if ($location.search().flujo) {
-                    this.paramsBusqueda.flujo = find(flujos, ['id', parseInt($location.search().flujo)]);
+                if ($location.search().proceso) {
+                    this.paramsBusqueda.proceso = find(procesos, ['id', parseInt($location.search().proceso)]);
                 }
             });
 
         /** @type {number} */
         this.paginaActual = 1;
-        if ($location.search().flujo) {
+        if ($location.search().proceso) {
             this.paramsBusqueda = {
-                flujo: { id: $location.search().flujo }
+                proceso: { id: $location.search().proceso }
             };
             this.buscar();
         } else {
@@ -108,32 +109,32 @@ export default class AutorizacionesController {
     }
 
     /**
-     * Esta propiedad devuelve el total de autorizaciones existentes.
+     * Esta propiedad devuelve el total de actividades existentes.
      * @return {Number}
      */
     get totalItems() {
-        return this.autorizacionesService.autorizaciones.length;
+        return this.actividadesService.actividades.length;
     }
 
     /**
-     * Propiedad que devuelve true si no se está mostrando la lista completa de flujos en un momento determinado.
+     * Propiedad que devuelve true si no se está mostrando la lista completa de procesos en un momento determinado.
      * @return {boolean}
      */
-    get mostrandoResultadosParcialesFlujos() {
-        return this.totalFlujos > this.ITEMS_SELECT + 1;
+    get mostrandoResultadosParcialesProcesos() {
+        return this.totalProcesos > this.ITEMS_SELECT + 1;
     }
 
     /**
-     * Filtra la lista de flujos según el string que haya escrito el usuario. Es case insensitive.
+     * Filtra la lista de procesos según el string que haya escrito el usuario. Es case insensitive.
      * @param {string} busqueda
-     * @return {Flujo[]}
+     * @return {Proceso[]}
      */
-    filtrarFlujos(busqueda) {
+    filtrarProcesos(busqueda) {
         const busquedaLower = busqueda.toLowerCase();
-        const resultado = filter(this.flujos, (elemento) => {
+        const resultado = filter(this.procesos, (elemento) => {
             return (busqueda && elemento.evento) ? includes(elemento.evento.toLowerCase(), busquedaLower) : true;
         });
-        this.totalFlujos = resultado.length;
+        this.totalProcesos = resultado.length;
 
         if (resultado.length > this.ITEMS_SELECT + 1) {
             return resultado.slice(0, this.ITEMS_SELECT + 1);
@@ -143,43 +144,43 @@ export default class AutorizacionesController {
     }
 
     /**
-     * Muestra el modal de creación/edición de una autorización. Una vez cerrado el modal, se actualizan los valores en la
+     * Muestra el modal de creación/edición de una actividad. Una vez cerrado el modal, se actualizan los valores en la
      * tabla.
-     * @param {Autorizacion} [autorizacion]
+     * @param {Actividad} [actividad]
      */
-    mostrarModalAutorizacion(autorizacion) {
-        const modoEdicion = !isNil(autorizacion);
-        const tienePeticiones = modoEdicion ? autorizacion.tienePeticiones : false;
-        const contenedor = angular.element(document.getElementById("modalEdicionAutorizacion"));
+    mostrarModalActividad(actividad) {
+        const modoEdicion = !isNil(actividad);
+        const tienePeticiones = modoEdicion ? actividad.tienePeticiones : false;
+        const contenedor = angular.element(document.getElementById('modalEdicionActividad'));
         this.$uibModal.open({
             template: templateModal,
             appendTo: contenedor,
             size: 'lg',
-            controller: 'ModalEdicionAutorizacionesController',
+            controller: 'ModalEdicionActividadesController',
             controllerAs: '$modal',
             resolve: {
-                autorizacion: () => { return autorizacion },
-                paginaActual: () => { return this.paginaActual },
+                actividad: () => { return actividad; },
+                paginaActual: () => { return this.paginaActual; },
                 fnDespuesEdicion: () => {
                     return (resultado) => {
                         if (!isNil(resultado)) {
-                            this.datos = resultado.autorizacionesPagina;
+                            this.datos = resultado.actividadesPagina;
                         } else {
                             if (this.datos.length === 1 && this.paginaActual > 1) {
                                 this.paginaActual = this.paginaActual-1;
                             }
                             this.actualizarPagina();
                         }
-                    }
+                    };
                 }
             }
         }).result.catch(() => {
-            // Se actualiza el valor en la tabla en el caso de que la autorización no tuviera peticiones porque cuando
+            // Se actualiza el valor en la tabla en el caso de que la actividad no tuviera peticiones porque cuando
             // se abrió el modal se verificó si tiene peticiones o no
             if (modoEdicion && !tienePeticiones) {
-                const index = findIndex(this.datos, ['id', autorizacion.id]);
+                const index = findIndex(this.datos, ['id', actividad.id]);
                 if (index > -1) {
-                    this.datos[index].tienePeticiones = autorizacion.tienePeticiones;
+                    this.datos[index].tienePeticiones = actividad.tienePeticiones;
                     this.datos = clone(this.datos);
                 }
             }
@@ -187,29 +188,29 @@ export default class AutorizacionesController {
     }
 
     /**
-     * Devuelve verdadero si la autorización está visible en la tabla en ese momento.
-     * @param {Autorizacion} autorizacion
+     * Devuelve verdadero si la actividad está visible en la tabla en ese momento.
+     * @param {Actividad} actividad
      * @return {boolean}
      */
-    filaEsVisible(autorizacion) {
-        if (isNil(autorizacion)) {
+    filaEsVisible(actividad) {
+        if (isNil(actividad)) {
             return false;
         }
 
         return !!find(this.datos, (item) => {
-            return item.codigo === autorizacion.codigo;
+            return item.codigo === actividad.codigo;
         });
     }
 
     /**
-     * Pide al API todos las autorizaciones que cumplan con los parámetros de búsqueda seleccionados por el usuario.
+     * Pide al API todos las actividades que cumplan con los parámetros de búsqueda seleccionados por el usuario.
      */
     buscar() {
         // Si justo antes ya se había mandado a hacer una búsqueda exactamente igual, no se hace nada. Comprobando esto se
         // ahorran llamadas innecesarias al API.
         if (!isMatch(this.paramsAnteriores, this.paramsBusqueda)) {
             let filtroBusqueda = {
-                idFlujo: this.paramsBusqueda.flujo ? this.paramsBusqueda.flujo.id : undefined,
+                idProceso: this.paramsBusqueda.proceso ? this.paramsBusqueda.proceso.id : undefined,
                 idRol: this.paramsBusqueda.rol ? this.paramsBusqueda.rol.id : undefined,
                 nombre: this.paramsBusqueda.nombre
             };
@@ -217,7 +218,7 @@ export default class AutorizacionesController {
             this.paramsAnteriores = cloneDeep(this.paramsBusqueda);
 
             this.datos = null;
-            this.autorizacionesService.obtenerTodos(1, null, filtroBusqueda)
+            this.actividadesService.obtenerTodos(1, null, filtroBusqueda)
                 .then(resultados => {
                     this.paginaActual = 1;
                     this.datos = resultados;
@@ -226,7 +227,7 @@ export default class AutorizacionesController {
     }
 
     /**
-     * Reinicia todos los parámetros de búsqueda y obtiene todas las autorizaciones.
+     * Reinicia todos los parámetros de búsqueda y obtiene todas las actividades.
      *
      * @param busquedaForm      -  Formulario de los parámetros de búsqueda
      */
@@ -241,7 +242,7 @@ export default class AutorizacionesController {
             this.paramsAnteriores = {};
 
             this.datos = null;
-            this.autorizacionesService.obtenerTodos(1, null, null)
+            this.actividadesService.obtenerTodos(1, null, null)
                 .then(resultados => {
                     this.paginaActual = 1;
                     this.datos = resultados;
@@ -250,24 +251,24 @@ export default class AutorizacionesController {
     }
 
     /**
-     * Edita una autorización.
-     * @param {Autorizacion} entidad
+     * Edita una actividad.
+     * @param {Actividad} entidad
      */
-    editarAutorizacion(entidad) {
-        const autorizacionAEditar = cloneDeep(entidad);
-        autorizacionAEditar.flujo = entidad.flujo.valor;
-        autorizacionAEditar.rol = entidad.rol.valor;
-        autorizacionAEditar.fechaLimite = entidad.fechaLimite.valor;
-        this.mostrarModalAutorizacion(autorizacionAEditar);
+    editarActividad(entidad) {
+        const actividadAEditar = cloneDeep(entidad);
+        actividadAEditar.proceso = entidad.proceso.valor;
+        actividadAEditar.rol = entidad.rol.valor;
+        actividadAEditar.fechaLimite = entidad.fechaLimite.valor;
+        this.mostrarModalActividad(actividadAEditar);
     }
 
     /**
-     * Elimina una autorización determinada.
+     * Elimina una actividad determinada.
      * @param entidad
-     * @return {Promise.<Autorizacion[]>}     -  Se resuelve con la lista de autorizaciones visibles en la página.
+     * @return {Promise.<Actividad[]>}     -  Se resuelve con la lista de actividades visibles en la página.
      */
-    eliminarAutorizacion(entidad) {
-        return this.autorizacionesService.eliminar(entidad)
+    eliminarActividad(entidad) {
+        return this.actividadesService.eliminar(entidad)
             .then(() => {
                 if (this.datos.length === 1 && this.paginaActual > 1) {
                     this.paginaActual = this.paginaActual-1;
@@ -281,7 +282,7 @@ export default class AutorizacionesController {
                     }
                     this.actualizarPagina();
                 } else if (get(response, 'error.errorCode') === ENTIDAD_NO_ELIMINABLE) {
-                    this.toastr.warning(`Esta autorización no se puede eliminar porque ya ha sido usada en una petición. Si ya no es necesaria, debe <a href="#/flujos">crear un flujo nuevo</a>.`, null, {
+                    this.toastr.warning(`Esta actividad no se puede eliminar porque ya ha sido usada en una petición. Si ya no es necesaria, debe <a href="#/procesos">crear un proceso nuevo</a>.`, null, {
                         allowHtml: true,
                         closeButton: true,
                         timeOut: 0,
@@ -294,14 +295,14 @@ export default class AutorizacionesController {
     }
 
     /**
-     * Pide al API las autorizaciones correspondientes a una página determinada.
+     * Pide al API las actividades correspondientes a una página determinada.
      * @param orden
      */
     actualizarPagina(orden) {
         this.datos = null;
-        return this.autorizacionesService.obtenerTodos(this.paginaActual, orden)
-            .then(autorizaciones => {
-                this.datos = autorizaciones;
+        return this.actividadesService.obtenerTodos(this.paginaActual, orden)
+            .then(actividades => {
+                this.datos = actividades;
             })
             .catch(() => {
                 this.datos = [];
@@ -320,14 +321,14 @@ export default class AutorizacionesController {
     }
 
     /**
-     * Pide al API todas las páginas necesarias para tener el total de autorizaciones que se van a exportar a un documento
+     * Pide al API todas las páginas necesarias para tener el total de actividades que se van a exportar a un documento
      * Excel. Esta exportación respeta el ordenamiento activo y cualquier filtro seleccionado.
      */
     obtenerDatosAExportar() {
-        let totalPaginas = Math.ceil(this.autorizacionesService.autorizaciones.length / this.ITEMS_POR_PAGINA_EXCEL);
+        let totalPaginas = Math.ceil(this.actividadesService.actividades.length / this.ITEMS_POR_PAGINA_EXCEL);
         let promesasObtencion = [];
         for (let i=1; i <= totalPaginas; i++) {
-            promesasObtencion.push(this.autorizacionesService.obtenerTodos(i, undefined, undefined, this.ITEMS_POR_PAGINA_EXCEL));
+            promesasObtencion.push(this.actividadesService.obtenerTodos(i, undefined, undefined, this.ITEMS_POR_PAGINA_EXCEL));
         }
         return this.$q.all(promesasObtencion)
             .then(resultado => {

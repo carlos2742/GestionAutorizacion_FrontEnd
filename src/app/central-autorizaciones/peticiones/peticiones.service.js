@@ -18,12 +18,12 @@ import get from 'lodash/get';
 import format from 'date-fns/format';
 import {
     ACTUALIZACION_EN_BULTO_CON_ERRORES,
-    AUTORIZACION_APROBADA, AUTORIZACION_PENDIENTE, AUTORIZACION_RECHAZADA, ENTIDAD_NO_ELIMINABLE, ERROR_DE_RED,
+    AUTORIZACION_APROBADA, AUTORIZACION_PENDIENTE, AUTORIZACION_RECHAZADA, ERROR_DE_RED,
     ERROR_GENERAL,
     ETIQUETA_NOK_DESC,
     ETIQUETA_OK_DESC, PROPIEDAD_NO_EDITABLE
-} from "../../common/constantes";
-import {procesarFechaAEnviar} from "../../common/utiles";
+} from '../../common/constantes';
+import {procesarFechaAEnviar} from '../../common/utiles';
 
 
 /* @ngInject */
@@ -36,11 +36,11 @@ export default class PeticionesService {
      * @typedef {Object} Peticion
      * @property {number} id                        -  De sólo lectura. Se genera automáticamente en la Base de Datos para peticiones nuevas.
      * @property {number} codigo                    -  Lo mismo que id, se añade para mantener consistencia con otras entidades.
-     * @property {Object} flujo                     -  Flujo al que pertenece la petición
-     * @property {Flujo} flujo.valor                -  Su valor actual.
-     * @property {string} flujo.display             -  Cómo debe ser representado.
+     * @property {Object} proceso                   -  Proceso al que pertenece la petición
+     * @property {Proceso} proceso.valor            -  Su valor actual.
+     * @property {string} proceso.display           -  Cómo debe ser representado.
      * @property {Object} solicitante               -  Persona que realiza la petición.
-     * @property {Flujo} solicitante.valor          -  Su valor actual.
+     * @property {Persona} solicitante.valor          -  Su valor actual.
      * @property {string} solicitante.display       -  Cómo debe ser representado.
      * @property {string} observaciones             -  Observaciones.
      * @property {Object} informacionExtra          -  Información adicional relacionada con la petición.
@@ -52,21 +52,23 @@ export default class PeticionesService {
      * @property {Date} fechaNecesaria.valor        -  Su valor actual.
      * @property {string} fechaNecesaria.display    -  Cómo debe representarse esta fecha.
      *
-     * @property {Object[]} autorizaciones                       -  Lista de autorizadores que ya aprobaron o rechazaron esta solicitud.
-     * @property {Object} autorizaciones[0].autorizador          -  Datos del autorizador
-     * @property {Object} autorizaciones[0].autorizador.valor    -  Su valor actual
-     * @property {string} autorizaciones[0].autorizador.display  -  Cómo debe ser representado.
-     * @property {Object} autorizaciones[0].estado               -  Estado de esta autorización.
-     * @property {string} autorizaciones[0].estado.valor         -  Su valor actual.
-     * @property {string} autorizaciones[0].estado.display       -  Cómo debe ser representado.
-     * @property {Object} autorizaciones[0].fecha                -  Fecha en que realizó la autorización.
-     * @property {Date} autorizaciones[0].fecha.valor            -  Su valor actual.
-     * @property {string} autorizaciones[0].fecha.display        -  Cómo debe representarse esta fecha.
+     * @property {Object[]} actividades                       -  Lista de autorizadores que ya aprobaron o rechazaron esta solicitud.
+     * @property {Object} actividades[0].autorizador          -  Datos del autorizador
+     * @property {Object} actividades[0].autorizador.valor    -  Su valor actual
+     * @property {string} actividades[0].autorizador.display  -  Cómo debe ser representado.
+     * @property {Object} actividades[0].estado               -  Estado de esta actividad.
+     * @property {string} actividades[0].estado.valor         -  Su valor actual.
+     * @property {string} actividades[0].estado.display       -  Cómo debe ser representado.
+     * @property {Object} actividades[0].fecha                -  Fecha en que realizó la autorización.
+     * @property {Date} actividades[0].fecha.valor            -  Su valor actual.
+     * @property {string} actividades[0].fecha.display        -  Cómo debe representarse esta fecha.
      *
      * @property {Adjunto[]} adjuntos                            -  Lista de adjuntos de la petición.
      *
-     * @property {number} cantidadAutorizacionesCompletadas      -  Número de autorizaciones realizadas para la petición.
-     * @property {number} cantidadAutorizacionesTotales          -  Número total de autorizaciones requeridas por la petición.
+     * @property {number} cantidadActividadesCompletadas         -  Número de actividades realizadas para la petición.
+     * @property {number} cantidadActividadesTotales             -  Número total de actividades requeridas por la petición.
+     * @property {number} cantidadAdjuntos                       -  Número total de adjuntos de la petición.
+     * @property {number} cantidadMensajes                       -  Número total de mensajes de la petición.
      *
      */
 
@@ -135,7 +137,7 @@ export default class PeticionesService {
         };
 
         for (let prop in entidad) {
-            if (prop === 'flujo') {
+            if (prop === 'proceso') {
                 peticionProcesada[prop] = {
                     valor: entidad[prop],
                     display: entidad[prop] ? entidad[prop].evento : ''
@@ -167,7 +169,7 @@ export default class PeticionesService {
                 }
             } else if (prop === 'estado') {
                 const etiqueta = find(etiquetas, etiqueta => {
-                    return etiqueta.estado === entidad[prop] && etiqueta.modulo.valor.id === entidad.flujo.modulo.id;
+                    return etiqueta.estado === entidad[prop] && etiqueta.aplicacion.valor.id === entidad.proceso.aplicacion.id;
                 });
                 let descripcion = etiqueta ? etiqueta.descripcion : '';
                 if (isNil(etiqueta)) {
@@ -192,16 +194,16 @@ export default class PeticionesService {
                     valor: entidad[prop],
                     display: descripcion
                 };
-            } else if (prop === 'autorizaciones') {
-                peticionProcesada[prop] = map(entidad[prop], (autorizacion, indice) => {
-                    return this._procesarAutorizacion(autorizacion, indice, entidad.cantidadAutorizacionesTotales);
-                })
+            } else if (prop === 'actividades') {
+                peticionProcesada[prop] = map(entidad[prop], (actividad, indice) => {
+                    return this._procesarActividad(actividad, indice, entidad.cantidadActividadesTotales);
+                });
             } else {
                 peticionProcesada[prop] = entidad[prop];
             }
         }
 
-        peticionProcesada.displayOrden = `Aut. ${entidad.cantidadAutorizacionesCompletadas+1}/${entidad.cantidadAutorizacionesTotales}`;
+        peticionProcesada.displayOrden = `Aut. ${entidad.cantidadActividadesCompletadas+1}/${entidad.cantidadActividadesTotales}`;
 
         peticionProcesada.editable = false;
         peticionProcesada.eliminable = false;
@@ -209,35 +211,35 @@ export default class PeticionesService {
         return peticionProcesada;
     }
 
-    _procesarAutorizacion(autorizacion, indice, totalAutorizaciones) {
-        let autorizacionProcesada = {
-            codigo: autorizacion.autorizacion
+    _procesarActividad(actividad, indice, totalActividades) {
+        let actividadProcesada = {
+            codigo: actividad.actividad
         };
-        for (let prop in autorizacion) {
+        for (let prop in actividad) {
             if (prop === 'autorizador') {
-                const personaProcesada = autorizacion[prop] ? this.personalService.procesarPersonaRecibida(autorizacion[prop]) : null;
-                autorizacionProcesada[prop] = {
+                const personaProcesada = actividad[prop] ? this.personalService.procesarPersonaRecibida(actividad[prop]) : null;
+                actividadProcesada[prop] = {
                     valor: personaProcesada,
                     display: personaProcesada ? personaProcesada.nombreApellidos : ''
                 };
             } else if (prop === 'fecha') {
-                const fechaNecesariaObj = autorizacion[prop] ? new Date(Date.parse(autorizacion[prop])) : null;
-                autorizacionProcesada[prop] = {
+                const fechaNecesariaObj = actividad[prop] ? new Date(Date.parse(actividad[prop])) : null;
+                actividadProcesada[prop] = {
                     valor: fechaNecesariaObj,
                     display: fechaNecesariaObj ? format(fechaNecesariaObj, this.AppConfig.formatoFechas) : ''
                 };
             } else if (prop === 'estado') {
-                autorizacionProcesada[prop] = {
-                    valor: autorizacion[prop],
-                    display: autorizacion[prop] === AUTORIZACION_APROBADA ? ETIQUETA_OK_DESC : ETIQUETA_NOK_DESC
+                actividadProcesada[prop] = {
+                    valor: actividad[prop],
+                    display: actividad[prop] === AUTORIZACION_APROBADA ? ETIQUETA_OK_DESC : ETIQUETA_NOK_DESC
                 };
             } else {
-                autorizacionProcesada[prop] = autorizacion[prop];
+                actividadProcesada[prop] = actividad[prop];
             }
 
-            autorizacionProcesada.displayOrden = `Aut. ${indice+1}/${totalAutorizaciones}`;
+            actividadProcesada.displayOrden = `Aut. ${indice+1}/${totalActividades}`;
         }
-        return autorizacionProcesada;
+        return actividadProcesada;
     }
 
     /**
@@ -263,6 +265,8 @@ export default class PeticionesService {
      * Devuelve una lista de peticiones. Utiliza paginación porque la cantidad total de peticiones puede llegar a ser
      * considerable.
      *
+     * @param {boolean} peticionesPendientes -  Verdadero si nada más interesan las peticiones pendientes.
+     * @param {boolean} peticionesPropias    -  Verdadero si lo que se desean son las peticiones propias.
      * @param {number} pagina               -  Página que se desea.
      * @param {[string, string]} orden      -  Cómo deben estar ordenados los resultados.
      * @param filtro                        -  Se puede usar para filtrar los resultados por varios campos.
@@ -271,7 +275,7 @@ export default class PeticionesService {
      * @param {number} elementosPorPagina   -  Cantidad de peticiones que se desea recibir en una página.
      * @return {Promise.<Peticion[]>}       -  Se resuelve con el arreglo de peticiones que corresponden a una página determinada.
      */
-    obtenerTodos(pagina, orden, filtro, forzarActualizacion, elementosPorPagina) {
+    obtenerTodos(peticionesPendientes, peticionesPropias, pagina, orden, filtro, forzarActualizacion, elementosPorPagina) {
         let cambioOrden = false;
         if (!isNil(orden) && (isNil(this.ordenActivo) || orden[0] !== this.ordenActivo[0] || orden[1] !== this.ordenActivo[1])) {
             this.ordenActivo = orden;
@@ -289,7 +293,7 @@ export default class PeticionesService {
         const busquedaActiva = !isNil(filtroDefinido);
 
         if (forzarActualizacion || this.peticiones.length === 0 || this.peticiones.length > this.AppConfig.elementosPorPagina) {
-            return this._obtenerServidor(pagina, cambioOrden, busquedaActiva, this.filtrosBusqueda, elementosPorPagina);
+            return this._obtenerServidor(peticionesPendientes, peticionesPropias, pagina, cambioOrden, busquedaActiva, this.filtrosBusqueda, elementosPorPagina);
         } else {
             if (cambioOrden) {
                 let campo ='';
@@ -303,8 +307,8 @@ export default class PeticionesService {
                     case 'solicitante':
                         campo = 'solicitante.display';
                         break;
-                    case 'flujo':
-                        campo = 'flujo.display';
+                    case 'proceso':
+                        campo = 'proceso.display';
                         break;
                 }
 
@@ -316,8 +320,8 @@ export default class PeticionesService {
             }
             if (busquedaActiva) {
                 this.resultadosBusqueda = reduce(this.peticiones, (resultado, peticion) => {
-                    if ((isNil(this.filtrosBusqueda.idModulo) || get(peticion, 'flujo.valor.modulo.id') === this.filtrosBusqueda.idModulo )
-                        && (isNil(this.filtrosBusqueda.idFlujo) || get(peticion, 'flujo.valor.id') === this.filtrosBusqueda.idFlujo )
+                    if ((isNil(this.filtrosBusqueda.idAplicacion) || get(peticion, 'proceso.valor.aplicacion.id') === this.filtrosBusqueda.idAplicacion )
+                        && (isNil(this.filtrosBusqueda.idProceso) || get(peticion, 'proceso.valor.id') === this.filtrosBusqueda.idProceso )
                         && (isNil(this.filtrosBusqueda.nInternoSolicitante) || get(peticion, 'solicitante.valor.nInterno') === this.filtrosBusqueda.nInternoSolicitante )
                         && (isNil(this.filtrosBusqueda.etiqueta) || peticion.estado.display === this.filtrosBusqueda.etiqueta) ) {
 
@@ -351,7 +355,7 @@ export default class PeticionesService {
                 if (inicio + peticionesActualizadas.length >= cantidadPeticiones && paginaActual > 1) {
                     //Se comprueba si todas las peticiones ya están en su aprobación final
                     const peticionesFinales = filter(peticionesActualizadas, peticion => {
-                        return peticion.cantidadAutorizacionesTotales === peticion.cantidadAutorizacionesCompletadas + 1
+                        return peticion.cantidadActividadesTotales === peticion.cantidadActividadesCompletadas + 1
                                 || !isNil(peticion.errorCode);
                     });
 
@@ -360,7 +364,7 @@ export default class PeticionesService {
                     }
                 }
 
-                return this.obtenerTodos(pagina, undefined, undefined, true)
+                return this.obtenerTodos(true, false, pagina, undefined, undefined, true)
                     .then(peticionesPagina => {
                         return {
                             peticiones: peticionesPagina,
@@ -368,11 +372,11 @@ export default class PeticionesService {
                         }
                     });
             } else {
-                // Se eliminan de la lista de peticiones las que ya no tienen más autorizaciones pendientes
+                // Se eliminan de la lista de peticiones las que ya no tienen más actividades pendientes
                 remove(this.peticiones, peticion => {
                     const indiceCoincidencia = findIndex(peticionesActualizadas, ['id', peticion.id]);
                     if (indiceCoincidencia > -1) {
-                        return !isNil(peticionesActualizadas[indiceCoincidencia].errorCode) || peticion.cantidadAutorizacionesTotales === peticion.cantidadAutorizacionesCompletadas + 1;
+                        return !isNil(peticionesActualizadas[indiceCoincidencia].errorCode) || peticion.cantidadActividadesTotales === peticion.cantidadActividadesCompletadas + 1;
                     }
                     return false;
                 });
@@ -380,7 +384,7 @@ export default class PeticionesService {
                 remove(this.resultadosBusqueda, peticion => {
                     const indiceCoincidencia = findIndex(peticionesActualizadas, ['id', peticion.id]);
                     if (indiceCoincidencia > -1) {
-                        return !isNil(peticionesActualizadas[indiceCoincidencia].errorCode) || peticion.cantidadAutorizacionesTotales === peticion.cantidadAutorizacionesCompletadas + 1;
+                        return !isNil(peticionesActualizadas[indiceCoincidencia].errorCode) || peticion.cantidadActividadesTotales === peticion.cantidadActividadesCompletadas + 1;
                     }
                     return false;
                 });
@@ -393,22 +397,22 @@ export default class PeticionesService {
                     return includes(idsActualizados, peticion.id);
                 });
                 forEach(peticionesCambiadas, peticion => {
-                    peticion.autorizaciones.push(this._procesarAutorizacion({
-                        autorizacion: peticion.cantidadAutorizacionesCompletadas + 1,
+                    peticion.actividades.push(this._procesarActividad({
+                        actividad: peticion.cantidadActividadesCompletadas + 1,
                         autorizador: this.usuario,
                         estado: AUTORIZACION_APROBADA,
                         fecha: new Date().toISOString().replace('Z', '')
-                    }, peticion.cantidadAutorizacionesCompletadas, peticion.cantidadAutorizacionesTotales));
+                    }, peticion.cantidadActividadesCompletadas, peticion.cantidadActividadesTotales));
 
-                    peticion.cantidadAutorizacionesCompletadas++;
-                    peticion.displayOrden = `Aut. ${peticion.cantidadAutorizacionesCompletadas+1}/${peticion.cantidadAutorizacionesTotales}`;
+                    peticion.cantidadActividadesCompletadas++;
+                    peticion.displayOrden = `Aut. ${peticion.cantidadActividadesCompletadas+1}/${peticion.cantidadActividadesTotales}`;
                 });
 
                 const peticionesPagina = busquedaActiva ? this.resultadosBusqueda : this.peticiones;
                 return {
                     peticiones: peticionesPagina,
                     pagina
-                }
+                };
             }
         };
 
@@ -438,7 +442,7 @@ export default class PeticionesService {
                 if (inicio + peticionesActualizadas.length >= cantidadPeticiones && paginaActual > 1) {
                     pagina = paginaActual - 1;
                 }
-                return this.obtenerTodos(pagina, undefined, undefined, true)
+                return this.obtenerTodos(true, false, pagina, undefined, undefined, true)
                     .then(peticionesPagina => {
                         return {
                             peticiones: peticionesPagina,
@@ -495,7 +499,7 @@ export default class PeticionesService {
         if (peticion.observaciones !== peticionCorrespondiente.observaciones) {
             const datosAEnviar = {
                 'id': peticion.id,
-                'flujo': peticion.flujo.valor.id,
+                'proceso': peticion.proceso.valor.id,
                 'estado': peticion.estado.valor,
                 'fechaNecesaria': procesarFechaAEnviar(peticion.fechaNecesaria.valor),
                 'observaciones': peticion.observaciones,
@@ -579,6 +583,8 @@ export default class PeticionesService {
     /**
      * Devuelve una lista de peticiones del servidor
      *
+     * @param {boolean} peticionesPendientes -  Verdadero si nada más interesan las peticiones pendientes.
+     * @param {boolean} peticionesPropias    -  Verdadero si lo que se desean son las peticiones propias.
      * @param {number} pagina               -  Página que se desea.
      * @param {boolean} cambioOrden         -  Verdadero si el orden de las peticiones fue cambiado.
      * @param {boolean} busquedaActiva      -  Verdadero si hay algún filtro activado.
@@ -586,7 +592,7 @@ export default class PeticionesService {
      * @param {number} elementosPorPagina   -  Cantidad de peticiones que se desea recibir en una página.
      * @return {Promise.<Peticion[]>}       -  Se resuelve con el arreglo de peticiones que corresponden a una página determinada.
      */
-    _obtenerServidor(pagina, cambioOrden, busquedaActiva, filtro, elementosPorPagina) {
+    _obtenerServidor(peticionesPendientes, peticionesPropias, pagina, cambioOrden, busquedaActiva, filtro, elementosPorPagina) {
         let totalPeticiones = 0;
         const paginaActual = !isNil(pagina) ? pagina : 1;
         const fin = paginaActual * this.AppConfig.elementosPorPagina;
@@ -606,7 +612,9 @@ export default class PeticionesService {
         let params = {
             paginaActual,
             elementosPorPagina: !isNil(elementosPorPagina) ? elementosPorPagina : this.AppConfig.elementosPorPagina,
-            ordenarPor
+            ordenarPor,
+            peticionesPendientes,
+            peticionesPropias
         };
 
         return this.$q.all([

@@ -1,5 +1,5 @@
-<div class="autorizaciones">
-    <h1 class="titulo-centrado">Definición de Autorizaciones</h1>
+<div class="actividades">
+    <h1 class="titulo-centrado">Actividades</h1>
 
     <div class="contenedor-busqueda mx-auto">
         <uib-accordion>
@@ -11,20 +11,20 @@
                     </div>
                 </uib-accordion-heading>
 
-                <form id="busquedaAutorizacionesForm" name="busquedaAutorizacionesForm" novalidate>
+                <form id="busquedaActividadesForm" name="busquedaActividadesForm" novalidate>
                     <div class="form-row">
                         <div class="form-group col-md form-row">
-                            <label for="flujoBusqueda" class="col-sm-3 col-form-label">Flujo</label>
+                            <label for="procesoBusqueda" class="col-sm-3 col-form-label">Proceso</label>
                             <div class="col-sm-9">
-                                <ui-select ng-model="vm.paramsBusqueda.flujo" name="flujo" input-id="flujoBusqueda" ng-animate-children="false">
-                                    <ui-select-match placeholder="Seleccione o busque un flujo">
+                                <ui-select ng-model="vm.paramsBusqueda.proceso" name="proceso" input-id="procesoBusqueda" ng-animate-children="false">
+                                    <ui-select-match placeholder="Seleccione o busque un proceso">
                                         <span ng-bind="$select.selected.evento"></span>
                                     </ui-select-match>
-                                    <ui-select-choices repeat="flujo in vm.filtrarFlujos($select.search) track by flujo.id">
-                                        <span ng-bind-html="flujo.evento | highlight: $select.search"></span>
+                                    <ui-select-choices repeat="proceso in vm.filtrarProcesos($select.search) track by proceso.id">
+                                        <span ng-bind-html="proceso.evento | highlight: $select.search"></span>
                                     </ui-select-choices>
                                     <ui-select-footer class="text-muted" >
-                                        <span ng-show="vm.mostrandoResultadosParcialesFlujos">Demasiados resultados, debe refinar la búsqueda</span>
+                                        <span ng-show="vm.mostrandoResultadosParcialesProcesos">Demasiados resultados, debe refinar la búsqueda</span>
                                     </ui-select-footer>
                                 </ui-select>
                             </div>
@@ -59,7 +59,7 @@
                         <button type="button" class="btn btn-primary" ng-click="vm.buscar()">
                             <span class="icon-search"></span> Buscar
                         </button>
-                        <button type="button" class="btn btn-secondary" ng-click="vm.mostrarTodos(busquedaAutorizacionesForm)">
+                        <button type="button" class="btn btn-secondary" ng-click="vm.mostrarTodos(busquedaActividadesForm)">
                             Limpiar
                         </button>
                     </div>
@@ -70,18 +70,18 @@
 
     <div class="contenedor-tabla mx-auto">
         <div class="contenedor-botones">
-            <button type="button" class="btn btn-primary" ng-click="vm.mostrarModalAutorizacion()">
-                <span class="icon-plus"></span> Añadir autorización
+            <button type="button" class="btn btn-primary" ng-click="vm.mostrarModalActividad()">
+                <span class="icon-plus"></span> Añadir actividad
             </button>
 
             <btn-exportar-excel propiedades=":: vm.columnasExcel"
-                                datos="vm.autorizacionesService.autorizaciones"
+                                datos="vm.actividadesService.actividades"
                                 fn-obtencion-datos="vm.obtenerDatosAExportar()"></btn-exportar-excel>
         </div>
 
         <ge-tabla datos="vm.datos" presentacion="vm.presentacion"
-                  fn-edicion="vm.editarAutorizacion(entidad)"
-                  fn-eliminacion="vm.eliminarAutorizacion(entidad)"
+                  fn-edicion="vm.editarActividad(entidad)"
+                  fn-eliminacion="vm.eliminarActividad(entidad)"
                   fn-cambio-orden="vm.actualizarOrden(orden)"></ge-tabla>
 
         <ul uib-pagination
@@ -96,6 +96,6 @@
             ng-show="vm.totalItems > vm.ITEMS_POR_PAGINA"></ul>
     </div>
 
-    <div id="modalEdicionAutorizacion">
+    <div id="modalEdicionActividad">
     </div>
 </div>

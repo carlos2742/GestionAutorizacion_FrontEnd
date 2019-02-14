@@ -1,7 +1,6 @@
 import isNil from 'lodash/isNil';
 import find from 'lodash/find';
 import findIndex from 'lodash/findIndex';
-import forEach from 'lodash/forEach';
 import clone from 'lodash/clone';
 import cloneDeep from 'lodash/cloneDeep';
 import map from 'lodash/map';
@@ -31,13 +30,13 @@ export default class PeticionesController {
      * @param {PeticionesService} PeticionesService
      * @param {AdjuntosService} AdjuntosService
      * @param {MensajesService} MensajesService
-     * @param {ModulosService} ModulosService
-     * @param {FlujosService} FlujosService
+     * @param {AplicacionesService} AplicacionesService
+     * @param {ProcesosService} ProcesosService
      * @param {PersonalService} PersonalService
      * @param AppConfig
      **/
     constructor($scope, $q, $timeout, $uibModal, toastr, PeticionesService, AdjuntosService, MensajesService,
-                ModulosService, FlujosService, EtiquetasService, PersonalService, SesionService, AppConfig) {
+                AplicacionesService, ProcesosService, EtiquetasService, PersonalService, SesionService, AppConfig, autorizador) {
         /** @type {number} */
         this.ITEMS_POR_PAGINA = AppConfig.elementosPorPagina;
         /** @private */
@@ -58,7 +57,11 @@ export default class PeticionesController {
         /** @type {boolean} */
         this.procesando = false;
 
+        /** @type {boolean} */
+        this.autorizador = autorizador;
 
+        /** @private */
+        this.$scope = $scope;
         /** @private */
         this.$q = $q;
         /** @private */
@@ -76,12 +79,12 @@ export default class PeticionesController {
         /** @private */
         this.personalService = PersonalService;
         /** @private */
-        this.flujosService = FlujosService;
+        this.procesosService = ProcesosService;
         /** @private */
         this.etiquetasService = EtiquetasService;
 
         /** @private */
-        this.totalFlujos = 0;
+        this.totalProcesos = 0;
         /** @private */
         this.totalPersonas = 0;
         /** @type {Persona[]} */
@@ -107,19 +110,31 @@ export default class PeticionesController {
             atributoPrincipal: 'nombre',
             ordenInicial: ['fecha.valor', 'asc'],
             columnas: [
-                {nombre: 'checkbox', display: '', html: true, ancho: '40px'},
                 {nombre: 'id', display: 'Código', ordenable: true},
                 {nombre: 'fechaNecesaria.display', display: 'Fecha Necesaria', ordenable: 'fecha.valor'},
                 {nombre: 'solicitante.display', display: 'Solicitante', ordenable: 'solicitante'},
-                {nombre: 'flujo.display', display: 'Flujo', ordenable: 'flujo'},
+                {nombre: 'proceso.display', display: 'Proceso', ordenable: 'proceso'},
                 {nombre: 'displayOrden', display: 'Autorización', ordenable: false},
-                {nombre: 'estado.display', display: 'Estado', ordenable: false},
-                {nombre: 'accionAprobar', display: '', html: true, ancho: '40px'},
-                {nombre: 'accionRechazar', display: '', html: true, ancho: '40px'},
+                {nombre: 'estado.display', display: 'Etiqueta', ordenable: false},
+                {nombre: 'observacionesInput', display: 'Observaciones', ancho: '250px', html: true},
                 {nombre: 'accionAdjuntos', display: '', html: true, ancho: '40px'},
                 {nombre: 'accionMensajes', display: '', html: true, ancho: '40px'}
             ]
         };
+        if (this.autorizador) {
+            this.presentacion.columnas.unshift(
+                {nombre: 'checkbox', display: '', html: true, ancho: '40px'}
+            );
+            this.presentacion.columnas.splice(8, 0,
+                {nombre: 'accionAprobar', display: '', html: true, ancho: '40px'},
+                {nombre: 'accionRechazar', display: '', html: true, ancho: '40px'},
+            );
+        } else {
+            this.presentacion.columnas.push(
+                {nombre: 'enlaceDetalles', display: '', html: true, ancho: '40px'}
+            );
+        }
+
         this.presentacionHistorialAutorizaciones = {
             entidad: 'Autorización',
             atributoPrincipal: 'autorizador.display',
@@ -128,21 +143,21 @@ export default class PeticionesController {
                 {nombre: 'fecha.display', display: 'Fecha', ordenable: false},
                 {nombre: 'displayOrden', display: 'Autorización', ordenable: false},
                 {nombre: 'autorizador.display', display: 'Autorizador', ordenable: false},
-                {nombre: 'estado.display', display: 'Estado', ordenable: false}
+                {nombre: 'estado.display', display: 'Etiqueta', ordenable: false}
             ]
         };
         this.columnasExcel = {
-            titulos: ['Código', 'Fecha Necesaria', 'Solicitante', 'Flujo', 'Autorización', 'Estado', 'Observaciones'],
-            campos: ['id', 'fechaNecesaria.display', 'solicitante.display', 'flujo.display', 'displayOrden', 'estado.display', 'observaciones']
+            titulos: ['Código', 'Fecha Necesaria', 'Solicitante', 'Proceso', 'Autorización', 'Etiqueta', 'Observaciones'],
+            campos: ['id', 'fechaNecesaria.display', 'solicitante.display', 'proceso.display', 'displayOrden', 'estado.display', 'observaciones']
         };
 
         /** @type {Peticion} */
         this.peticionSeleccionada = null;
 
-        ModulosService.obtenerTodos(false)
-            .then(modulos => {
-                /** @type {Modulo[]} */
-                this.modulos = modulos;
+        AplicacionesService.obtenerTodos(false)
+            .then(aplicaciones => {
+                /** @type {Aplicacion[]} */
+                this.aplicaciones = aplicaciones;
             });
 
         SesionService.obtenerUsuarioAutenticado()
@@ -150,25 +165,25 @@ export default class PeticionesController {
                this.usuarioEsGestor = usuario.esGestor;
             });
 
-        const quitarWatcherFn = $scope.$watch('vm.paramsBusqueda.modulo', (newValue, oldValue) => {
-            if (newValue !== oldValue || isNil(this.flujos)) {
-                this.flujosService.obtenerTodos(false)
-                    .then(flujos => {
+        const quitarWatcherFn = $scope.$watch('vm.paramsBusqueda.aplicacion', (newValue, oldValue) => {
+            if (newValue !== oldValue || isNil(this.procesos)) {
+                this.procesosService.obtenerTodos(false)
+                    .then(procesos => {
                         if (isNil(newValue)) {
-                            /** @type {Flujo[]} */
-                            this.flujos = [].concat(...flujos);
+                            /** @type {Proceso[]} */
+                            this.procesos = [].concat(...procesos);
                         } else {
-                            this.flujos = filter(flujos, flujo => {
-                                return flujo.modulo.valor.id === newValue.id;
+                            this.procesos = filter(procesos, proceso => {
+                                return proceso.aplicacion.valor.id === newValue.id;
                             });
                         }
 
-                        this.flujos.unshift({id: undefined, nombre: ''});
+                        this.procesos.unshift({id: undefined, nombre: ''});
                     });
                 this.etiquetasService.obtenerTodos()
                     .then(etiquetas => {
-                        const etiquetasAprobadas = filter(etiquetas, etiqueta => {
-                            return !includes(etiqueta.estado, ETIQUETA_NOK)
+                        const etiquetasAMostrar = filter(etiquetas, etiqueta => {
+                            return !this.autorizador || !includes(etiqueta.estado, ETIQUETA_NOK);
                         });
 
                         if (isNil(newValue)) {
@@ -176,8 +191,8 @@ export default class PeticionesController {
                             this.etiquetas = [];
                             this.paramsBusqueda.estado = undefined;
                         } else {
-                            this.etiquetas = filter(etiquetasAprobadas, etiqueta => {
-                                return etiqueta.modulo.valor.id === newValue.id;
+                            this.etiquetas = filter(etiquetasAMostrar, etiqueta => {
+                                return etiqueta.aplicacion.valor.id === newValue.id;
                             })
                         }
                     });
@@ -203,19 +218,39 @@ export default class PeticionesController {
         let clon = clone(entidad);
 
         clon.seleccionada = includes(idsSeleccionados, clon.id);
-        clon.checkbox = `<input type="checkbox" class="checkbox-visible" ng-model="elemento.seleccionada" uib-tooltip="Seleccionar">`;
-        clon.accionAprobar = `<a href="" ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'aprobar'})" uib-tooltip="Aprobar">
-                                <span class="icon-checkmark text-success"></span>
-                              </a>`;
-        clon.accionRechazar = `<a href="" ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'rechazar'})" uib-tooltip="Rechazar">
-                                <span class="icon-cross text-danger"></span>
-                               </a>`;
         clon.accionAdjuntos =  `<a href ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'adjuntos'})"
                                    class="icon-attachment" uib-tooltip="Adjuntos">
-                                </a>`;
+                                </a><small class="ml-1 ${entidad.cantidadAdjuntos > 0 ? 'font-weight-bold' : 'text-muted'}">(${entidad.cantidadAdjuntos})</small>`;
         clon.accionMensajes =  `<a href ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'mensajes'})"
                                    class="icon-bubbles4" uib-tooltip="Conversación">
-                                </a>`;
+                                </a><small class="ml-1 ${entidad.cantidadMensajes > 0 ? 'font-weight-bold' : 'text-muted'}">(${entidad.cantidadMensajes})</small>`;
+
+        if (this.autorizador) {
+            clon.checkbox = `<input type="checkbox" class="checkbox-visible" ng-model="elemento.seleccionada" uib-tooltip="Seleccionar">`;
+            clon.accionAprobar = `<a href="" ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'aprobar'})" uib-tooltip="Aprobar">
+                                <span class="icon-checkmark text-success"></span>
+                              </a>`;
+            clon.accionRechazar = `<a href="" ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'rechazar'})" uib-tooltip="Rechazar">
+                                <span class="icon-cross text-danger"></span>
+                               </a>`;
+
+            clon.observacionesInput = `<textarea
+                                          name="observaciones"
+                                          class="form-control"
+                                          rows="3"
+                                          ng-model="elemento.observaciones"
+                                          ng-model-options="{ updateOn: 'blur' }"
+                                          ng-change="$ctrl.fnAccion({entidad: elemento, accion: 'actualizar'})"></textarea>`;
+        } else {
+            clon.observacionesInput = `<textarea 
+                                            rows="3" 
+                                            class="form-control"
+                                            disabled
+                                            style="width: 100%;">${!isNil(entidad.observaciones) ? entidad.observaciones : ''}</textarea>`;
+
+            clon.enlaceDetalles = `<a href class="icon-view-show d-print-none" ng-href="#/peticion/${entidad.id}" uib-tooltip="Ver Detalles"></a>`;
+
+        }
 
         return clon;
     }
@@ -268,24 +303,24 @@ export default class PeticionesController {
     }
 
     /**
-     * Propiedad que devuelve true si no se está mostrando la lista completa de flujos en un momento determinado.
+     * Propiedad que devuelve true si no se está mostrando la lista completa de procesos en un momento determinado.
      * @return {boolean}
      */
-    get mostrandoResultadosParcialesFlujos() {
-        return this.totalFlujos > this.ITEMS_SELECT + 1;
+    get mostrandoResultadosParcialesProcesos() {
+        return this.totalProcesos > this.ITEMS_SELECT + 1;
     }
 
     /**
-     * Filtra la lista de flujos según el string que haya escrito el usuario. Es case insensitive.
+     * Filtra la lista de procesos según el string que haya escrito el usuario. Es case insensitive.
      * @param {string} busqueda
-     * @return {Flujo[]}
+     * @return {Proceso[]}
      */
-    filtrarFlujos(busqueda) {
+    filtrarProcesos(busqueda) {
         const busquedaLower = busqueda.toLowerCase();
-        const resultado = filter(this.flujos, (elemento) => {
+        const resultado = filter(this.procesos, (elemento) => {
             return (busqueda && elemento.evento) ? includes(elemento.evento.toLowerCase(), busquedaLower) : true;
         });
-        this.totalFlujos = resultado.length;
+        this.totalProcesos = resultado.length;
 
         if (resultado.length > this.ITEMS_SELECT + 1) {
             return resultado.slice(0, this.ITEMS_SELECT + 1);
@@ -330,8 +365,8 @@ export default class PeticionesController {
         // ahorran llamadas innecesarias al API.
         if (!isMatch(this.paramsAnteriores, this.paramsBusqueda)) {
             let filtroBusqueda = {
-                idModulo: get(this.paramsBusqueda, 'modulo.id'),
-                idFlujo: get(this.paramsBusqueda, 'flujo.id'),
+                idAplicacion: get(this.paramsBusqueda, 'aplicacion.id'),
+                idProceso: get(this.paramsBusqueda, 'proceso.id'),
                 nInternoSolicitante: get(this.paramsBusqueda, 'solicitante.codigo'),
                 estado: this.paramsBusqueda.estado ? this.paramsBusqueda.estado.estado : undefined,
                 etiqueta: get(this.paramsBusqueda, 'estado.descripcion')
@@ -348,7 +383,7 @@ export default class PeticionesController {
             this.actualizacionEnProgreso = true;
             const idsSeleccionados = map(this.peticionesSeleccionadas, peticion => { return peticion.id });
             this.datos = null;
-            this.peticionesService.obtenerTodos(1, null, filtroBusqueda, forzarActualizacion)
+            this.peticionesService.obtenerTodos(this.autorizador, !this.autorizador, 1, null, filtroBusqueda, forzarActualizacion)
                 .then(resultados => {
                     this.paginaActual = 1;
                     this.datos = map(resultados, peticion => {
@@ -390,7 +425,7 @@ export default class PeticionesController {
             this.actualizacionEnProgreso = true;
             const idsSeleccionados = map(this.peticionesSeleccionadas, peticion => { return peticion.id });
             this.datos = null;
-            this.peticionesService.obtenerTodos(1, null, null)
+            this.peticionesService.obtenerTodos(this.autorizador, !this.autorizador, 1, null, null)
                 .then(resultados => {
                     this.paginaActual = 1;
                     this.datos = map(resultados, peticion => {
@@ -425,7 +460,7 @@ export default class PeticionesController {
         const idsSeleccionados = map(this.peticionesSeleccionadas, peticion => { return peticion.id });
         this.datos = null;
         this.procesando = true;
-        return this.peticionesService.obtenerTodos(this.paginaActual, orden, undefined, forzarActualizacion)
+        return this.peticionesService.obtenerTodos(this.autorizador, !this.autorizador, this.paginaActual, orden, undefined, forzarActualizacion)
             .then(peticiones => {
                 this.datos = map(peticiones, peticion => {
                     return this._procesarEntidadVisualizacion(peticion, idsSeleccionados);
@@ -462,7 +497,7 @@ export default class PeticionesController {
         let totalPaginas = Math.ceil(this.peticionesService.peticiones.length / this.ITEMS_POR_PAGINA_EXCEL);
         let promesasObtencion = [];
         for (let i=1; i <= totalPaginas; i++) {
-            promesasObtencion.push(this.peticionesService.obtenerTodos(i, undefined, undefined, this.ITEMS_POR_PAGINA_EXCEL));
+            promesasObtencion.push(this.peticionesService.obtenerTodos(this.autorizador, !this.autorizador, i, undefined, undefined, this.ITEMS_POR_PAGINA_EXCEL));
         }
         return this.$q.all(promesasObtencion)
             .then(resultado => {
@@ -472,7 +507,7 @@ export default class PeticionesController {
 
     get historialAutorizaciones() {
         if (!isNil(this.peticionSeleccionada)) {
-            return this.peticionSeleccionada.autorizaciones;
+            return this.peticionSeleccionada.actividades;
         }
         return [];
     }
@@ -498,6 +533,8 @@ export default class PeticionesController {
             return this.mostrarPopupAdjuntos(entidad);
         } else if (accion === 'mensajes') {
             return this.mostrarPopupMensajes(entidad);
+        } else if (accion === 'actualizar') {
+            return this.guardarCambiosObservaciones(entidad);
         }
     }
 
@@ -535,7 +572,7 @@ export default class PeticionesController {
                             const listaPeticionesTodaviaVisibles = reduce(peticiones, (resultado, peticion) => {
                                 const indiceCorrespondiente = findIndex(this.datos, ['id', peticion.id]);
                                 if (indiceCorrespondiente > -1) {
-                                    if (this.datos[indiceCorrespondiente].cantidadAutorizacionesCompletadas > peticion.cantidadAutorizacionesCompletadas) {
+                                    if (this.datos[indiceCorrespondiente].cantidadActividadesCompletadas > peticion.cantidadActividadesCompletadas) {
                                         resultado += `<li>
                                                         <strong>${peticion.id}</strong>
                                                       </li>`;
@@ -628,9 +665,9 @@ export default class PeticionesController {
         return filter(this.datos, 'seleccionada');
     }
 
-    guardarCambiosObservaciones() {
+    guardarCambiosObservaciones(entidad) {
         this.actualizacionEnProgreso = true;
-        return this.peticionesService.editar(this.peticionSeleccionada)
+        return this.peticionesService.editar(entidad)
             .then(() => {
                 this.toastr.info(TEXTO_CAMBIOS_GUARDADOS, {
                     allowHtml: true,
@@ -686,10 +723,17 @@ export default class PeticionesController {
      */
     mostrarPopupAdjuntos(entidad) {
         const contenedor = angular.element(document.getElementById("modalAdjuntosPeticion"));
-        this.adjuntosService.mostrar(entidad, { contenedor, modoEdicion: true })
+        this.adjuntosService.mostrar(entidad, { contenedor, modoEdicion: true, modoAutorizador: this.autorizador })
             .then(adjuntos => {
                 if (!isNil(adjuntos)) {
                     entidad.adjuntos = adjuntos;
+                    entidad.cantidadAdjuntos = adjuntos.length;
+                    const indiceEntidadCambiada = findIndex(this.datos, ['codigo', entidad.codigo]);
+                    if (indiceEntidadCambiada > -1) {
+                        const idsSeleccionados = map(this.peticionesSeleccionadas, peticion => { return peticion.id; });
+                        this.datos[indiceEntidadCambiada] = this._procesarEntidadVisualizacion(entidad, idsSeleccionados);
+                        this.datos = clone(this.datos);
+                    }
                 } else {
                     this.actualizarPagina();
                 }
@@ -708,6 +752,14 @@ export default class PeticionesController {
                 // y es necesario actualizar la lista de peticiones.
                 if (isNil(mensajes)) {
                     this.actualizarPagina();
+                } else {
+                    entidad.cantidadMensajes = mensajes.length;
+                    const indiceEntidadCambiada = findIndex(this.datos, ['codigo', entidad.codigo]);
+                    if (indiceEntidadCambiada > -1) {
+                        const idsSeleccionados = map(this.peticionesSeleccionadas, peticion => { return peticion.id; });
+                        this.datos[indiceEntidadCambiada] = this._procesarEntidadVisualizacion(entidad, idsSeleccionados);
+                        this.datos = clone(this.datos);
+                    }
                 }
             });
     }

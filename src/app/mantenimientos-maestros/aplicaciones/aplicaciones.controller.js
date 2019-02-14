@@ -4,37 +4,37 @@ import cloneDeep from 'lodash/cloneDeep';
 import map from 'lodash/map';
 import sortBy from 'lodash/sortBy';
 
-import './modulos.scss';
-import template from './modal-edicion-modulos.html';
+import './aplicaciones.scss';
+import template from './modal-edicion-aplicaciones.html';
 
 /* @ngInject */
 /**
- * Esta clase es un controlador de Angular para la vista de lista de módulos.
+ * Esta clase es un controlador de Angular para la vista de lista de aplicaciones.
  */
-export default class ModulosController {
+export default class AplicacionesController {
 
     /**
      * @param $uibModal
      * @param toastr
-     * @param {ModulosService} ModulosService
+     * @param {AplicacionesService} AplicacionesService
      *
      **/
-    constructor($uibModal, toastr, ModulosService) {
+    constructor($uibModal, toastr, AplicacionesService) {
         /** @private */
         this.$uibModal = $uibModal;
         /** @private */
         this.toastr = toastr;
         /** @private */
-        this.modulosService = ModulosService;
+        this.aplicacionesService = AplicacionesService;
 
-        this.modulosService.obtenerTodos(false)
-            .then(modulos => {
-                let modulosOrdenadosPorCodigo = sortBy(modulos, ['codigo']);
-                /** @type {Modulo[]} */
-                this.datos = map(modulosOrdenadosPorCodigo, entidad => { return this._procesarEntidadVisualizacion(entidad) });
+        this.aplicacionesService.obtenerTodos(false)
+            .then(aplicaciones => {
+                let appsOrdenadosPorCodigo = sortBy(aplicaciones, ['codigo']);
+                /** @type {Aplicacion[]} */
+                this.datos = map(appsOrdenadosPorCodigo, entidad => { return this._procesarEntidadVisualizacion(entidad); });
             });
         this.presentacion = {
-            entidad: 'Módulo',
+            entidad: 'Aplicación',
             atributoPrincipal: 'nombre',
             ordenInicial: ['codigo', 'asc'],
             columnas: [
@@ -47,14 +47,14 @@ export default class ModulosController {
         this.columnasExcel = {
             titulos: ['ID', 'Nombre', 'Activo'],
             campos: ['codigo', 'nombre', 'estado.activo']
-        }
+        };
     }
 
     /**
-     * Añade una propiedad a cada módulo que permite cambiar su estado.
+     * Añade una propiedad a cada aplicación que permite cambiar su estado.
      *
-     * @param {Modulo} entidad
-     * @return {Modulo}             -  El mismo módulo, con un componente añadido para cambiar su estado en la tabla.
+     * @param {Aplicacion} entidad
+     * @return {Aplicacion}             -  La misma aplicación, con un componente añadido para cambiar su estado en la tabla.
      * @private
      */
     _procesarEntidadVisualizacion(entidad) {
@@ -68,59 +68,59 @@ export default class ModulosController {
     }
 
     /**
-     * Abre el modal que se utiliza para crear/editar un módulo. Cuando se termina de trabajar con el módulo,
+     * Abre el modal que se utiliza para crear/editar una aplicación. Cuando se termina de trabajar con la aplicación,
      * actualiza o crea una fila correspondiente en la tabla.
      *
-     * @param {Modulo} [modulo]   Si no se pasa un módulo, el modal se abre en modo de creación.
+     * @param {Aplicacion} [aplicacion]   Si no se pasa una aplicación, el modal se abre en modo de creación.
      */
-    mostrarModalModulo(modulo) {
-        const contenedor = angular.element(document.getElementById("modalEdicionModulo"));
+    mostrarModalAplicacion(aplicacion) {
+        const contenedor = angular.element(document.getElementById('modalEdicionAplicacion'));
         const modal = this.$uibModal.open({
             template,
             appendTo: contenedor,
             size: 'dialog-centered',    // hack para que el modal salga centrado verticalmente
-            controller: 'ModalEdicionModulosController',
+            controller: 'ModalEdicionAplicacionesController',
             controllerAs: '$modal',
             resolve: {
                 // Los elementos que se inyectan al controlador del modal se deben pasar de esta forma:
-                entidad: () => { return modulo },
-                entidadesExistentes: () => { return this.datos }
+                entidad: () => { return aplicacion; },
+                entidadesExistentes: () => { return this.datos; }
             }
         });
 
-        modal.result.then((resultado) => {
-            this.datos = map(this.modulosService.modulos, entidad => { return this._procesarEntidadVisualizacion(entidad) });
+        modal.result.then(() => {
+            this.datos = map(this.aplicacionesService.aplicaciones, entidad => { return this._procesarEntidadVisualizacion(entidad); });
         });
         modal.result.catch(() => { });
     }
 
     /**
-     * Edita los datos de un módulo.
-     * @param {Modulo} modulo
+     * Edita los datos de una aplicación.
+     * @param {Aplicacion} aplicacion
      */
-    editarModulo(modulo) {
-        let clon = cloneDeep(modulo);
-        this.mostrarModalModulo(clon);
+    editarAplicacion(aplicacion) {
+        let clon = cloneDeep(aplicacion);
+        this.mostrarModalAplicacion(clon);
     }
 
     /**
-     * Cambia el estado de un módulo de activo a inactivo y viceversa.
+     * Cambia el estado de una aplicación de activo a inactivo y viceversa.
      *
-     * @param {Modulo} entidad
+     * @param {Aplicacion} entidad
      */
     cambiarEstado(entidad) {
         let promesa;
         if (!entidad.estado.activo) {
-            promesa = this.modulosService.eliminar(entidad);
+            promesa = this.aplicacionesService.eliminar(entidad);
         } else {
-            promesa = this.modulosService.editar(entidad);
+            promesa = this.aplicacionesService.editar(entidad);
         }
 
         promesa.then(resultado => {
             entidad.estado = clone(resultado.estado);
         }).catch(response => {
             if (response && response.status === 404) {
-                this.datos = map(this.modulosService.modulos, entidad => { return this._procesarEntidadVisualizacion(entidad) });
+                this.datos = map(this.aplicacionesService.aplicaciones, entidad => { return this._procesarEntidadVisualizacion(entidad); });
             } else {
                 entidad.estado.activo =  !entidad.estado.activo;
             }

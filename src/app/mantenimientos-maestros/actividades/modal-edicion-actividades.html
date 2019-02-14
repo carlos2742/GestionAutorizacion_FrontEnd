@@ -1,5 +1,5 @@
-<!-- Este es el modal para crear/editar una autorización -->
-<form id="edicionAutorizacionForm" name="edicionAutorizacionForm" ng-submit=":: $modal.editar(edicionAutorizacionForm)">
+<!-- Este es el modal para crear/editar una actividad -->
+<form id="edicionActividadForm" name="edicionActividadForm" ng-submit=":: $modal.editar(edicionActividadForm)">
     <div class="modal-header mantenimiento-maestro">
         <h5 class="modal-title" ng-bind=":: $modal.titulo"></h5>
         <button type="reset" class="close" aria-label="Close" ng-click=":: $modal.cancelar()">
@@ -8,24 +8,24 @@
     </div>
     <div class="modal-body mantenimiento-maestro" modal-async>
         <div class="form-group form-row">
-            <label for="flujo" class="col-sm-2 col-form-label">Flujo*</label>
+            <label for="proceso" class="col-sm-2 col-form-label">Proceso*</label>
             <div class="col-sm-10">
-                <ui-select ng-model="$modal.autorizacion.flujo" name="flujo" input-id="flujo" ng-required="true" ng-disabled="$modal.edicionRestringida" ng-animate-children="false">
-                    <ui-select-match placeholder="Seleccione o busque un flujo">
+                <ui-select ng-model="$modal.actividad.proceso" name="proceso" input-id="proceso" ng-required="true" ng-disabled="$modal.edicionRestringida" ng-animate-children="false">
+                    <ui-select-match placeholder="Seleccione o busque un proceso">
                         <span ng-bind="$select.selected.evento"></span>
                     </ui-select-match>
-                    <ui-select-choices repeat="flujo in $modal.filtrarFlujos($select.search) track by flujo.id">
-                        <span ng-bind-html="flujo.evento | highlight: $select.search"></span>
+                    <ui-select-choices repeat="proceso in $modal.filtrarProcesos($select.search) track by proceso.id">
+                        <span ng-bind-html="proceso.evento | highlight: $select.search"></span>
                     </ui-select-choices>
                     <ui-select-footer class="text-muted" >
-                        <span ng-show="vm.mostrandoResultadosParcialesFlujos">Demasiados resultados, debe refinar la búsqueda</span>
+                        <span ng-show="vm.mostrandoResultadosParcialesProcesos">Demasiados resultados, debe refinar la búsqueda</span>
                     </ui-select-footer>
                 </ui-select>
 
-                <div class="invalid-feedback" ng-messages="edicionAutorizacionForm.flujo.$error"
-                     ng-show="edicionAutorizacionForm.$submitted || edicionAutorizacionForm.flujo.$touched"
+                <div class="invalid-feedback" ng-messages="edicionActividadForm.proceso.$error"
+                     ng-show="edicionActividadForm.$submitted || edicionActividadForm.proceso.$touched"
                      role="alert">
-                    <span ng-message="required">Debe seleccionar un flujo</span>
+                    <span ng-message="required">Debe seleccionar un proceso</span>
                 </div>
             </div>
         </div>
@@ -39,11 +39,11 @@
                            type="text"
                            placeholder="Nombre"
                            required
-                           ng-model="$modal.autorizacion.nombre"
-                           ng-class="{'is-invalid': (edicionAutorizacionForm.$submitted || edicionAutorizacionForm.nombre.$touched) && edicionAutorizacionForm.nombre.$invalid}">
+                           ng-model="$modal.actividad.nombre"
+                           ng-class="{'is-invalid': (edicionActividadForm.$submitted || edicionActividadForm.nombre.$touched) && edicionActividadForm.nombre.$invalid}">
 
-                    <div class="invalid-feedback" ng-messages="edicionAutorizacionForm.nombre.$error"
-                         role="alert" ng-show="edicionAutorizacionForm.$submitted || edicionAutorizacionForm.nombre.$touched">
+                    <div class="invalid-feedback" ng-messages="edicionActividadForm.nombre.$error"
+                         role="alert" ng-show="edicionActividadForm.$submitted || edicionActividadForm.nombre.$touched">
                         <span ng-message="required">El nombre es obligatorio</span>
                     </div>
                 </div>
@@ -51,13 +51,13 @@
             <div class="form-group col-md form-row">
                 <label for="rol" class="col-sm-4 col-form-label">Rol*</label>
                 <div class="col-sm-8">
-                    <select class="form-control" id="rol" name="rol" ng-model="$modal.autorizacion.rol"
+                    <select class="form-control" id="rol" name="rol" ng-model="$modal.actividad.rol"
                             required ng-options="rol.nombre for rol in $modal.roles track by rol.id" ng-disabled="$modal.edicionRestringida"
-                            ng-class="{'is-invalid': (edicionAutorizacionForm.$submitted || edicionAutorizacionForm.rol.$touched) && edicionAutorizacionForm.rol.$invalid}">
+                            ng-class="{'is-invalid': (edicionActividadForm.$submitted || edicionActividadForm.rol.$touched) && edicionActividadForm.rol.$invalid}">
                     </select>
 
-                    <div class="invalid-feedback" ng-messages="edicionAutorizacionForm.rol.$error"
-                         ng-show="edicionAutorizacionForm.$submitted || edicionAutorizacionForm.rol.$touched"
+                    <div class="invalid-feedback" ng-messages="edicionActividadForm.rol.$error"
+                         ng-show="edicionActividadForm.$submitted || edicionActividadForm.rol.$touched"
                          role="alert">
                         <span ng-message="required">Debe seleccionar un rol</span>
                     </div>
@@ -76,12 +76,12 @@
                            step="1"
                            placeholder="0"
                            required
-                           ng-model="$modal.autorizacion.orden"
+                           ng-model="$modal.actividad.orden"
                            ng-disabled="$modal.edicionRestringida"
-                           ng-class="{'is-invalid': (edicionAutorizacionForm.$submitted || edicionAutorizacionForm.orden.$touched) && edicionAutorizacionForm.orden.$invalid}">
+                           ng-class="{'is-invalid': (edicionActividadForm.$submitted || edicionActividadForm.orden.$touched) && edicionActividadForm.orden.$invalid}">
 
-                    <div class="invalid-feedback" ng-messages="edicionAutorizacionForm.orden.$error"
-                         ng-show="edicionAutorizacionForm.$submitted || edicionAutorizacionForm.orden.$touched"
+                    <div class="invalid-feedback" ng-messages="edicionActividadForm.orden.$error"
+                         ng-show="edicionActividadForm.$submitted || edicionActividadForm.orden.$touched"
                          role="alert">
                         <span ng-message="required">Debe insertar el orden</span>
                         <span ng-message="min">No puede ser un número negativo</span>
@@ -94,7 +94,7 @@
                     <selector-fecha clases-extra=""
                                     name="fechaLimite"
                                     placeholder="Fecha"
-                                    model="$modal.autorizacion.fechaLimite"></selector-fecha>
+                                    model="$modal.actividad.fechaLimite"></selector-fecha>
                 </div>
             </div>
         </div>
@@ -102,10 +102,10 @@
     </div>
     <div class="modal-footer mantenimiento-maestro">
         <div uib-alert class="mb-0" ng-class="'alert-info'" ng-if="$modal.edicionRestringida && !$modal.mostrarErrorDuplicado">
-            Algunos campos de esta autorización no son editables porque ya ha sido usada en peticiones.
+            Algunos campos de esta actividad no son editables porque ya ha sido usada en peticiones.
         </div>
         <div uib-alert class="mb-0" ng-class="'alert-danger'" close=":: $modal.cerrarAlert()" ng-if="$modal.mostrarErrorDuplicado">
-            Ya existe otra autorización para este flujo con este mismo orden.
+            Ya existe otra actividad para este proceso con este mismo orden.
         </div>
 
         <button class="btn btn-success" type="submit" ng-bind=":: $modal.textoBoton"

@@ -5,31 +5,31 @@ import get from 'lodash/get';
 import find from 'lodash/find';
 import filter from 'lodash/filter';
 import {
-    ELEMENTO_NO_ENCONTRADO, ELEMENTO_YA_EXISTE, PROPIEDAD_NO_EDITABLE, TITULO_CAMBIOS_GUARDADOS
-} from "../../common/constantes";
-import {procesarFechaAEnviar} from "../../common/utiles";
+    ELEMENTO_NO_ENCONTRADO, PROPIEDAD_NO_EDITABLE, TITULO_CAMBIOS_GUARDADOS
+} from '../../common/constantes';
+import {procesarFechaAEnviar} from '../../common/utiles';
 
 /* @ngInject */
 /**
  * Esta clase representa un controlador de Angular que se utiliza en la vista del modal de creación/edición que se usa para
- * las autorizaciones.
+ * las actividades.
  */
-export default class ModalEdicionAutorizacionesController {
+export default class ModalEdicionActividadesController {
 
     /**
      * @param $uibModalInstance
      * @param $scope
      * @param toastr
-     * @param AutorizacionesService
-     * @param FlujosService
+     * @param ActividadesService
+     * @param ProcesosService
      * @param RolesService
      * @param AppConfig
      * @param ErroresValidacionMaestros
-     * @param autorizacion
+     * @param actividad
      * @param paginaActual
      * @param fnDespuesEdicion
      */
-    constructor($uibModalInstance, $scope, toastr, AutorizacionesService, FlujosService, RolesService, ErroresValidacionMaestros, AppConfig, autorizacion, paginaActual, fnDespuesEdicion) {
+    constructor($uibModalInstance, $scope, toastr, ActividadesService, ProcesosService, RolesService, ErroresValidacionMaestros, AppConfig, actividad, paginaActual, fnDespuesEdicion) {
 
         /** @private */
         this.$uibModalInstance = $uibModalInstance;
@@ -38,7 +38,7 @@ export default class ModalEdicionAutorizacionesController {
         /** @private */
         this.toastr = toastr;
         /** @private */
-        this.autorizacionesService = AutorizacionesService;
+        this.actividadesService = ActividadesService;
         /** @private */
         this.ErroresValidacionMaestros = ErroresValidacionMaestros;
 
@@ -50,32 +50,32 @@ export default class ModalEdicionAutorizacionesController {
         this.ITEMS_SELECT = AppConfig.elementosBusquedaSelect;
 
         /** @private */
-        this.totalFlujos = 0;
-        /** @type {Flujo[]} */
-        this.flujos = [];
+        this.totalProcesos = 0;
+        /** @type {Proceso[]} */
+        this.procesos = [];
 
         /** @type {boolean} */
         this.mostrarErrorDuplicado = false;
 
-        this.autorizacion = autorizacion;
-        if (isNil(this.autorizacion)) {
+        this.actividad = actividad;
+        if (isNil(this.actividad)) {
             /** @type {boolean} */
             this.modoEdicion = false;
             /** @type {string} */
-            this.titulo = 'Nueva Autorización';
+            this.titulo = 'Nueva Actividad';
             /** @type {string} */
             this.textoBoton = 'Crear';
         } else {
             this.modoEdicion = true;
-            this.titulo = 'Actualizar Autorización';
+            this.titulo = 'Actualizar Actividad';
             this.textoBoton = 'Actualizar';
 
-            // Si no se sabe si la autorización ya ha sido usada en alguna petición, o ya se pidió esa información antes
+            // Si no se sabe si la actividad ya ha sido usada en alguna petición, o ya se pidió esa información antes
             // y devolvió que todavía no ha sido usada, se verifica de nuevo
-            if (!this.autorizacion.hasOwnProperty('tienePeticiones') || !this.autorizacion.tienePeticiones) {
-                this.autorizacionesService.obtener(this.autorizacion.id)
+            if (!this.actividad.hasOwnProperty('tienePeticiones') || !this.actividad.tienePeticiones) {
+                this.actividadesService.obtener(this.actividad.id)
                     .then(resultado => {
-                        this.autorizacion.tienePeticiones = resultado.tienePeticiones;
+                        this.actividad.tienePeticiones = resultado.tienePeticiones;
                         /** @type {boolean} */
                         this.edicionRestringida = resultado.tienePeticiones;
                     })
@@ -96,45 +96,45 @@ export default class ModalEdicionAutorizacionesController {
                 this.roles = roles;
 
                 if (this.modoEdicion) {
-                    const rolCorrespondiente = find(this.roles, ['id', this.autorizacion.rol.id]);
+                    const rolCorrespondiente = find(this.roles, ['id', this.actividad.rol.id]);
                     if (isNil(rolCorrespondiente)) {
-                        this.roles.push(this.autorizacion.rol);
+                        this.roles.push(this.actividad.rol);
                     }
                 }
             });
-        FlujosService.obtenerTodos(true)
-            .then(flujos => {
-                /** @type {Flujo[]} */
-                this.flujos = flujos;
+        ProcesosService.obtenerTodos(true)
+            .then(procesos => {
+                /** @type {Proceso[]} */
+                this.procesos = procesos;
 
                 if (this.modoEdicion) {
-                    const flujoCorrespondiente = find(this.flujos, ['id', this.autorizacion.flujo.id]);
-                    if (isNil(flujoCorrespondiente)) {
-                        this.flujos.push(this.autorizacion.flujo);
+                    const procesoCorrespondiente = find(this.procesos, ['id', this.actividad.proceso.id]);
+                    if (isNil(procesoCorrespondiente)) {
+                        this.procesos.push(this.actividad.proceso);
                     }
                 }
             });
     }
 
     /**
-     * Propiedad que devuelve true si no se está mostrando la lista completa de flujos en un momento determinado.
+     * Propiedad que devuelve true si no se está mostrando la lista completa de procesos en un momento determinado.
      * @return {boolean}
      */
-    get mostrandoResultadosParcialesFlujos() {
-        return this.totalFlujos > this.ITEMS_SELECT + 1;
+    get mostrandoResultadosParcialesProcesos() {
+        return this.totalProcesos > this.ITEMS_SELECT + 1;
     }
 
     /**
-     * Filtra la lista de flujos según el string que haya escrito el usuario. Es case insensitive.
+     * Filtra la lista de procesos según el string que haya escrito el usuario. Es case insensitive.
      * @param {string} busqueda
-     * @return {Flujo[]}
+     * @return {Proceso[]}
      */
-    filtrarFlujos(busqueda) {
+    filtrarProcesos(busqueda) {
         const busquedaLower = busqueda.toLowerCase();
-        const resultado = filter(this.flujos, (elemento) => {
+        const resultado = filter(this.procesos, (elemento) => {
             return (busqueda && elemento.evento) ? includes(elemento.evento.toLowerCase(), busquedaLower) : true;
         });
-        this.totalFlujos = resultado.length;
+        this.totalProcesos = resultado.length;
 
         if (resultado.length > this.ITEMS_SELECT + 1) {
             return resultado.slice(0, this.ITEMS_SELECT + 1);
@@ -144,24 +144,24 @@ export default class ModalEdicionAutorizacionesController {
     }
 
     /**
-     * Crea o edita una autorización, usando los datos que el usuario insertó en el formulario.
+     * Crea o edita una actividad, usando los datos que el usuario insertó en el formulario.
      *
-     * @param edicionAutorizacionForm        - Formulario que contiene los datos de la autorización
+     * @param edicionActividadForm        - Formulario que contiene los datos de la actividad
      */
-    editar(edicionAutorizacionForm) {
-        if (edicionAutorizacionForm.$invalid) {
+    editar(edicionActividadForm) {
+        if (edicionActividadForm.$invalid) {
             return;
         }
 
         const fechas = {
-            fechaLimite: this.autorizacion.fechaLimite ? procesarFechaAEnviar(this.autorizacion.fechaLimite) : null
+            fechaLimite: this.actividad.fechaLimite ? procesarFechaAEnviar(this.actividad.fechaLimite) : null
         };
 
         let promesa;
         if (!this.modoEdicion) {
-            promesa = this.autorizacionesService.crear(assign({}, this.autorizacion, fechas), this.paginaActual);
+            promesa = this.actividadesService.crear(assign({}, this.actividad, fechas), this.paginaActual);
         } else {
-            promesa = this.autorizacionesService.editar(assign({}, this.autorizacion, fechas), this.paginaActual);
+            promesa = this.actividadesService.editar(assign({}, this.actividad, fechas), this.paginaActual);
         }
 
         promesa
@@ -170,9 +170,9 @@ export default class ModalEdicionAutorizacionesController {
                 this.$uibModalInstance.close();
 
                 if (resultado.pagina > -1) {
-                    this.toastr.success(`Autorización "${resultado.autorizacion.nombre}"`, TITULO_CAMBIOS_GUARDADOS);
+                    this.toastr.success(`Actividad "${resultado.actividad.nombre}"`, TITULO_CAMBIOS_GUARDADOS);
                 } else {
-                    this.toastr.warning(`Se guardaron los cambios de la autorización "${resultado.autorizacion.nombre}", pero no están visibles en esta página`, null, {
+                    this.toastr.warning(`Se guardaron los cambios de la actividad "${resultado.actividad.nombre}", pero no están visibles en esta página`, null, {
                         closeButton: true,
                         timeOut: 0,
                         extendedTimeOut: 0
@@ -185,12 +185,12 @@ export default class ModalEdicionAutorizacionesController {
                 if (response && response.status === 404) {
                     this.fnDespuesEdicion(null);
                 } else if (get(response, 'error.errorCode') === ELEMENTO_NO_ENCONTRADO) {
-                    this.toastr.warning('No se pudo encontrar alguna de las entidades relacionadas con la autorización, por lo que no se guardaron los cambios.');
+                    this.toastr.warning('No se pudo encontrar alguna de las entidades relacionadas con la actividad, por lo que no se guardaron los cambios.');
                 } else if (response === this.ErroresValidacionMaestros.YA_EXISTE_ORDEN) {
                     this.mostrarErrorDuplicado = true;
                     cerrarModal = false;
                 } else if (get(response, 'error.errorCode') === PROPIEDAD_NO_EDITABLE) {
-                    this.toastr.warning('Se realizaron cambios en propiedades de esta autorización que ya no son editables, por lo que no se guardaron los cambios.');
+                    this.toastr.warning('Se realizaron cambios en propiedades de esta actividad que ya no son editables, por lo que no se guardaron los cambios.');
                 }
 
                 if (cerrarModal) {

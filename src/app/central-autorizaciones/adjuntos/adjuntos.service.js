@@ -92,6 +92,7 @@ export default class AdjuntosService {
                 resolve: {
                     peticion: () => { return entidad },
                     modoEdicion: () => { return conf.modoEdicion },
+                    modoAutorizador: () => { return conf.modoAutorizador },
                     fnAccion: () => {
                         return (adjunto, accion) => {
                             if (accion === 'descargar') {
@@ -123,10 +124,12 @@ export default class AdjuntosService {
         return this.$http.delete(`${this.ENDPOINT}/${adjunto.codigo}`)
             .then(() => {
                 remove(peticion.adjuntos, ['id', adjunto.id]);
+                peticion.cantidadAdjuntos = peticion.adjuntos.length;
             })
             .catch(response => {
                 if (response && response.status === 404) {
                     remove(peticion.adjuntos, ['id', adjunto.id]);
+                    peticion.cantidadAdjuntos = peticion.adjuntos.length;
                 }
 
                 throw response;

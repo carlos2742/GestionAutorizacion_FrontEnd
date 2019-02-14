@@ -1,3 +1,4 @@
+import angular from 'angular';
 import sortBy from 'lodash/sortBy';
 import orderBy from 'lodash/orderBy';
 import map from 'lodash/map';
@@ -10,26 +11,26 @@ import includes from 'lodash/includes';
 import isNil from 'lodash/isNil';
 import get from 'lodash/get';
 
-import './flujos.scss';
-import template from './modal-edicion-flujos.html';
-import {ENTIDAD_NO_ELIMINABLE} from "../../common/constantes";
+import './procesos.scss';
+import template from './modal-edicion-procesos.html';
+import {ENTIDAD_NO_ELIMINABLE} from '../../common/constantes';
 
 
 /* @ngInject */
 /**
- * Esta clase es un controlador de Angular para la vista de lista de flujos.
+ * Esta clase es un controlador de Angular para la vista de lista de procesos.
  */
-export default class FlujosController {
+export default class ProcesosController {
 
     /**
      * @param $uibModal
      * @param toastr
-     * @param {FlujosService} FlujosService
-     * @param {ModulosService} ModulosService
+     * @param {ProcesosService} ProcesosService
+     * @param {AplicacionesService} AplicacionesService
      * @param AppConfig
      *
      **/
-    constructor($uibModal, toastr, FlujosService, ModulosService, AppConfig) {
+    constructor($uibModal, toastr, ProcesosService, AplicacionesService, AppConfig) {
         /** @type {number} */
         this.ITEMS_POR_PAGINA = AppConfig.elementosPorPagina;
         /** @private */
@@ -37,65 +38,65 @@ export default class FlujosController {
         /** @private */
         this.toastr = toastr;
         /** @private */
-        this.flujosService = FlujosService;
+        this.procesosService = ProcesosService;
 
         /** @type {boolean} */
         this.busquedaVisible = true;
-        /** @type {Flujo[]} */
+        /** @type {Proceso[]} */
         this.resultadoBusqueda = [];
         this.paramsBusqueda = {};
-        /** @type {Flujo[]} */
-        this.flujos = [];
+        /** @type {Proceso[]} */
+        this.procesos = [];
         /** @type {number} */
         this.paginaActual = 1;
-        this.flujosService.obtenerTodos(false)
-            .then(flujos => {
-                let flujosOrdenadosPorCodigo = sortBy(flujos, ['codigo']);
-                this.flujos = map(flujosOrdenadosPorCodigo, entidad => { return this._procesarEntidadVisualizacion(entidad) });
+        this.procesosService.obtenerTodos(false)
+            .then(procesos => {
+                let procesosOrdenadosPorCodigo = sortBy(procesos, ['codigo']);
+                this.procesos = map(procesosOrdenadosPorCodigo, entidad => { return this._procesarEntidadVisualizacion(entidad); });
                 this.actualizarPagina();
             });
-        ModulosService.obtenerTodos(false)
-            .then(modulos => {
-                /** @type {Modulo[]} */
-                this.modulos = modulos;
+        AplicacionesService.obtenerTodos(false)
+            .then(aplicaciones => {
+                /** @type {Aplicacion[]} */
+                this.aplicaciones = aplicaciones;
             });
 
         this.ordenActivo = ['codigo', 'asc'];
         this.presentacion = {
-            entidad: 'Flujo',
+            entidad: 'Proceso',
             atributoPrincipal: 'evento',
             ordenInicial: ['codigo', 'asc'],
             columnas: [
                 {nombre: 'codigo', display: 'ID', ordenable: true},
                 {nombre: 'evento', display: 'Evento', ordenable: true},
-                {nombre: 'modulo.display', display: 'Módulo', ordenable: true},
-                {nombre: 'totalAutorizacionesConFormato', display: 'Total Autorizaciones', html: true, ordenable:'cantidadAutorizaciones'},
+                {nombre: 'aplicacion.display', display: 'Aplicación', ordenable: true},
+                {nombre: 'totalActividadesConFormato', display: 'Total Actividades', html: true, ordenable:'cantidadActividades'},
                 {nombre: 'observacionesInput', display: 'Observaciones', ancho: '250px', html: true},
                 {nombre: 'estadoToggle', display: 'Activo', ordenable: false, html: true, ancho:'100px'},
-                {nombre: 'enlaceAutorizaciones', display: '', ordenable: false, html: true, ancho: '40px'}
+                {nombre: 'enlaceActividades', display: '', ordenable: false, html: true, ancho: '40px'}
             ]
         };
 
         this.columnasExcel = {
-            titulos: ['ID', 'Evento', 'Módulo', 'Total Autorizaciones', 'Observaciones', 'Activo'],
-            campos: ['codigo', 'evento', 'modulo.display', 'cantidadAutorizaciones', 'observaciones', 'estado.activo']
-        }
+            titulos: ['ID', 'Evento', 'Aplicación', 'Total Actividades', 'Observaciones', 'Activo'],
+            campos: ['codigo', 'evento', 'aplicacion.display', 'cantidadActividades', 'observaciones', 'estado.activo']
+        };
     }
 
     /**
-     * Añade una propiedad a cada flujo que permite cambiar su estado y otra para mostrar las observaciones.
+     * Añade una propiedad a cada proceso que permite cambiar su estado y otra para mostrar las observaciones.
      *
-     * @param {Flujo} entidad
-     * @return {Flujo}  El mismo flujo, con las propiedades mencionadas
+     * @param {Proceso} entidad
+     * @return {Proceso}  El mismo proceso, con las propiedades mencionadas
      * @private
      */
     _procesarEntidadVisualizacion(entidad) {
         let clon = clone(entidad);
 
-        if (entidad.cantidadAutorizaciones > 0) {
-            clon.totalAutorizacionesConFormato = entidad.cantidadAutorizaciones;
+        if (entidad.cantidadActividades > 0) {
+            clon.totalActividadesConFormato = entidad.cantidadActividades;
         } else {
-            clon.totalAutorizacionesConFormato = `<span class="text-danger">${entidad.cantidadAutorizaciones || 0}</span>`;
+            clon.totalActividadesConFormato = `<span class="text-danger">${entidad.cantidadActividades || 0}</span>`;
         }
 
         clon.estado = clone(entidad.estado);
@@ -106,40 +107,40 @@ export default class FlujosController {
                                             disabled
                                             style="width: 100%;">${!isNil(entidad.observaciones) ? entidad.observaciones : ''}</textarea>`;
 
-        clon.enlaceAutorizaciones = `<a href class="icon-user-check d-print-none" ng-href="#/autorizaciones?flujo=${entidad.id}" uib-tooltip="Ver Autorizaciones"></a>`;
+        clon.enlaceActividades = `<a href class="icon-user-check d-print-none" ng-href="#/actividades?proceso=${entidad.id}" uib-tooltip="Ver Actividades"></a>`;
 
         return clon;
     }
 
     /**
-     * Abre el modal que se utiliza para crear/editar un flujo. Cuando se termina de trabajar con el flujo,
+     * Abre el modal que se utiliza para crear/editar un proceso. Cuando se termina de trabajar con el proceso,
      * actualiza o crea una fila correspondiente en la tabla.
      *
-     * @param {Flujo} [flujo]   Si no se pasa un flujo, el modal se abre en modo de creación.
+     * @param {Proceso} [proceso]   Si no se pasa un proceso, el modal se abre en modo de creación.
      */
-    mostrarModalFlujo(flujo) {
-        const contenedor = angular.element(document.getElementById("modalEdicionFlujo"));
+    mostrarModalProceso(proceso) {
+        const contenedor = angular.element(document.getElementById('modalEdicionProceso'));
 
         const modal = this.$uibModal.open({
             template,
             appendTo: contenedor,
             size: 'dialog-centered',    // hack para que el modal salga centrado verticalmente
-            controller: 'ModalEdicionFlujosController',
+            controller: 'ModalEdicionProcesosController',
             controllerAs: '$modal',
             resolve: {
-                flujo: () => { return flujo }
+                proceso: () => { return proceso; }
             }
         });
 
         const actualizarFn = (resultado) => {
-            this.flujos = map(this.flujosService.flujos, entidad => { return this._procesarEntidadVisualizacion(entidad) });
+            this.procesos = map(this.procesosService.procesos, entidad => { return this._procesarEntidadVisualizacion(entidad); });
             this.actualizarOrden(this.ordenActivo, false);
             if (this.busquedaActiva) {
                 this.buscar(false);
             }
 
             if (!isNil(resultado) && !this.filaEsVisible(resultado)) {
-                this.toastr.warning(`Aunque se guardaron los cambios del flujo "${resultado.evento}", no están visibles en la tabla en este momento.`, null, {
+                this.toastr.warning(`Aunque se guardaron los cambios del proceso "${resultado.evento}", no están visibles en la tabla en este momento.`, null, {
                     allowHtml: true,
                     closeButton: true,
                     timeOut: 0,
@@ -157,37 +158,37 @@ export default class FlujosController {
     }
 
     /**
-     * Edita los datos de un flujo.
-     * @param {Flujo} flujo
+     * Edita los datos de un proceso.
+     * @param {Proceso} proceso
      */
-    editarFlujo(flujo) {
-        const clon = cloneDeep(flujo);
-        clon.modulo = clon.modulo.valor;
-        this.mostrarModalFlujo(clon);
+    editarProceso(proceso) {
+        const clon = cloneDeep(proceso);
+        clon.aplicacion = clon.aplicacion.valor;
+        this.mostrarModalProceso(clon);
     }
 
     /**
-     * Elimina un flujo
-     * @param {Flujo} flujo
+     * Elimina un proceso
+     * @param {Proceso} proceso
      */
-    eliminarFlujo(flujo) {
-        const fnActualizarFlujos = () => {
-            this.flujos = map(this.flujosService.flujos, entidad => { return this._procesarEntidadVisualizacion(entidad) });
+    eliminarProceso(proceso) {
+        const fnActualizarProcesos = () => {
+            this.procesos = map(this.procesosService.procesos, entidad => { return this._procesarEntidadVisualizacion(entidad); });
             this.actualizarOrden(this.ordenActivo, false);
             if (this.busquedaActiva) {
                 this.buscar(false);
             }
         };
 
-        return this.flujosService.eliminar(flujo)
+        return this.procesosService.eliminar(proceso)
             .then(() => {
-                fnActualizarFlujos();
+                fnActualizarProcesos();
             })
             .catch(response => {
                 if (response && response.status === 404) {
-                    fnActualizarFlujos();
+                    fnActualizarProcesos();
                 } else if (get(response, 'error.errorCode') === ENTIDAD_NO_ELIMINABLE) {
-                    this.toastr.warning(`El flujo "${flujo.evento}" no se puede eliminar porque existe información que depende de él.`, null, {
+                    this.toastr.warning(`El proceso "${proceso.evento}" no se puede eliminar porque existe información que depende de él.`, null, {
                         allowHtml: true,
                         closeButton: true,
                         timeOut: 0,
@@ -199,18 +200,18 @@ export default class FlujosController {
     }
 
     /**
-     * Cambia el estado de un flujo de activo a inactivo y viceversa.
+     * Cambia el estado de un proceso de activo a inactivo y viceversa.
      *
-     * @param {Flujo} entidad
+     * @param {Proceso} entidad
      */
     cambiarEstado(entidad) {
-        this.flujosService.editar(entidad)
+        this.procesosService.editar(entidad)
             .then(resultado => {
                 entidad.estado = clone(resultado.estado);
             })
             .catch(response => {
                 if (response.status === 404) {
-                    this.flujos = map(this.flujosService.flujos, entidad => { return this._procesarEntidadVisualizacion(entidad) });
+                    this.procesos = map(this.procesosService.procesos, entidad => { return this._procesarEntidadVisualizacion(entidad); });
                     this.actualizarOrden(this.ordenActivo, false);
                     if (this.busquedaActiva) {
                         this.buscar(false);
@@ -222,16 +223,16 @@ export default class FlujosController {
     }
 
     /**
-     * Devuelve verdadero si el flujo está visible en la tabla en ese momento.
-     * @param {Flujo} flujo
+     * Devuelve verdadero si el proceso está visible en la tabla en ese momento.
+     * @param {Proceso} proceso
      * @return {boolean}
      */
-    filaEsVisible(flujo) {
-        if (isNil(flujo)) {
+    filaEsVisible(proceso) {
+        if (isNil(proceso)) {
             return false;
         }
         return !!find(this.datos, (item) => {
-            return item.codigo === flujo.codigo;
+            return item.codigo === proceso.codigo;
         });
     }
 
@@ -240,9 +241,9 @@ export default class FlujosController {
             this.mostrarTodos();
         } else {
             this.busquedaActiva = true;
-            this.resultadoBusqueda = reduce(this.flujos, (resultado, item) => {
+            this.resultadoBusqueda = reduce(this.procesos, (resultado, item) => {
                 let coincidencia = isMatchWith(item, this.paramsBusqueda, (objValue, srcValue, key) => {
-                    if (key === 'modulo') {
+                    if (key === 'aplicacion') {
                         return isNil(srcValue) || objValue.valor.id === srcValue.id;
                     } else {
                         return objValue && includes(objValue.toLowerCase(), srcValue.toLowerCase());
@@ -277,11 +278,11 @@ export default class FlujosController {
     }
 
     get datosAExportar() {
-        return this.busquedaActiva ? this.resultadoBusqueda : this.flujos;
+        return this.busquedaActiva ? this.resultadoBusqueda : this.procesos;
     }
 
-    get totalFlujos() {
-        return this.busquedaActiva ? this.resultadoBusqueda.length : this.flujos.length;
+    get totalProcesos() {
+        return this.busquedaActiva ? this.resultadoBusqueda.length : this.procesos.length;
     }
 
     actualizarPagina() {
@@ -300,7 +301,7 @@ export default class FlujosController {
                 this.datos = this.resultadoBusqueda.slice(inicio, fin);
             }
         } else {
-            if (inicio >= this.flujos.length) {
+            if (inicio >= this.procesos.length) {
                 if (this.paginaActual > 1) {
                     this.paginaActual--;
                     this.actualizarPagina();
@@ -308,7 +309,7 @@ export default class FlujosController {
                     this.datos = [];
                 }
             } else {
-                this.datos = this.flujos.slice(inicio, fin);
+                this.datos = this.procesos.slice(inicio, fin);
             }
         }
     }
@@ -319,17 +320,17 @@ export default class FlujosController {
         }
         this.ordenActivo = orden;
 
-        this.flujos = orderBy(this.flujos,
+        this.procesos = orderBy(this.procesos,
             [entidad => {
                 const valor = get(entidad, orden[0]);
-                return typeof valor === 'string' ? valor.toLowerCase() : valor }],
+                return typeof valor === 'string' ? valor.toLowerCase() : valor; }],
             [ orden[1] ]);
 
         if (this.busquedaActiva) {
             this.resultadoBusqueda = orderBy(this.resultadoBusqueda,
                 [entidad => {
                     const valor = get(entidad, orden[0]);
-                    return typeof valor === 'string' ? valor.toLowerCase() : valor }],
+                    return typeof valor === 'string' ? valor.toLowerCase() : valor; }],
                 [ orden[1] ]);
         }
 

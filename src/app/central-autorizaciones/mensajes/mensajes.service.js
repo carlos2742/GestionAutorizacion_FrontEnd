@@ -21,7 +21,7 @@ export default class MensajesService {
      * @property {Date} fechaEnvio.valor            -  Su valor actual.
      * @property {string} fechaEnvio.display        -  Cómo debe representarse esta fecha.
      * @property {Object} enviadoPor                -  Persona que envió el mensaje.
-     * @property {Flujo} enviadoPor.valor           -  Su valor actual.
+     * @property {Persona} enviadoPor.valor         -  Su valor actual.
      * @property {string} enviadoPor.display        -  Cómo debe ser representado.
      * @property {boolean} enviadoPorUsuarioActivo  -  Verdadero si el mensaje lo mandó el usuario logueado en ese momento en el sistema.
      */
@@ -136,6 +136,7 @@ export default class MensajesService {
             mensajeCreado.enviadoPor = this.usuario;
             const mensajeProcesado = this.procesarEntidadRecibida(mensajeCreado, peticion);
             peticion.mensajes.push(mensajeProcesado);
+            peticion.cantidadMensajes = peticion.mensajes.length;
             return mensajeProcesado;
         });
     }

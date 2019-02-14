@@ -103,9 +103,9 @@ angular.module(MODULE_NAME, [
                 controller: 'PermisosAdminController',
                 controllerAs: 'vm'
             })
-            .when('/modulos', {
-                template: require('./mantenimientos-maestros/modulos/modulos.html'),
-                controller: 'ModulosController',
+            .when('/aplicaciones', {
+                template: require('./mantenimientos-maestros/aplicaciones/aplicaciones.html'),
+                controller: 'AplicacionesController',
                 controllerAs: 'vm'
             })
             .when('/roles', {
@@ -113,14 +113,14 @@ angular.module(MODULE_NAME, [
                 controller: 'RolesController',
                 controllerAs: 'vm'
             })
-            .when('/flujos', {
-                template: require('./mantenimientos-maestros/flujos/flujos.html'),
-                controller: 'FlujosController',
+            .when('/procesos', {
+                template: require('./mantenimientos-maestros/procesos/procesos.html'),
+                controller: 'ProcesosController',
                 controllerAs: 'vm'
             })
-            .when('/autorizaciones', {
-                template: require('./mantenimientos-maestros/autorizaciones/autorizaciones.html'),
-                controller: 'AutorizacionesController',
+            .when('/actividades', {
+                template: require('./mantenimientos-maestros/actividades/actividades.html'),
+                controller: 'ActividadesController',
                 controllerAs: 'vm'
             })
             .when('/etiquetas', {
@@ -131,7 +131,18 @@ angular.module(MODULE_NAME, [
             .when('/central-autorizaciones', {
                 template: require('./central-autorizaciones/peticiones/peticiones.html'),
                 controller: 'PeticionesController',
-                controllerAs: 'vm'
+                controllerAs: 'vm',
+                resolve: {
+                    autorizador: () => { return true; }
+                }
+            })
+            .when('/mis-actividades', {
+                template: require('./central-autorizaciones/peticiones/peticiones.html'),
+                controller: 'PeticionesController',
+                controllerAs: 'vm',
+                resolve: {
+                    autorizador: () => { return false; }
+                }
             })
             .when('/peticion/:id', {
                 template: require('./central-autorizaciones/detalles-peticion/detalles-peticion.html'),

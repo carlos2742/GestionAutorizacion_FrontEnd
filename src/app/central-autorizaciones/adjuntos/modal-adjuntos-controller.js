@@ -22,11 +22,12 @@ export default class ModalAdjuntosController {
      * @param AppConfig
      * @param {Peticion} peticion
      * @param {boolean} modoEdicion
+     * @param {boolean} modoAutorizador
      * @param {function} fnAccion
      * @param {function} fnResolucion
      */
     constructor($uibModalInstance, $scope, toastr, FileUploader, AdjuntosService, PeticionesService, SesionService, AppConfig,
-                peticion, modoEdicion, fnAccion, fnResolucion) {
+                peticion, modoEdicion, modoAutorizador, fnAccion, fnResolucion) {
         /** @private */
         this.$uibModalInstance = $uibModalInstance;
         /** @private */
@@ -39,6 +40,8 @@ export default class ModalAdjuntosController {
         this.peticion = peticion;
         /** @type {boolean} */
         this.modoEdicion = modoEdicion;
+        /** @type {boolean} */
+        this.modoAutorizador = modoAutorizador;
         this.ejecutarAccion = (entidad, accion) => {
             fnAccion(entidad, accion)
                 .catch(response => {
@@ -74,6 +77,7 @@ export default class ModalAdjuntosController {
             withCredentials: !DEBUG_MODE,
             onSuccessItem: (item, response) => {
                 this.peticion.adjuntos.push(response.data);
+                this.peticion.cantidadAdjuntos = this.peticion.adjuntos.length;
                 let adjunto = this._procesarAdjunto(response.data);
                 this.adjuntos = this.adjuntos.concat(adjunto);
                 this.toastr.success(adjunto.nombre, 'Adjunto añadido');
@@ -149,7 +153,7 @@ export default class ModalAdjuntosController {
                 {nombre: 'accionDescargar', html: true, ancho: '40px'},
             ]
         };
-        if (this.modoEdicion) {
+        if (this.modoAutorizador) {
             presentacion.columnas.push(
                 {nombre: 'accionEliminar', html: true, ancho: '40px'}
             );
@@ -205,7 +209,7 @@ export default class ModalAdjuntosController {
         clon.accionDescargar = `<a href ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'descargar'})"
                                    class="icon-download3" uib-tooltip="Descargar">
                                 </a>`;
-        if (this.modoEdicion) {
+        if (this.modoAutorizador) {
             clon.accionEliminar = `<a href ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'eliminar'})"
                                        class="icon-bin" uib-tooltip="Eliminar">
                                    </a>`;

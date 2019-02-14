@@ -2,42 +2,42 @@ import isNil from 'lodash/isNil';
 import get from 'lodash/get';
 
 import {elementoYaExiste} from '../../common/validadores';
-import {TITULO_CAMBIOS_GUARDADOS} from "../../common/constantes";
+import {TITULO_CAMBIOS_GUARDADOS} from '../../common/constantes';
 
 /* @ngInject */
 /**
- * Esta clase representa un controlador de Angular que se utiliza en la vista del modal de creación/edición de un módulo.
+ * Esta clase representa un controlador de Angular que se utiliza en la vista del modal de creación/edición de una aplicación.
  */
-export default class ModalEdicionModulosController {
+export default class ModalEdicionAplicacionesController {
 
     /**
      * @param $uibModalInstance
      * @param toastr
-     * @param ModulosService
+     * @param AplicacionesService
      * @param entidad
      * @param entidadesExistentes
      */
-    constructor($uibModalInstance, toastr, ModulosService, entidad, entidadesExistentes) {
+    constructor($uibModalInstance, toastr, AplicacionesService, entidad, entidadesExistentes) {
 
         /** @private */
         this.$uibModalInstance = $uibModalInstance;
         /** @private */
         this.toastr = toastr;
         /** @private */
-        this.modulosService = ModulosService;
+        this.aplicacionesService = AplicacionesService;
 
-        /** @type {Modulo} */
+        /** @type {Aplicacion} */
         this.entidad = entidad;
         /** @private */
         this.entidadesExistentes = entidadesExistentes;
 
         if (isNil(entidad)) {
             // Nueva entidad
-            this.titulo = 'Nuevo Módulo';
+            this.titulo = 'Nueva Aplicación';
             this.textoBoton = 'Crear';
         } else {
             // Entidad existente
-            this.titulo = 'Actualizar Módulo';
+            this.titulo = 'Actualizar Aplicación';
             this.textoBoton = 'Actualizar';
             this.modoEdicion = true;
             /** @private */
@@ -52,7 +52,7 @@ export default class ModalEdicionModulosController {
      * @param viewValue
      * @return {boolean}        - Devuelve true la entidad es válida (es decir, si el nombre no existe ya).
      */
-    validarNombreDuplicado(modelValue, viewValue) {
+    validarNombreDuplicado(modelValue) {
         let entidad = {
             codigo: get(this.$modal.entidad, 'codigo'),
             nombre: modelValue
@@ -63,25 +63,25 @@ export default class ModalEdicionModulosController {
     /**
      * Crea o edita una entidad, usando los datos que el usuario insertó en el formulario.
      *
-     * @param edicionModuloForm        - Formulario que contiene los datos de la entidad
+     * @param edicionAplicacionForm        - Formulario que contiene los datos de la entidad
      */
-    editar(edicionModuloForm) {
-        if (edicionModuloForm.$invalid) {
+    editar(edicionAplicacionForm) {
+        if (edicionAplicacionForm.$invalid) {
             return;
         }
 
         let promesa;
         if (!this.modoEdicion) {
-            promesa = this.modulosService.crear(this.entidad.nombre);
+            promesa = this.aplicacionesService.crear(this.entidad.nombre);
         } else {
-            promesa = this.modulosService.editar(this.entidad);
+            promesa = this.aplicacionesService.editar(this.entidad);
         }
         promesa
             .then(resultado => {
                 this.$uibModalInstance.close(resultado);
-                this.toastr.success(`Módulo "${resultado.nombre}"`, TITULO_CAMBIOS_GUARDADOS);
+                this.toastr.success(`Aplicación "${resultado.nombre}"`, TITULO_CAMBIOS_GUARDADOS);
             })
-            .catch(error => {
+            .catch(() => {
                 this.$uibModalInstance.close();
             });
     }

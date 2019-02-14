@@ -10,22 +10,22 @@ import clone from 'lodash/clone';
 import {
     ELEMENTO_YA_ESTA_INACTIVO, MANTENIMIENTO_MAESTRO_ACTIVO,
     MANTENIMIENTO_MAESTRO_INACTIVO
-} from "../../common/constantes";
-import {elementoRequeridoEsNulo, elementoYaExiste} from "../../common/validadores";
+} from '../../common/constantes';
+import {elementoRequeridoEsNulo} from '../../common/validadores';
 
 
 /* @ngInject */
 /**
- * Esta clase es un servicio de Angular donde se almacena la lista de todos los módulos disponibles.
+ * Esta clase es un servicio de Angular donde se almacena la lista de todas las aplicaciones disponibles.
  */
-export default class ModulosService {
+export default class AplicacionesService {
     /**
-     * Un módulo es un mantenimiento maestro.
-     * @typedef {Object} Modulo
-     * @property {number} id                    -  De sólo lectura. Se genera automáticamente en la Base de Datos para módulos nuevos.
+     * Una aplicacion es un mantenimiento maestro.
+     * @typedef {Object} Aplicacion
+     * @property {number} id                    -  De sólo lectura. Se genera automáticamente en la Base de Datos para aplicaciones nuevas.
      * @property {number} codigo                -  Lo mismo que id, se añade para mantener consistencia con otras entidades.
-     * @property {string} nombre                -  Nombre del módulo.
-     * @property {Object} estado                -  Determina si un módulo está activo o inactivo
+     * @property {string} nombre                -  Nombre de la aplicación.
+     * @property {Object} estado                -  Determina si una aplicación está activa o inactiva
      * @property {boolean} estado.activo
      * @property {string} estado.valor          -  Puede tener los valores 'A' (para activo), o 'I' (para inactivo).
      */
@@ -39,7 +39,7 @@ export default class ModulosService {
     constructor($q, $http, ErroresValidacionMaestros) {
         // Constantes del servicio
         /** @private */
-        this.ENDPOINT = '/modulos';
+        this.ENDPOINT = '/aplicaciones';
 
         /** @private */
         this.$q = $q;
@@ -48,16 +48,16 @@ export default class ModulosService {
         /** @private */
         this.ErroresValidacionMaestros = ErroresValidacionMaestros;
 
-        /** @type {Modulo[]} */
-        this.modulos = [];
+        /** @type {Aplicacion[]} */
+        this.aplicaciones = [];
     }
 
     /**
-     * Le aplica algunas transformaciones a un módulo recibido del API. Añade los permisos de edición y también le
+     * Le aplica algunas transformaciones a una aplicación recibido del API. Añade los permisos de edición y también le
      * agrega una propiedad para facilitar la visualización del estado.
      *
-     * @param {Object} entidad      -  Representa un módulo recibido del API
-     * @returns {Modulo}            -  La misma entidad, con las transformaciones mencionadas.
+     * @param {Object} entidad      -  Representa una aplicación recibida del API
+     * @returns {Aplicacion}        -  La misma entidad, con las transformaciones mencionadas.
      */
     procesarEntidadRecibida(entidad) {
         entidad.codigo = entidad.id;
@@ -68,14 +68,13 @@ export default class ModulosService {
         };
 
         entidad.editable = true;
-        // TODO Revisar si los módulos se pueden eliminar
         entidad.eliminable = false;
 
         return entidad;
     }
 
     /**
-     * Determina si un módulo es válido. Se debe llamar a este método antes de crear o editar un módulo.
+     * Determina si una aplicación es válida. Se debe llamar a este método antes de crear o editar una aplicación.
      * Realiza varias comprobaciones:
      *  1 - Que el nombre no esté vacío, ya que es un campo requerido.
      *
@@ -94,20 +93,20 @@ export default class ModulosService {
     }
 
     /**
-     * Devuelve el índice de un módulo en la lista que los contiene a todos si sus datos son diferentes a los que
-     * están almacenados en dicha lista. Este método es útil a la hora de editar un módulo, para no hacer una llamada
+     * Devuelve el índice de una aplicación en la lista que las contiene a todas si sus datos son diferentes a los que
+     * están almacenados en dicha lista. Este método es útil a la hora de editar una aplicación, para no hacer una llamada
      * al API a menos que los datos del mismo hayan cambiado.
      *
-     * @param {Modulo} modulo
-     * @returns {number}               -  La posición de ese módulo en la lista según su código o -1 si sus datos son idénticos.
+     * @param {Aplicacion} aplicacion
+     * @returns {number}               -  La posición de esa aplicación en la lista según su código o -1 si sus datos son idénticos.
      * @private
      */
-    _indiceEntidadCambiada(modulo) {
-        if (isNil(modulo)) { return -1 }
-        let indiceExistente = findIndex(this.modulos, ['id', modulo.id]);
-        if (indiceExistente < 0) { return -1 }
+    _indiceEntidadCambiada(aplicacion) {
+        if (isNil(aplicacion)) { return -1; }
+        let indiceExistente = findIndex(this.aplicaciones, ['id', aplicacion.id]);
+        if (indiceExistente < 0) { return -1; }
 
-        let iguales = isMatchWith(this.modulos[indiceExistente], modulo, (objValue, srcValue, key) => {
+        let iguales = isMatchWith(this.aplicaciones[indiceExistente], aplicacion, (objValue, srcValue, key) => {
             if (key === 'estado') {
                 return objValue.valor === srcValue.valor;
             }
@@ -117,30 +116,30 @@ export default class ModulosService {
     }
 
     /**
-     * Elimina un módulo de la lista
+     * Elimina una aplicación de la lista
      *
-     * @param {Modulo} modulo
+     * @param {Aplicacion} aplicacion
      * @private
      */
-    _eliminarEntidad(modulo) {
-        let indiceExistente = findIndex(this.modulos, ['id', modulo.id]);
+    _eliminarEntidad(aplicacion) {
+        let indiceExistente = findIndex(this.aplicaciones, ['id', aplicacion.id]);
         if (indiceExistente > -1) {
-            this.modulos.splice(indiceExistente, 1);
+            this.aplicaciones.splice(indiceExistente, 1);
         }
     }
 
     /**
-     * Devuelve una lista de todos los módulos existentes. La primera vez que se ejecuta este método, se piden los
-     * módulos al API, y en las siguientes llamadas se devuelve la lista almacenada en este servicio.
-     * Devuelve los módulos ordenados ascendentemente por su nombre.
+     * Devuelve una lista de todas las aplicaciones existentes. La primera vez que se ejecuta este método, se piden las
+     * aplicaciones al API, y en las siguientes llamadas se devuelve la lista almacenada en este servicio.
+     * Devuelve las aplicaciones ordenados ascendentemente por su nombre.
      *
-     * @param {boolean} soloActivos         -  Se debe pasar en true si se desea nada más la lista de módulos activos.
-     * @return {Promise<Modulo[]>}          -  Se resuelve con el arreglo de módulos.
+     * @param {boolean} soloActivos         -  Se debe pasar en true si se desea nada más la lista de aplicaciones activas.
+     * @return {Promise<Aplicacion[]>}      -  Se resuelve con el arreglo de aplicaciones.
      */
     obtenerTodos(soloActivos) {
         const fnRetorno = () => {
-            // Por defecto se devuelven los módulos ordenadas ascendentemente por el campo "nombre"
-            let resultado = sortBy(this.modulos, 'nombre');
+            // Por defecto se devuelven las aplicaciones ordenadas ascendentemente por el campo "nombre"
+            let resultado = sortBy(this.aplicaciones, 'nombre');
 
             if (isNil(soloActivos) || soloActivos) {
                 return filter(resultado, (entidad) => {
@@ -151,11 +150,11 @@ export default class ModulosService {
             }
         };
 
-        if (this.modulos.length === 0) {
+        if (this.aplicaciones.length === 0) {
             return this.$http.get(this.ENDPOINT)
                 .then(response => {
-                    this.modulos = map(response.data, obj => {
-                        return this.procesarEntidadRecibida(obj)
+                    this.aplicaciones = map(response.data, obj => {
+                        return this.procesarEntidadRecibida(obj);
                     });
 
                     return fnRetorno();
@@ -166,31 +165,31 @@ export default class ModulosService {
     }
 
     /**
-     * Crea un nuevo módulo.
+     * Crea una nueva aplicación.
      *
      * @param {string} nombre
-     * @return {Promise<Modulo>}     - Se resuelve con el módulo creado
+     * @return {Promise<Aplicacion>}     - Se resuelve con la aplicación creada
      */
     crear(nombre) {
         return this._validarEntidad(null, nombre)
             .then(() => {
-                return this.$http.post(this.ENDPOINT, { nombre })
+                return this.$http.post(this.ENDPOINT, { nombre });
             }).then(response => {
                 let nuevoObj = this.procesarEntidadRecibida(response.data);
-                this.modulos.push(nuevoObj);
+                this.aplicaciones.push(nuevoObj);
                 return nuevoObj;
             });
     }
 
     /**
-     * Actualiza un módulo existente. Sólo se llama al API si los datos del módulo cambiaron.
+     * Actualiza una aplicación existente. Sólo se llama al API si los datos de la aplicación cambiaron.
      *
-     * @param {Modulo} modulo
-     * @return {Promise<Modulo>}    -  Se resuelve con el módulo actualizado.
+     * @param {Aplicacion} aplicacion
+     * @return {Promise<Aplicacion>}    -  Se resuelve con la aplicación actualizada.
      */
-    editar(modulo) {
+    editar(aplicacion) {
         // Se seleccionan los campos que interesan para la edición
-        let objEditado = pick(modulo, ['codigo', 'id', 'nombre', 'estado', 'editable', 'eliminable']);
+        let objEditado = pick(aplicacion, ['codigo', 'id', 'nombre', 'estado', 'editable', 'eliminable']);
 
         // Si lo que se editó fue el estado de la entidad, hay que actualizar el valor del estado, ya que con el UI
         // lo que se actualiza es la propiedad "activo"
@@ -199,14 +198,14 @@ export default class ModulosService {
             || (!objEditado.estado.activo && objEditado.estado.valor === MANTENIMIENTO_MAESTRO_ACTIVO)) {
             cambioEstado = true;
             objEditado.estado = {
-                activo: modulo.estado.activo,
-                valor: modulo.estado.activo ? MANTENIMIENTO_MAESTRO_ACTIVO : MANTENIMIENTO_MAESTRO_INACTIVO
-            }
+                activo: aplicacion.estado.activo,
+                valor: aplicacion.estado.activo ? MANTENIMIENTO_MAESTRO_ACTIVO : MANTENIMIENTO_MAESTRO_INACTIVO
+            };
         }
 
         const fnValidacion = () => {
             if (cambioEstado) { return this.$q.resolve(); }
-            return this._validarEntidad(modulo.codigo, modulo.nombre);
+            return this._validarEntidad(aplicacion.codigo, aplicacion.nombre);
         };
 
         return fnValidacion().then(() => {
@@ -214,15 +213,15 @@ export default class ModulosService {
             if (indiceExistente >= 0) {
                 let datosAEnviar = clone(objEditado);
                 datosAEnviar.estado = objEditado.estado.valor;
-                return this.$http.put(`${this.ENDPOINT}/${modulo.codigo}`, datosAEnviar)
+                return this.$http.put(`${this.ENDPOINT}/${aplicacion.codigo}`, datosAEnviar)
                     .then(response => {
-                        this.modulos[indiceExistente] = this.procesarEntidadRecibida(response.data);
-                        return this.modulos[indiceExistente];
+                        this.aplicaciones[indiceExistente] = this.procesarEntidadRecibida(response.data);
+                        return this.aplicaciones[indiceExistente];
                     })
                     .catch(response => {
                         // Si en el servidor no se encontró una entidad con este código, se quita de la lista local
                         if (response.status === 404) {
-                            this._eliminarEntidad(modulo);
+                            this._eliminarEntidad(aplicacion);
                         }
                         throw response;
                     });
@@ -233,34 +232,34 @@ export default class ModulosService {
     }
 
     /**
-     * Elimina un módulo. Dado que los mantenimientos maestros no se pueden eliminar de la Base de Datos, esto lo
-     * que hace es cambiar el estado de un módulo a Inactivo.
-     * @param {Modulo} modulo
-     * @return {Promise<Modulo>}   -  Se resuelve con el módulo eliminado.
+     * Elimina una aplicación. Dado que los mantenimientos maestros no se pueden eliminar de la Base de Datos, esto lo
+     * que hace es cambiar el estado de una aplicación a Inactivo.
+     * @param {Aplicacion} aplicacion
+     * @return {Promise<Aplicacion>}   -  Se resuelve con la aplicación eliminada.
      */
-    eliminar(modulo) {
-        if (isNil(modulo)){ return this.$q.reject() }
-        let indiceExistente = findIndex(this.modulos, ['id', modulo.id]);
-        if (indiceExistente < 0 ){ return this.$q.reject() }
+    eliminar(aplicacion) {
+        if (isNil(aplicacion)){ return this.$q.reject(); }
+        let indiceExistente = findIndex(this.aplicaciones, ['id', aplicacion.id]);
+        if (indiceExistente < 0 ){ return this.$q.reject(); }
 
-        let objAEliminar = pick(modulo, ['codigo', 'id', 'nombre', 'estado', 'editable', 'eliminable']);
-        objAEliminar.estado.valor = modulo.estado.activo ? MANTENIMIENTO_MAESTRO_ACTIVO : MANTENIMIENTO_MAESTRO_INACTIVO;
+        let objAEliminar = pick(aplicacion, ['codigo', 'id', 'nombre', 'estado', 'editable', 'eliminable']);
+        objAEliminar.estado.valor = aplicacion.estado.activo ? MANTENIMIENTO_MAESTRO_ACTIVO : MANTENIMIENTO_MAESTRO_INACTIVO;
 
-        return this.$http.delete(`${this.ENDPOINT}/${modulo.id}`)
-            .then(response => {
-                this.modulos[indiceExistente] = objAEliminar;
-                return this.modulos[indiceExistente];
+        return this.$http.delete(`${this.ENDPOINT}/${aplicacion.id}`)
+            .then(() => {
+                this.aplicaciones[indiceExistente] = objAEliminar;
+                return this.aplicaciones[indiceExistente];
             })
             .catch(response => {
                 // Si en el servidor no se encontró una entidad con este código, se quita de la lista local
                 if (response.status === 404) {
-                    this._eliminarEntidad(modulo);
+                    this._eliminarEntidad(aplicacion);
                     throw response;
                 } else if (response.error && response.error.errorCode === ELEMENTO_YA_ESTA_INACTIVO) {
                     // Igual se cambia el estado de la entidad, ya que el error se produjo porque ya tenía el estado
                     // que se le quería asignar
-                    this.modulos[indiceExistente] = objAEliminar;
-                    return this.modulos[indiceExistente];
+                    this.aplicaciones[indiceExistente] = objAEliminar;
+                    return this.aplicaciones[indiceExistente];
                 } else {
                     throw response;
                 }

@@ -3,7 +3,7 @@ import find from 'lodash/find';
 import {
     ETIQUETA_NOK_DESC, ETIQUETA_OK_DESC, ETIQUETA_PENDIENTE,
     TITULO_CAMBIOS_GUARDADOS
-} from "../../common/constantes";
+} from '../../common/constantes';
 
 /* @ngInject */
 /**
@@ -16,11 +16,11 @@ export default class ModalEdicionEtiquetasController {
      * @param $scope
      * @param toastr
      * @param {EtiquetasService} EtiquetasService
-     * @param {ModulosService} ModulosService
+     * @param {AplicacionesService} AplicacionesService
      * @param ErroresValidacionMaestros
      * @param entidad
      */
-    constructor($uibModalInstance, $scope, toastr, EtiquetasService, ModulosService, ErroresValidacionMaestros, entidad) {
+    constructor($uibModalInstance, $scope, toastr, EtiquetasService, AplicacionesService, ErroresValidacionMaestros, entidad) {
 
         /** @private */
         this.$uibModalInstance = $uibModalInstance;
@@ -34,7 +34,7 @@ export default class ModalEdicionEtiquetasController {
         /** @type {boolean} */
         this.mostrarErrorDuplicado = false;
         /** @type {boolean} */
-        this.desactivarAutorizacion = false;
+        this.desactivarActividad = false;
         /** @type {string} */
         this.ETIQUETA_PENDIENTE = ETIQUETA_PENDIENTE;
         /** @type {string} */
@@ -50,7 +50,7 @@ export default class ModalEdicionEtiquetasController {
             this.titulo = 'Nueva Etiqueta';
             this.textoBoton = 'Crear';
             this.entidad = {
-              descripcionEstado: {}
+                descripcionEstado: {}
             };
         } else {
             // Entidad existente
@@ -59,25 +59,25 @@ export default class ModalEdicionEtiquetasController {
             this.modoEdicion = true;
         }
 
-        ModulosService.obtenerTodos(true)
-            .then(modulos => {
-                /** @type {Modulo[]} */
-                this.modulos = modulos;
+        AplicacionesService.obtenerTodos(true)
+            .then(aplicaciones => {
+                /** @type {Aplicacion[]} */
+                this.aplicaciones = aplicaciones;
 
                 if (this.modoEdicion) {
-                    const moduloCorrespondiente = find(this.modulos, ['id', this.entidad.modulo.id]);
-                    if (isNil(moduloCorrespondiente)) {
-                        this.modulos.push(this.entidad.modulo);
+                    const aplicacionCorrespondiente = find(this.aplicaciones, ['id', this.entidad.aplicacion.id]);
+                    if (isNil(aplicacionCorrespondiente)) {
+                        this.aplicaciones.push(this.entidad.aplicacion);
                     }
                 }
             });
 
-        const deregisterFn = $scope.$watch('$modal.entidad.descripcionEstado.nombre', (newValue, oldValue) => {
+        const deregisterFn = $scope.$watch('$modal.entidad.descripcionEstado.nombre', (newValue) => {
             if (newValue === ETIQUETA_PENDIENTE) {
-                this.desactivarAutorizacion = true;
-                this.entidad.descripcionEstado.autorizacion = null;
+                this.desactivarActividad = true;
+                this.entidad.descripcionEstado.actividad = null;
             } else {
-                this.desactivarAutorizacion = false;
+                this.desactivarActividad = false;
             }
         });
         $scope.$on('$destroy', () => {
@@ -110,7 +110,7 @@ export default class ModalEdicionEtiquetasController {
                 if (error && error.status === 404) {
                     this.$uibModalInstance.close({ codigo: null });
                 } else if (error === this.erroresValidacionMaestros.ELEMENTO_DUPLICADO) {
-                     this.mostrarErrorDuplicado = true;
+                    this.mostrarErrorDuplicado = true;
                 } else {
                     this.$uibModalInstance.close();
                 }

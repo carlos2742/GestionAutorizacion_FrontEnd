@@ -1,5 +1,5 @@
-<div class="flujos">
-    <h1 class="titulo-centrado">Definición de Flujos</h1>
+<div class="procesos">
+    <h1 class="titulo-centrado">Procesos</h1>
 
     <div class="contenedor-busqueda mx-auto">
         <uib-accordion>
@@ -11,7 +11,7 @@
                     </div>
                 </uib-accordion-heading>
 
-                <form id="busquedaFlujosForm" name="busquedaFlujosForm" novalidate>
+                <form id="busquedaProcesosForm" name="busquedaProcesosForm" novalidate>
                     <div class="form-row">
                         <div class="form-group form-row col-sm">
                             <label for="nombreBusqueda" class="col-sm-3 col-form-label">Evento</label>
@@ -25,10 +25,10 @@
                             </div>
                         </div>
                         <div class="form-group form-row col-sm">
-                            <label for="moduloBusqueda" class="col-sm-3 col-form-label">Módulo</label>
+                            <label for="aplicacionBusqueda" class="col-sm-3 col-form-label">Aplicación</label>
                             <div class="col-sm-9">
-                                <select class="form-control" id="moduloBusqueda" name="modulo" ng-model="vm.paramsBusqueda.modulo"
-                                        ng-options="modulo.nombre for modulo in vm.modulos track by modulo.id">
+                                <select class="form-control" id="aplicacionBusqueda" name="aplicacion" ng-model="vm.paramsBusqueda.aplicacion"
+                                        ng-options="aplicacion.nombre for aplicacion in vm.aplicaciones track by aplicacion.id">
                                     <option></option>
                                 </select>
                             </div>
@@ -52,31 +52,31 @@
     <div class="contenedor-tabla mx-auto">
 
         <div class="contenedor-botones">
-            <button type="button" class="btn btn-primary" ng-click="vm.mostrarModalFlujo()">
-                <span class="icon-plus"></span> Añadir flujo</button>
+            <button type="button" class="btn btn-primary" ng-click="vm.mostrarModalProceso()">
+                <span class="icon-plus"></span> Añadir proceso</button>
 
             <btn-exportar-excel propiedades=":: vm.columnasExcel"
                                 datos="vm.datosAExportar"></btn-exportar-excel>
         </div>
 
         <ge-tabla datos="vm.datos" presentacion="vm.presentacion"
-                  fn-edicion="vm.editarFlujo(entidad)"
-                  fn-eliminacion="vm.eliminarFlujo(entidad)"
+                  fn-edicion="vm.editarProceso(entidad)"
+                  fn-eliminacion="vm.eliminarProceso(entidad)"
                   fn-accion="vm.cambiarEstado(entidad)"
                   fn-cambio-orden="vm.actualizarOrden(orden)"></ge-tabla>
 
         <ul uib-pagination
             class="justify-content-center"
             items-per-page=":: vm.ITEMS_POR_PAGINA"
-            total-items="vm.totalFlujos"
+            total-items="vm.totalProcesos"
             previous-text="&lsaquo;" next-text="&rsaquo;"
             boundary-link-numbers="true"
             max-size="5"
             ng-model="vm.paginaActual"
             ng-change=":: vm.actualizarPagina()"
-            ng-show="vm.totalFlujos > vm.ITEMS_POR_PAGINA"></ul>
+            ng-show="vm.totalProcesos > vm.ITEMS_POR_PAGINA"></ul>
     </div>
 
-    <div id="modalEdicionFlujo">
+    <div id="modalEdicionProceso">
     </div>
 </div>

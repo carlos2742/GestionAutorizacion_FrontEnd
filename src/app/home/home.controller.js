@@ -7,7 +7,7 @@
 export default class HomeController {
 
     /**
-     * En modo producción, redirige al usuario autenticado a la vista de central de autorizaciones. En modo DEBUG, muestra un
+     * En modo producción, redirige al usuario autenticado a la vista de central de actividades. En modo DEBUG, muestra un
      * formulario donde se puede insertar el id del usuario que se desea simular que está autenticado.
      *
      * @param $location

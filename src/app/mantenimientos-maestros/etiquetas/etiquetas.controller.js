@@ -1,7 +1,6 @@
 import angular from 'angular';
 import clone from 'lodash/clone';
 import cloneDeep from 'lodash/cloneDeep';
-import map from 'lodash/map';
 import reduce from 'lodash/reduce';
 import sortBy from 'lodash/sortBy';
 import isMatchWith from 'lodash/isMatchWith';
@@ -11,7 +10,7 @@ import isNil from 'lodash/isNil';
 
 import './etiquetas.scss';
 import template from './modal-edicion-etiquetas.html';
-import {ETIQUETA_NOK_DESC, ETIQUETA_OK_DESC, ETIQUETA_PENDIENTE} from "../../common/constantes";
+import {ETIQUETA_NOK_DESC, ETIQUETA_OK_DESC, ETIQUETA_PENDIENTE} from '../../common/constantes';
 
 /* @ngInject */
 /**
@@ -23,10 +22,10 @@ export default class EtiquetasController {
      * @param $uibModal
      * @param toastr
      * @param {EtiquetasService} EtiquetasService
-     * @param {ModulosService} ModulosService
+     * @param {AplicacionesService} AplicacionesService
      *
      **/
-    constructor($uibModal, toastr, EtiquetasService, ModulosService) {
+    constructor($uibModal, toastr, EtiquetasService, AplicacionesService) {
         /** @private */
         this.$uibModal = $uibModal;
         /** @private */
@@ -37,10 +36,10 @@ export default class EtiquetasController {
         /** @type {boolean} */
         this.busquedaVisible = true;
 
-        ModulosService.obtenerTodos(false)
-            .then(modulos => {
-                /** @type {Modulo[]} */
-                this.modulos = modulos;
+        AplicacionesService.obtenerTodos(false)
+            .then(aplicaciones => {
+                /** @type {Aplicacion[]} */
+                this.aplicaciones = aplicaciones;
             });
 
         this.estados = [ETIQUETA_PENDIENTE, ETIQUETA_OK_DESC, ETIQUETA_NOK_DESC];
@@ -60,16 +59,16 @@ export default class EtiquetasController {
             columnas: [
                 {nombre: 'codigo', display: 'ID', ordenable: true},
                 {nombre: 'descripcion', display: 'Descripción', ordenable: true},
-                {nombre: 'descripcionEstado.autorizacion', display: 'Autorización #', ordenable: true},
+                {nombre: 'descripcionEstado.actividad', display: 'Actividad #', ordenable: true},
                 {nombre: 'descripcionEstado.nombre', display: 'Estado', ordenable: true},
-                {nombre: 'modulo.display', display: 'Módulo', ordenable: true},
+                {nombre: 'aplicacion.display', display: 'Aplicación', ordenable: true},
             ]
         };
 
         this.columnasExcel = {
-            titulos: ['ID', 'Descripción', 'Autorización #', 'Estado', 'Módulo'],
-            campos: ['codigo', 'descripcion', 'descripcionEstado.autorizacion', 'descripcionEstado.nombre', 'modulo.display']
-        }
+            titulos: ['ID', 'Descripción', 'Actividad #', 'Estado', 'Aplicación'],
+            campos: ['codigo', 'descripcion', 'descripcionEstado.actividad', 'descripcionEstado.nombre', 'aplicacion.display']
+        };
     }
 
     /**
@@ -79,7 +78,7 @@ export default class EtiquetasController {
      * @param {Etiqueta} [etiqueta]   Si no se pasa una etiqueta, el modal se abre en modo de creación.
      */
     mostrarModalEtiqueta(etiqueta) {
-        const contenedor = angular.element(document.getElementById("modalEdicionEtiqueta"));
+        const contenedor = angular.element(document.getElementById('modalEdicionEtiqueta'));
         const modal = this.$uibModal.open({
             template,
             appendTo: contenedor,
@@ -88,7 +87,7 @@ export default class EtiquetasController {
             controllerAs: '$modal',
             resolve: {
                 // Los elementos que se inyectan al controlador del modal se deben pasar de esta forma:
-                entidad: () => { return etiqueta }
+                entidad: () => { return etiqueta; }
             }
         });
 
@@ -113,7 +112,7 @@ export default class EtiquetasController {
      */
     editarEtiqueta(etiqueta) {
         let clon = cloneDeep(etiqueta);
-        clon.modulo = etiqueta.modulo.valor;
+        clon.aplicacion = etiqueta.aplicacion.valor;
         this.mostrarModalEtiqueta(clon);
     }
 
@@ -152,7 +151,7 @@ export default class EtiquetasController {
                 let coincidencia = isMatchWith(item, this.paramsBusqueda, (objValue, srcValue, key, object) => {
                     if (key === 'descripcion') {
                         return objValue && includes(objValue.toLowerCase(), srcValue.toLowerCase());
-                    } else if (key === 'modulo') {
+                    } else if (key === 'aplicacion') {
                         return isNil(srcValue) || objValue.valor.id === srcValue.id;
                     } else if (key === 'estado') {
                         return isNil(srcValue) || object.descripcionEstado.nombre === srcValue;

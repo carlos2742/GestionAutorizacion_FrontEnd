@@ -81,6 +81,7 @@ export default class DetallesPeticionController {
             withCredentials: !DEBUG_MODE,
             onSuccessItem: (item, response) => {
                 this.peticion.adjuntos.push(response.data);
+                this.peticion.cantidadAdjuntos = this.peticion.adjuntos.length;
                 let adjunto = this._procesarAdjunto(response.data);
                 this.adjuntos = this.adjuntos.concat(adjunto);
                 this.toastr.success(adjunto.nombre, 'Adjunto añadido');
