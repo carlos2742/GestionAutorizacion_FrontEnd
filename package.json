@@ -1,6 +1,6 @@
 {
     "name": "gestion-autorizaciones",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "Gestión de Autorizaciones - Front End",
     "scripts": {
         "build": "rimraf dist && cross-env MODE=production webpack --bail --progress --profile",
