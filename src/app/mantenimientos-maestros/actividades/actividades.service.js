@@ -39,11 +39,12 @@ export default class ActividadesService {
     /**
      * @param $q                        -  Servicio de Angular para utilizar Promesas
      * @param $http                     -  Servicio de Angular para hacer llamadas HTTP
+     * @param EtiquetasService
      * @param ErroresValidacionMaestros
      * @param AppConfig                 -  Contiene la configuración del app.
      *
      **/
-    constructor($q, $http, ErroresValidacionMaestros, AppConfig) {
+    constructor($q, $http, EtiquetasService, ErroresValidacionMaestros, AppConfig) {
         // Constantes del servicio
         /** @private */
         this.ENDPOINT = '/actividades';
@@ -52,6 +53,8 @@ export default class ActividadesService {
         this.$q = $q;
         /** @private */
         this.$http = $http;
+        /** @private */
+        this.etiquetasService = EtiquetasService;
         /** @private */
         this.ErroresValidacionMaestros = ErroresValidacionMaestros;
         /** @private */
@@ -195,6 +198,10 @@ export default class ActividadesService {
         let indiceExistente = findIndex(this.actividades, ['id', actividad.id]);
         if (indiceExistente > -1) {
             this.actividades.splice(indiceExistente, 1);
+
+            // Eliminar una actividad puede implicar que cambiaron las etiquetas del proceso, por lo que es mejor
+            // resetear las etiquetas para que se vuelvan a pedir del servidor la próxima vez que hagan falta
+            this.etiquetasService.etiquetas = [];
         }
     }
 
@@ -342,6 +349,13 @@ export default class ActividadesService {
                     return this.$http.put(`${this.ENDPOINT}/${actividad.codigo}`, datos)
                         .then(() => {
                             actividadEditada = actividadProcesada;
+
+                            // Si cambió el orden de la actividad, cambiaron las etiquetas del proceso, por lo que es mejor
+                            // resetear las etiquetas para que se vuelvan a pedir del servidor la próxima vez que hagan falta
+                            if (this.actividades[indiceExistente].orden !== actividadEditada.orden) {
+                                this.etiquetasService.etiquetas = [];
+                            }
+
                             return this._posicionarActividadCambiada(actividadEditada, paginaActual);
                         })
                         .then(resultado => {

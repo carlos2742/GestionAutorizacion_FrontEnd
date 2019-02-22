@@ -24,12 +24,15 @@ export default class EtiquetasService {
      * @property {number} codigo                            -  Lo mismo que id, se añade para mantener consistencia con otras entidades.
      * @property {string} descripcion                       -  Descripción de la etiqueta.
      * @property {string} estado                            -  Estado que representa esta etiqueta.
-     * @property {Object} aplicacion                        -  Aplicación asociad.
-     * @property {Aplicacion} aplicacion.valor              -  Su valor actual.
-     * @property {string} aplicacion.display                -  Cómo debe ser representado.
+     * @property {Object} proceso                           -  Proceso asociado.
+     * @property {Proceso} proceso.valor                    -  Su valor actual.
+     * @property {string} proceso.display                   -  Cómo debe ser representado.
+     * @property {Object} actividad                         -  Actividad asociada.
+     * @property {Actividad} actividad.valor                -  Su valor actual.
+     * @property {string} actividad.display                 -  Cómo debe ser representada.
      * @property {Object} descripcionEstado                 -  Cómo debe ser representado el estado de la etiqueta.
      * @property {string} descripcionEstado.nombre          -  El nombre del estado.
-     * @property {number} descripcionEstado.actividad       -  A qué número de actividad corresponde.
+     * @property {number} descripcionEstado.ordenActividad  -  A qué número de actividad corresponde.
      */
 
     /**
@@ -59,30 +62,42 @@ export default class EtiquetasService {
      * agrega una propiedad para facilitar la visualización del estado.
      *
      * @param {Object} entidad                  -  Representa una etiqueta recibida del API
-     * @param {Aplicacion} [aplicacion]         -  Aplicación a la que pertenece la etiqueta.
+     * @param {Proceso} [proceso]               -  Proceso al que pertenece la etiqueta.
+     * @param {Actividad} [actividad]           -  Actividad correspondiente a la etiqueta
      * @returns {Etiqueta}                      -  La misma entidad, con las transformaciones mencionadas.
      */
-    procesarEntidadRecibida(entidad, aplicacion) {
+    procesarEntidadRecibida(entidad, proceso, actividad) {
         entidad.codigo = entidad.id;
 
-        // Si el valor del atributo aplicacion es un número, esto significa que contiene el código de la aplicación,
+        // Si el valor del atributo proceso es un número, esto significa que contiene el código del proceso,
         // en vez del objeto completo, por lo que hay que reemplazarlo
-        let aplicacionRecibida = entidad.aplicacion;
-        if (typeof entidad.aplicacion === 'number' && !isNil(aplicacion)) {
-            aplicacionRecibida = aplicacion;
+        let procesoRecibido = entidad.proceso;
+        if (typeof entidad.proceso === 'number' && !isNil(proceso)) {
+            procesoRecibido = proceso;
         }
-        entidad.aplicacion = {
-            valor: aplicacionRecibida,
-            display: aplicacionRecibida ? aplicacionRecibida.nombre : ''
+        entidad.proceso = {
+            valor: procesoRecibido,
+            display: procesoRecibido ? procesoRecibido.evento : ''
+        };
+
+        // Si el valor del atributo actividad es un número, esto significa que contiene el código de la actividad,
+        // en vez del objeto completo, por lo que hay que reemplazarlo
+        let actividadRecibida = entidad.actividad;
+        if (typeof entidad.actividad === 'number' && !isNil(actividad)) {
+            actividadRecibida = actividad;
+        }
+        entidad.actividad = {
+            valor: actividadRecibida,
+            display: actividadRecibida ? actividadRecibida.nombre : ''
         };
 
         const arregloEstado = entidad.estado.split('_');
         let nombre = '';
-        let actividad = null;
+        let ordenActividad = null;
         if (arregloEstado.length === 1 && arregloEstado[0] === '0') {
             nombre = ETIQUETA_PENDIENTE;
         } else if (arregloEstado.length === 2) {
-            actividad = parseInt(arregloEstado[0]);
+            ordenActividad = parseInt(arregloEstado[0]);
             if (arregloEstado[1] === ETIQUETA_OK) {
                 nombre = ETIQUETA_OK_DESC;
             } else if (arregloEstado[1] === ETIQUETA_NOK) {
@@ -91,7 +106,7 @@ export default class EtiquetasService {
         }
         entidad.descripcionEstado = {
             nombre,
-            actividad
+            ordenActividad
         };
 
         entidad.editable = true;
@@ -103,7 +118,7 @@ export default class EtiquetasService {
      * Determina si una etiqueta es válida. Se debe llamar a este método antes de crear o editar una etiqueta.
      * Realiza varias comprobaciones:
      *  1 - Que la descripción no esté vacía, ya que es un campo requerido.
-     *  2 - Que no exista ya una etiqueta para la combinación aplicación + estado + # actividad
+     *  2 - Que no exista ya una etiqueta para la combinación proceso + estado + # actividad
      *
      * @param {Etiqueta} etiqueta
      * @return {Promise<void>}                  - Se resuelve si la entidad es válida. En caso contrario, rechaza la promesa con
@@ -115,7 +130,7 @@ export default class EtiquetasService {
             return this.$q.reject(this.ErroresValidacionMaestros.FALTA_REQUERIDO);
         } else {
             const indiceExistente = findIndex(this.etiquetas, (item) => {
-                return item.id !== etiqueta.id && item.estado === etiqueta.estado && item.aplicacion.valor.id === etiqueta.aplicacion.id;
+                return item.id !== etiqueta.id && item.estado === etiqueta.estado && item.proceso.valor.id === etiqueta.proceso.id;
             });
             if (indiceExistente > -1) {
                 return this.$q.reject(this.ErroresValidacionMaestros.ELEMENTO_DUPLICADO);
@@ -140,7 +155,7 @@ export default class EtiquetasService {
         if (indiceExistente < 0) { return -1; }
 
         let iguales = isMatchWith(this.etiquetas[indiceExistente], etiqueta, (objValue, srcValue, key) => {
-            if (key === 'aplicacion') {
+            if (key === 'proceso' || key === 'actividad') {
                 return get(objValue, 'valor.id') === srcValue.id;
             } else if (key === 'descripcionEstado') {
                 return true;
@@ -197,7 +212,7 @@ export default class EtiquetasService {
      * @return {string}     - Devuelve el estado al que corresponde la etiqueta.
      */
     _generarEstado(etiqueta) {
-        let resultado = !isNil(etiqueta.descripcionEstado.actividad) ? etiqueta.descripcionEstado.actividad : '0';
+        let resultado = !isNil(etiqueta.actividad) ? etiqueta.actividad.orden : '0';
         if (etiqueta.descripcionEstado.nombre === ETIQUETA_OK_DESC) {
             resultado += `_${ETIQUETA_OK}`;
         } else if (etiqueta.descripcionEstado.nombre === ETIQUETA_NOK_DESC) {
@@ -219,11 +234,12 @@ export default class EtiquetasService {
             .then(() => {
                 return this.$http.post(this.ENDPOINT, {
                     descripcion: datosEtiqueta.descripcion,
-                    aplicacion: datosEtiqueta.aplicacion.id,
+                    proceso: datosEtiqueta.proceso.id,
+                    actividad: get(datosEtiqueta, 'actividad.id'),
                     estado: datosEtiqueta.estado
                 });
             }).then(response => {
-                let nuevaEtiqueta = this.procesarEntidadRecibida(response.data, datosEtiqueta.aplicacion);
+                let nuevaEtiqueta = this.procesarEntidadRecibida(response.data, datosEtiqueta.proceso, datosEtiqueta.actividad);
                 this.etiquetas.push(nuevaEtiqueta);
                 return nuevaEtiqueta;
             });
@@ -237,7 +253,7 @@ export default class EtiquetasService {
      */
     editar(etiqueta) {
         // Se seleccionan los campos que interesan para la edición
-        let etiquetaEditada = pick(etiqueta, ['codigo', 'id', 'descripcion', 'estado', 'aplicacion', 'descripcionEstado',
+        let etiquetaEditada = pick(etiqueta, ['codigo', 'id', 'descripcion', 'estado', 'proceso', 'actividad', 'descripcionEstado',
                                               'editable', 'eliminable']);
         etiquetaEditada.estado = this._generarEstado(etiqueta);
 
@@ -248,11 +264,12 @@ export default class EtiquetasService {
                     return this.$http.put(`${this.ENDPOINT}/${etiqueta.codigo}`, {
                         id: etiquetaEditada.id,
                         descripcion: etiquetaEditada.descripcion,
-                        aplicacion: etiquetaEditada.aplicacion.id,
+                        proceso: etiquetaEditada.proceso.id,
+                        actividad: get(etiquetaEditada, 'actividad.id'),
                         estado: etiquetaEditada.estado
                     })
                         .then(response => {
-                            this.etiquetas[indiceExistente] = this.procesarEntidadRecibida(response.data, etiqueta.aplicacion);
+                            this.etiquetas[indiceExistente] = this.procesarEntidadRecibida(response.data, etiqueta.proceso, etiqueta.actividad);
                             return this.etiquetas[indiceExistente];
                         })
                         .catch(response => {

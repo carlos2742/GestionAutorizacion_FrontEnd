@@ -12,10 +12,27 @@
                 </uib-accordion-heading>
 
                 <form id="busquedaEtiquetasForm" name="busquedaEtiquetasForm" novalidate>
+                    <div class="form-group form-row">
+                        <label for="procesoBusqueda" class="col-sm-2 col-form-label">Proceso</label>
+                        <div class="col-sm-10">
+                            <ui-select ng-model="vm.paramsBusqueda.proceso" name="proceso" input-id="procesoBusqueda" ng-animate-children="false">
+                                <ui-select-match placeholder="Seleccione o busque un proceso">
+                                    <span ng-bind="$select.selected.evento"></span>
+                                </ui-select-match>
+                                <ui-select-choices repeat="proceso in vm.filtrarProcesos($select.search) track by proceso.id">
+                                    <span ng-bind-html="proceso.evento | highlight: $select.search"></span>
+                                </ui-select-choices>
+                                <ui-select-footer class="text-muted" >
+                                    <span ng-show="vm.mostrandoResultadosParcialesProcesos">Demasiados resultados, debe refinar la búsqueda</span>
+                                </ui-select-footer>
+                            </ui-select>
+                        </div>
+                    </div>
+
                     <div class="form-row">
                         <div class="form-group form-row col-sm">
-                            <label for="descripcionBusqueda" class="col-sm-3 col-form-label">Descripción</label>
-                            <div class="col-sm-9">
+                            <label for="descripcionBusqueda" class="col-sm-4 col-form-label">Descripción</label>
+                            <div class="col-sm-8">
                                 <input id="descripcionBusqueda"
                                        name="descripcion"
                                        class="form-control"
@@ -25,26 +42,14 @@
                             </div>
                         </div>
                         <div class="form-group form-row col-sm">
-                            <label for="aplicacionBusqueda" class="col-sm-3 col-form-label">Aplicación</label>
-                            <div class="col-sm-9">
-                                <select class="form-control" id="aplicacionBusqueda" name="aplicacion" ng-model="vm.paramsBusqueda.aplicacion"
-                                        ng-options="aplicacion.nombre for aplicacion in vm.aplicaciones track by aplicacion.id">
-                                    <option></option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group form-row col-sm">
-                            <label for="estadoBusqueda" class="col-sm-3 col-form-label">Estado</label>
-                            <div class="col-sm-9">
+                            <label for="estadoBusqueda" class="col-sm-4 col-form-label">Estado</label>
+                            <div class="col-sm-8">
                                 <select class="form-control" id="estadoBusqueda" name="estado" ng-model="vm.paramsBusqueda.estado"
                                         ng-options="estado for estado in ::vm.estados">
                                     <option></option>
                                 </select>
                             </div>
                         </div>
-                        <div class="form-group form-row col-sm"></div>
                     </div>
 
                     <div class="form-row contenedor-botones">

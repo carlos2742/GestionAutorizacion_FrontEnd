@@ -144,7 +144,9 @@ export default function apiInterceptor($rootScope, $q, $injector, $location, App
                     toastr.warning('Lo sentimos, este elemento no fue encontrado en la base de datos');
                 }
             } else if (rejection.status === 500) {
-                return _manejarErroresBackend(rejection);
+                if (!(includes(rejection.config.url, '/etiquetas') && (rejection.config.method === "POST" || rejection.config.method === "PUT"))) {
+                    return _manejarErroresBackend(rejection);
+                }
             }
 
             return $q.reject(rejection);

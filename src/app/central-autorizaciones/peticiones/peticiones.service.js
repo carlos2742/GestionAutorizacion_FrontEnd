@@ -141,7 +141,7 @@ export default class PeticionesService {
                 peticionProcesada[prop] = {
                     valor: entidad[prop],
                     display: entidad[prop] ? entidad[prop].evento : ''
-                }
+                };
             } else if (prop === 'solicitante') {
                 const personaProcesada = entidad[prop] ? this.personalService.procesarPersonaRecibida(entidad[prop]) : null;
                 peticionProcesada[prop] = {
@@ -169,7 +169,7 @@ export default class PeticionesService {
                 }
             } else if (prop === 'estado') {
                 const etiqueta = find(etiquetas, etiqueta => {
-                    return etiqueta.estado === entidad[prop] && etiqueta.aplicacion.valor.id === entidad.proceso.aplicacion.id;
+                    return etiqueta.estado === entidad[prop] && etiqueta.proceso.valor.id === entidad.proceso.id;
                 });
                 let descripcion = etiqueta ? etiqueta.descripcion : '';
                 if (isNil(etiqueta)) {

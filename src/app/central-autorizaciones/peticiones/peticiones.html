@@ -1,6 +1,6 @@
 <div class="peticiones">
     <h1 class="titulo-centrado" ng-if=":: vm.autorizador">Central de Autorizaciones</h1>
-    <h1 class="titulo-centrado" ng-if=":: !vm.autorizador">Mis Actividades</h1>
+    <h1 class="titulo-centrado" ng-if=":: !vm.autorizador">Mis Solicitudes</h1>
 
     <div class="contenedor-busqueda col-xl-9 p-0">
         <uib-accordion>
@@ -14,15 +14,6 @@
 
                 <form id="busquedaPeticionesForm" name="busquedaPeticionesForm" novalidate>
                     <div class="form-row">
-                        <div class="form-group form-row col-lg">
-                            <label for="aplicacionBusqueda" class="col-sm-3 col-form-label">Aplicación</label>
-                            <div class="col-sm-9">
-                                <select class="form-control" id="aplicacionBusqueda" name="aplicacion" ng-model="vm.paramsBusqueda.aplicacion"
-                                        ng-options="aplicacion.nombre for aplicacion in vm.aplicaciones track by aplicacion.id">
-                                    <option></option>
-                                </select>
-                            </div>
-                        </div>
                         <div class="form-group col-lg form-row">
                             <label for="procesoBusqueda" class="col-sm-3 col-form-label">Proceso</label>
                             <div class="col-sm-9">
@@ -39,6 +30,15 @@
                                 </ui-select>
                             </div>
                         </div>
+                        <div class="form-group form-row col-lg">
+                            <label for="aplicacionBusqueda" class="col-sm-3 col-form-label">Aplicación</label>
+                            <div class="col-sm-9">
+                                <select class="form-control" id="aplicacionBusqueda" name="aplicacion" ng-model="vm.paramsBusqueda.aplicacion"
+                                        ng-options="aplicacion.nombre for aplicacion in vm.aplicaciones track by aplicacion.id">
+                                    <option></option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="form-row">
@@ -47,10 +47,10 @@
                             <div class="col-sm-9">
                                 <select class="form-control" id="estadoBusqueda" name="estado" ng-model="vm.paramsBusqueda.estado"
                                         ng-options="etiqueta.descripcion for etiqueta in vm.etiquetas track by etiqueta.id"
-                                        ng-disabled="!vm.paramsBusqueda.aplicacion">
+                                        ng-disabled="!vm.paramsBusqueda.proceso">
                                     <option></option>
                                 </select>
-                                <small class="text-muted">Para seleccionar una etiqueta debe primero seleccionar una aplicación.</small>
+                                <small class="text-muted">Para seleccionar una etiqueta debe primero seleccionar un proceso.</small>
                             </div>
                         </div>
 

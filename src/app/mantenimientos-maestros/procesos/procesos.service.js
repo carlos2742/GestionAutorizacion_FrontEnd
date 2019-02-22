@@ -39,10 +39,11 @@ export default class ProcesosService {
     /**
      * @param $q                        -  Servicio de Angular para utilizar Promesas
      * @param $http                     -  Servicio de Angular para hacer llamadas HTTP
+     * @param EtiquetasService
      * @param ErroresValidacionMaestros -  Contiene los errores que pueden devolver las validaciones. Ver {@link ErroresValidacionMaestros}
      *
      **/
-    constructor($q, $http, ErroresValidacionMaestros) {
+    constructor($q, $http, EtiquetasService, ErroresValidacionMaestros) {
         // Constantes del servicio
         /** @private */
         this.ENDPOINT = '/procesos';
@@ -51,6 +52,8 @@ export default class ProcesosService {
         this.$q = $q;
         /** @private */
         this.$http = $http;
+        /** @private */
+        this.etiquetasService = EtiquetasService;
         /** @private */
         this.ErroresValidacionMaestros = ErroresValidacionMaestros;
 
@@ -148,6 +151,10 @@ export default class ProcesosService {
         let indiceExistente = findIndex(this.procesos, ['id', proceso.id]);
         if (indiceExistente > -1) {
             this.procesos.splice(indiceExistente, 1);
+
+            // Eliminar un proceso puede implicar que cambiaron las etiquetas del mismo, por lo que es mejor
+            // resetear las etiquetas para que se vuelvan a pedir del servidor la próxima vez que hagan falta
+            this.etiquetasService.etiquetas = [];
         }
     }
 
@@ -246,6 +253,13 @@ export default class ProcesosService {
                     .then(response => {
                         const procesoRecibido = this.procesarEntidadRecibida(response.data, aplicacion);
                         procesoRecibido.cantidadActividades = proceso.cantidadActividades;
+
+                        // Si cambió el nombre del proceso, es mejor volver a pedir las etiquetas al servidor la próxima
+                        // vez que hagan falta
+                        if (this.procesos[indiceExistente].evento !== procesoRecibido.evento) {
+                            this.etiquetasService.etiquetas = [];
+                        }
+
                         this.procesos[indiceExistente] = procesoRecibido;
                         return this.procesos[indiceExistente];
                     })

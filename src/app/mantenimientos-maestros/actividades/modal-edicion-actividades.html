@@ -8,9 +8,9 @@
     </div>
     <div class="modal-body mantenimiento-maestro" modal-async>
         <div class="form-group form-row">
-            <label for="proceso" class="col-sm-2 col-form-label">Proceso*</label>
+            <label for="procesoModal" class="col-sm-2 col-form-label">Proceso*</label>
             <div class="col-sm-10">
-                <ui-select ng-model="$modal.actividad.proceso" name="proceso" input-id="proceso" ng-required="true" ng-disabled="$modal.edicionRestringida" ng-animate-children="false">
+                <ui-select ng-model="$modal.actividad.proceso" name="proceso" input-id="procesoModal" ng-required="true" ng-disabled="$modal.edicionRestringida" ng-animate-children="false">
                     <ui-select-match placeholder="Seleccione o busque un proceso">
                         <span ng-bind="$select.selected.evento"></span>
                     </ui-select-match>
@@ -18,7 +18,7 @@
                         <span ng-bind-html="proceso.evento | highlight: $select.search"></span>
                     </ui-select-choices>
                     <ui-select-footer class="text-muted" >
-                        <span ng-show="vm.mostrandoResultadosParcialesProcesos">Demasiados resultados, debe refinar la búsqueda</span>
+                        <span ng-show="$modal.mostrandoResultadosParcialesProcesos">Demasiados resultados, debe refinar la búsqueda</span>
                     </ui-select-footer>
                 </ui-select>
 

@@ -180,28 +180,31 @@ export default class PeticionesController {
 
                         this.procesos.unshift({id: undefined, nombre: ''});
                     });
-                this.etiquetasService.obtenerTodos()
-                    .then(etiquetas => {
-                        const etiquetasAMostrar = filter(etiquetas, etiqueta => {
-                            return !this.autorizador || !includes(etiqueta.estado, ETIQUETA_NOK);
-                        });
-
-                        if (isNil(newValue)) {
-                            /** @type {Etiqueta[]} */
-                            this.etiquetas = [];
-                            this.paramsBusqueda.estado = undefined;
-                        } else {
-                            this.etiquetas = filter(etiquetasAMostrar, etiqueta => {
-                                return etiqueta.aplicacion.valor.id === newValue.id;
-                            })
-                        }
-                    });
             }
+        });
+        const quitarWatcherProcesoFn = $scope.$watch('vm.paramsBusqueda.proceso', (newValue, oldValue) => {
+            this.etiquetasService.obtenerTodos()
+                .then(etiquetas => {
+                    const etiquetasAMostrar = filter(etiquetas, etiqueta => {
+                        return !this.autorizador || !includes(etiqueta.estado, ETIQUETA_NOK);
+                    });
+
+                    if (isNil(newValue)) {
+                        /** @type {Etiqueta[]} */
+                        this.etiquetas = [];
+                        this.paramsBusqueda.estado = undefined;
+                    } else {
+                        this.etiquetas = filter(etiquetasAMostrar, etiqueta => {
+                            return etiqueta.proceso.valor.id === newValue.id;
+                        })
+                    }
+                });
         });
 
         const deregisterFn = $scope.$on('$destroy', () => {
             this.peticionesService.reiniciarEstado();
             quitarWatcherFn();
+            quitarWatcherProcesoFn();
             deregisterFn();
         });
 

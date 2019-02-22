@@ -136,7 +136,7 @@ angular.module(MODULE_NAME, [
                     autorizador: () => { return true; }
                 }
             })
-            .when('/mis-actividades', {
+            .when('/mis-solicitudes', {
                 template: require('./central-autorizaciones/peticiones/peticiones.html'),
                 controller: 'PeticionesController',
                 controllerAs: 'vm',
