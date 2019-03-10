@@ -25,6 +25,7 @@ export default class PeticionesController {
      * @param $scope
      * @param $q
      * @param $timeout
+     * @param $location
      * @param $uibModal
      * @param toastr
      * @param {PeticionesService} PeticionesService
@@ -32,10 +33,13 @@ export default class PeticionesController {
      * @param {MensajesService} MensajesService
      * @param {AplicacionesService} AplicacionesService
      * @param {ProcesosService} ProcesosService
+     * @param EtiquetasService
      * @param {PersonalService} PersonalService
+     * @param SesionService
      * @param AppConfig
+     * @param autorizador
      **/
-    constructor($scope, $q, $timeout, $uibModal, toastr, PeticionesService, AdjuntosService, MensajesService,
+    constructor($scope, $q, $timeout, $location, $uibModal, toastr, PeticionesService, AdjuntosService, MensajesService,
                 AplicacionesService, ProcesosService, EtiquetasService, PersonalService, SesionService, AppConfig, autorizador) {
         /** @type {number} */
         this.ITEMS_POR_PAGINA = AppConfig.elementosPorPagina;
@@ -103,7 +107,19 @@ export default class PeticionesController {
 
         /** @type {number} */
         this.paginaActual = 1;
-        this.actualizarPagina(['fecha.valor', 'asc'], true);
+        if ($location.search().solicitante) {
+            this.paramsBusqueda = {
+                solicitante: { codigo: $location.search().solicitante }
+            };
+            this.buscar(['fecha.valor', 'asc'], true);
+
+            this.personalService.obtener($location.search().solicitante)
+                .then(persona => {
+                    this.paramsBusqueda.solicitante = persona;
+                });
+        } else {
+            this.actualizarPagina(['fecha.valor', 'asc'], true);
+        }
 
         this.presentacion = {
             entidad: 'Petición',
@@ -363,7 +379,7 @@ export default class PeticionesController {
     /**
      * Pide al API todas las peticiones que cumplan con los parámetros de búsqueda seleccionados por el usuario.
      */
-    buscar(forzarActualizacion) {
+    buscar(orden, forzarActualizacion) {
         // Si justo antes ya se había mandado a hacer una búsqueda exactamente igual, no se hace nada. Comprobando esto se
         // ahorran llamadas innecesarias al API.
         if (!isMatch(this.paramsAnteriores, this.paramsBusqueda)) {
@@ -386,7 +402,7 @@ export default class PeticionesController {
             this.actualizacionEnProgreso = true;
             const idsSeleccionados = map(this.peticionesSeleccionadas, peticion => { return peticion.id });
             this.datos = null;
-            this.peticionesService.obtenerTodos(this.autorizador, !this.autorizador, 1, null, filtroBusqueda, forzarActualizacion)
+            this.peticionesService.obtenerTodos(this.autorizador, !this.autorizador, 1, orden, filtroBusqueda, forzarActualizacion)
                 .then(resultados => {
                     this.paginaActual = 1;
                     this.datos = map(resultados, peticion => {
