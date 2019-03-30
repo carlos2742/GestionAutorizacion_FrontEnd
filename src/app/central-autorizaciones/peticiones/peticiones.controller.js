@@ -169,6 +169,7 @@ export default class PeticionesController {
 
         /** @type {Peticion} */
         this.peticionSeleccionada = null;
+        this.solicitantePeticionSeleccionada = null;
 
         AplicacionesService.obtenerTodos(false)
             .then(aplicaciones => {
@@ -781,5 +782,27 @@ export default class PeticionesController {
                     }
                 }
             });
+    }
+
+    obtenerSolicitantePeticionAnulada() {
+        const idSolicitante = get(this.peticionSeleccionada, 'peticionQueAnula.solicitante');
+        if (!isNil(idSolicitante)) {
+            if (idSolicitante === this.peticionSeleccionada.solicitante.valor.nInterno) {
+                return this.peticionSeleccionada.solicitante.display;
+            } else if (idSolicitante === get(this.solicitantePeticionSeleccionada, 'nInterno')) {
+                return this.solicitantePeticionSeleccionada.nombreApellidos;
+            } else if (!this.obteniendoSolicitante) {
+                this.obteniendoSolicitante = true;
+                this.personalService.obtener( get(this.peticionSeleccionada, 'peticionQueAnula.solicitante') )
+                    .then(persona => {
+                        this.solicitantePeticionSeleccionada = persona;
+                        return persona.nombreApellidos;
+                    })
+                    .finally(() => {
+                        this.obteniendoSolicitante = false;
+                    });
+            }
+        }
+
     }
 }

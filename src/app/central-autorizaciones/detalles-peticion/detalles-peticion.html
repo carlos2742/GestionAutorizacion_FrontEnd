@@ -10,6 +10,18 @@
                     <label class="col-md-3 font-weight-bold text-md-right">ID</label>
                     <p class="col-md-9" ng-bind="vm.peticion.id"></p>
                 </div>
+                <div class="row" ng-if=":: vm.peticion.peticionQueAnula">
+                    <label class="col-md-3 font-weight-bold text-md-right">Petición que Anula</label>
+                    <p class="col-md-9">
+                        <a ng-href="#/peticion/{{vm.peticion.peticionQueAnula.id}}" ng-bind="vm.peticion.peticionQueAnula.id"></a>
+                    </p>
+                </div>
+                <div class="row" ng-if=":: vm.peticion.peticionAnulacion">
+                    <label class="col-md-3 font-weight-bold text-md-right">Petición de Anulación</label>
+                    <p class="col-md-9">
+                        <a ng-href="#/peticion/{{vm.peticion.peticionAnulacion.id}}" ng-bind="vm.peticion.peticionAnulacion.id"></a>
+                    </p>
+                </div>
                 <div class="row">
                     <label class="col-md-3 font-weight-bold text-md-right">Solicitante</label>
                     <p class="col-md-9" ng-bind="vm.peticion.solicitante.display"></p>

@@ -156,17 +156,7 @@ export default class PeticionesService {
                 };
             } else if (prop === 'informacionExtra') {
                 const info = entidad.informacionExtra;
-                peticionProcesada[prop] = Object.keys(info).length > 0 ? {} : null;
-                for (let key in info) {
-                    const arregloPalabras = lowerCase(key).split(' ');
-                    forEach(arregloPalabras, (palabra, indice) => {
-                        arregloPalabras[indice] = capitalize(palabra);
-                    });
-                    peticionProcesada[prop][key] = {
-                        valor: info[key],
-                        label: join(arregloPalabras, ' ')
-                    };
-                }
+                peticionProcesada[prop] = this._procesarInformacionExtra(info);
             } else if (prop === 'estado') {
                 const etiqueta = find(etiquetas, etiqueta => {
                     return etiqueta.estado === entidad[prop] && etiqueta.proceso.valor.id === entidad.proceso.id;
@@ -198,6 +188,11 @@ export default class PeticionesService {
                 peticionProcesada[prop] = map(entidad[prop], (actividad, indice) => {
                     return this._procesarActividad(actividad, indice, entidad.cantidadActividadesTotales);
                 });
+            } else if (prop === 'peticionQueAnula' || prop === 'peticionAnulacion') {
+                peticionProcesada[prop] = entidad[prop];
+                if (!isNil(peticionProcesada[prop])) {
+                    peticionProcesada[prop].informacionExtra = this._procesarInformacionExtra(peticionProcesada[prop].informacionExtra);
+                }
             } else {
                 peticionProcesada[prop] = entidad[prop];
             }
@@ -209,6 +204,22 @@ export default class PeticionesService {
         peticionProcesada.eliminable = false;
 
         return peticionProcesada;
+    }
+
+    _procesarInformacionExtra(info) {
+        let resultado = Object.keys(info).length > 0 ? {} : null;
+        for (let key in info) {
+            const arregloPalabras = lowerCase(key).split(' ');
+            forEach(arregloPalabras, (palabra, indice) => {
+                arregloPalabras[indice] = capitalize(palabra);
+            });
+            resultado[key] = {
+                valor: info[key],
+                label: join(arregloPalabras, ' ')
+            };
+        }
+
+        return resultado;
     }
 
     _procesarActividad(actividad, indice, totalActividades) {
