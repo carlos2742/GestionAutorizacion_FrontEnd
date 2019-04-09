@@ -47,9 +47,24 @@ export default class DetallesPeticionController {
             ]
         };
 
+        this.presentacionHistorialAutorizaciones = {
+            entidad: 'Autorización',
+            atributoPrincipal: 'autorizador.display',
+            ordenInicial: ['fecha.valor', 'asc'],
+            columnas: [
+                {nombre: 'fecha.display', display: 'Fecha', ordenable: false},
+                {nombre: 'displayOrden', display: 'Autorización', ordenable: false},
+                {nombre: 'autorizador.display', display: 'Autorizador', ordenable: false},
+                {nombre: 'estado.display', display: 'Etiqueta', ordenable: false}
+            ]
+        };
+
         this.peticionesService.obtener($routeParams.id)
             .then(peticion => {
                 this.peticion = peticion;
+
+                this.historialAutorizaciones = this.peticion.actividades;
+
                 this.mensajes = [];
                 this.mensajesService.obtenerTodos(this.peticion)
                     .then(mensajes => {

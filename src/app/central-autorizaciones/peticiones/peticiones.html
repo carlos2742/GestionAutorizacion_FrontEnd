@@ -145,9 +145,6 @@
                     <div class="card-body empty" ng-show="!vm.peticionSeleccionada">
                         <p class="text-muted">Seleccione una petición para ver sus detalles.</p>
                     </div>
-                    <div class="card-body empty" ng-show="vm.peticionSeleccionada && !vm.autorizador && !vm.peticionSeleccionada.informacionExtra">
-                        <p class="text-muted">Esta petición no tiene información adicional.</p>
-                    </div>
                     <div class="card-header" ng-show="vm.peticionSeleccionada.peticionQueAnula">Petición que Anula</div>
                     <div class="card-body" ng-if="vm.peticionSeleccionada.peticionQueAnula">
                         <div class="row">
@@ -186,8 +183,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="card-header" ng-show="vm.peticionSeleccionada && vm.autorizador">Historial de Autorizaciones</div>
-                    <div class="card-body" ng-if="vm.peticionSeleccionada && vm.autorizador">
+                    <div class="card-header" ng-show="vm.peticionSeleccionada">Historial de Autorizaciones</div>
+                    <div class="card-body" ng-if="vm.peticionSeleccionada">
                         <ge-tabla datos="vm.historialAutorizaciones"
                                   presentacion="vm.presentacionHistorialAutorizaciones"></ge-tabla>
                     </div>

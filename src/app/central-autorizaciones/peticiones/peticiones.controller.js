@@ -134,7 +134,8 @@ export default class PeticionesController {
                 {nombre: 'estado.display', display: 'Etiqueta', ordenable: false},
                 {nombre: 'observacionesInput', display: 'Observaciones', ancho: '250px', html: true},
                 {nombre: 'accionAdjuntos', display: '', html: true, ancho: '40px'},
-                {nombre: 'accionMensajes', display: '', html: true, ancho: '40px'}
+                {nombre: 'accionMensajes', display: '', html: true, ancho: '40px'},
+                {nombre: 'enlaceDetalles', display: '', html: true, ancho: '40px'}
             ]
         };
         if (this.autorizador) {
@@ -144,10 +145,6 @@ export default class PeticionesController {
             this.presentacion.columnas.splice(8, 0,
                 {nombre: 'accionAprobar', display: '', html: true, ancho: '40px'},
                 {nombre: 'accionRechazar', display: '', html: true, ancho: '40px'},
-            );
-        } else {
-            this.presentacion.columnas.push(
-                {nombre: 'enlaceDetalles', display: '', html: true, ancho: '40px'}
             );
         }
 
@@ -245,6 +242,8 @@ export default class PeticionesController {
                                    class="icon-bubbles4" uib-tooltip="Conversación">
                                 </a><small class="ml-1 ${entidad.cantidadMensajes > 0 ? 'font-weight-bold' : 'text-muted'}">(${entidad.cantidadMensajes})</small>`;
 
+        clon.enlaceDetalles = `<a href class="icon-view-show d-print-none" ng-href="#/peticion/${entidad.id}" uib-tooltip="Ver Detalles"></a>`;
+
         if (this.autorizador) {
             clon.checkbox = `<input type="checkbox" class="checkbox-visible" ng-model="elemento.seleccionada" uib-tooltip="Seleccionar">`;
             clon.accionAprobar = `<a href="" ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'aprobar'})" uib-tooltip="Aprobar">
@@ -267,8 +266,6 @@ export default class PeticionesController {
                                             class="form-control"
                                             disabled
                                             style="width: 100%;">${!isNil(entidad.observaciones) ? entidad.observaciones : ''}</textarea>`;
-
-            clon.enlaceDetalles = `<a href class="icon-view-show d-print-none" ng-href="#/peticion/${entidad.id}" uib-tooltip="Ver Detalles"></a>`;
 
         }
 

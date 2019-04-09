@@ -16,6 +16,7 @@ import remove from 'lodash/remove';
 import orderBy from 'lodash/orderBy';
 import get from 'lodash/get';
 import format from 'date-fns/format';
+import toDate from 'date-fns/toDate';
 import {
     ACTUALIZACION_EN_BULTO_CON_ERRORES,
     AUTORIZACION_APROBADA, AUTORIZACION_PENDIENTE, AUTORIZACION_RECHAZADA, ERROR_DE_RED,
@@ -213,8 +214,19 @@ export default class PeticionesService {
             forEach(arregloPalabras, (palabra, indice) => {
                 arregloPalabras[indice] = capitalize(palabra);
             });
+
+            let valorProcesado = info[key];
+            const fecha = toDate(info[key]);
+            if (!isNaN(fecha)) {
+                let formato = this.AppConfig.formatoFechas;
+                if ( !(fecha.getHours() === 0 && fecha.getMinutes() === 0) && !(fecha.getHours() === 23 && fecha.getMinutes() === 59) ) {
+                    formato = `${formato} HH:mm`;
+                }
+                valorProcesado = format(info[key], formato);
+            }
+
             resultado[key] = {
-                valor: info[key],
+                valor: valorProcesado,
                 label: join(arregloPalabras, ' ')
             };
         }
@@ -237,7 +249,7 @@ export default class PeticionesService {
                 const fechaNecesariaObj = actividad[prop] ? new Date(Date.parse(actividad[prop])) : null;
                 actividadProcesada[prop] = {
                     valor: fechaNecesariaObj,
-                    display: fechaNecesariaObj ? format(fechaNecesariaObj, this.AppConfig.formatoFechas) : ''
+                    display: fechaNecesariaObj ? format(fechaNecesariaObj, `${this.AppConfig.formatoFechas} HH:mm`) : ''
                 };
             } else if (prop === 'estado') {
                 actividadProcesada[prop] = {
