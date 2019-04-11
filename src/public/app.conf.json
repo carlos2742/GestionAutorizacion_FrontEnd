@@ -7,5 +7,6 @@
     "etiquetaPorDefectoAutorizada": "Aprobada",
     "etiquetaPorDefectoRechazada": "Rechazada",
     "etiquetaPorDefectoPendiente": "Pedida",
-    "etiquetaPorDefectoEnRevision": "En Revisión"
+    "etiquetaPorDefectoEnRevision": "En Revisión",
+    "etiquetaPorDefectoAnulada": "Anulada"
 }

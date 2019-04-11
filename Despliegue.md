@@ -116,6 +116,18 @@ Texto que se muestra para peticiones que están Pendientes pero no existe una et
 
 Texto que se muestra para peticiones que están En Revisión pero no existe una etiqueta definida para ellas.
 
+### etiquetaPorDefectoAnulada
+
+````json
+{
+    ...
+    "etiquetaPorDefectoAnulada": "Anulada",
+    ...
+}
+````
+
+Texto que se muestra para peticiones que están Anuladas.
+
 ## IIS
 
 El frontend de autorizaciones debe tener habilitado **Autenticación por Windows** y la **Autenticación Anónima**.

@@ -13,7 +13,16 @@ import reduce from 'lodash/reduce';
 import differenceBy from 'lodash/differenceBy';
 
 import './peticiones.scss';
-import {ETIQUETA_NOK, PROPIEDAD_NO_EDITABLE, TEXTO_CAMBIOS_GUARDADOS} from "../../common/constantes";
+import {
+    AUTORIZACION_ANULADA,
+    AUTORIZACION_APROBADA,
+    AUTORIZACION_PENDIENTE, AUTORIZACION_RECHAZADA,
+    ETIQUETA_ANULADO,
+    ETIQUETA_NOK, ETIQUETA_NOK_DESC, ETIQUETA_OK_DESC,
+    ETIQUETA_PENDIENTE,
+    PROPIEDAD_NO_EDITABLE,
+    TEXTO_CAMBIOS_GUARDADOS
+} from "../../common/constantes";
 
 /* @ngInject */
 /**
@@ -47,12 +56,34 @@ export default class PeticionesController {
         this.ITEMS_POR_PAGINA_EXCEL = AppConfig.elementosPorPaginaParaExcel;
         /** @private */
         this.ITEMS_SELECT = AppConfig.elementosBusquedaSelect;
+
+        /** @type {string} */
+        this.ETIQUETA_PENDIENTE = ETIQUETA_PENDIENTE;
+        /** @type {string} */
+        this.ETIQUETA_OK_DESC = ETIQUETA_OK_DESC;
+        /** @type {string} */
+        this.ETIQUETA_NOK_DESC = ETIQUETA_NOK_DESC;
+        /** @type {string} */
+        this.ETIQUETA_ANULADO = ETIQUETA_ANULADO;
+
+        /** @type {string} */
+        this.AUTORIZACION_PENDIENTE = AUTORIZACION_PENDIENTE;
+        /** @type {string} */
+        this.AUTORIZACION_APROBADA = AUTORIZACION_APROBADA;
+        /** @type {string} */
+        this.AUTORIZACION_RECHAZADA = AUTORIZACION_RECHAZADA;
+        /** @type {string} */
+        this.AUTORIZACION_ANULADA = AUTORIZACION_ANULADA;
+
+
         /** @type {boolean} */
         this.busquedaVisible = true;
         /** @private */
         this.busquedaActiva = false;
         /** @type {Object} */
-        this.paramsBusqueda = {};
+        this.paramsBusqueda = {
+            estadoInterno: AUTORIZACION_PENDIENTE
+        };
         /** @private */
         this.paramsAnteriores = {};
         /** @private */
@@ -60,6 +91,9 @@ export default class PeticionesController {
 
         /** @type {boolean} */
         this.procesando = false;
+
+        /** @type {boolean} */
+        this.mostrarSoloLectura = true;
 
         /** @type {boolean} */
         this.autorizador = autorizador;
@@ -108,18 +142,13 @@ export default class PeticionesController {
         /** @type {number} */
         this.paginaActual = 1;
         if ($location.search().solicitante) {
-            this.paramsBusqueda = {
-                solicitante: { codigo: $location.search().solicitante }
-            };
-            this.buscar(['fecha.valor', 'asc'], true);
-
+            this.paramsBusqueda.solicitante = { codigo: $location.search().solicitante };
             this.personalService.obtener($location.search().solicitante)
                 .then(persona => {
                     this.paramsBusqueda.solicitante = persona;
                 });
-        } else {
-            this.actualizarPagina(['fecha.valor', 'asc'], true);
         }
+        this.buscar(['fecha.valor', 'asc'], true);
 
         this.presentacion = {
             entidad: 'Petición',
@@ -199,19 +228,23 @@ export default class PeticionesController {
         const quitarWatcherProcesoFn = $scope.$watch('vm.paramsBusqueda.proceso', (newValue, oldValue) => {
             this.etiquetasService.obtenerTodos()
                 .then(etiquetas => {
-                    const etiquetasAMostrar = filter(etiquetas, etiqueta => {
-                        return !this.autorizador || !includes(etiqueta.estado, ETIQUETA_NOK);
-                    });
-
                     if (isNil(newValue)) {
-                        /** @type {Etiqueta[]} */
-                        this.etiquetas = [];
-                        this.paramsBusqueda.estado = undefined;
-                    } else {
-                        this.etiquetas = filter(etiquetasAMostrar, etiqueta => {
-                            return etiqueta.proceso.valor.id === newValue.id;
-                        })
+                        delete this.paramsBusqueda.estado;
                     }
+
+                    /** @type {Etiqueta[]} */
+                    this.etiquetas = this._filtrarEtiquetas(etiquetas);
+                });
+        });
+
+        const quitarWatcherEstadoInternoFn = $scope.$watch('vm.paramsBusqueda.estadoInterno', (newValue, oldValue) => {
+            this.etiquetasService.obtenerTodos()
+                .then(etiquetas => {
+                    if (newValue !== oldValue) {
+                        delete this.paramsBusqueda.estado;
+                    }
+
+                    this.etiquetas = this._filtrarEtiquetas(etiquetas);
                 });
         });
 
@@ -219,8 +252,32 @@ export default class PeticionesController {
             this.peticionesService.reiniciarEstado();
             quitarWatcherFn();
             quitarWatcherProcesoFn();
+            quitarWatcherEstadoInternoFn();
             deregisterFn();
         });
+
+    }
+
+    _filtrarEtiquetas(etiquetas) {
+        if (isNil(this.paramsBusqueda.proceso)) {
+            return [];
+        } else {
+            return  filter(etiquetas, etiqueta => {
+                let estadoValido = false;
+
+                if (this.paramsBusqueda.estadoInterno === AUTORIZACION_PENDIENTE) {
+                    estadoValido = !includes(etiqueta.estado, ETIQUETA_NOK);
+                } else if (this.paramsBusqueda.estadoInterno === AUTORIZACION_APROBADA) {
+                    estadoValido = !includes(etiqueta.estado, ETIQUETA_NOK) && etiqueta.estado !== '0';
+                } else if (this.paramsBusqueda.estadoInterno === AUTORIZACION_RECHAZADA) {
+                    estadoValido = includes(etiqueta.estado, ETIQUETA_NOK);
+                } else if (this.paramsBusqueda.estadoInterno === AUTORIZACION_ANULADA) {
+                    estadoValido = false;
+                }
+
+                return estadoValido && etiqueta.proceso.valor.id === this.paramsBusqueda.proceso.id;
+            });
+        }
 
     }
 
@@ -244,7 +301,7 @@ export default class PeticionesController {
 
         clon.enlaceDetalles = `<a href class="icon-view-show d-print-none" ng-href="#/peticion/${entidad.id}" uib-tooltip="Ver Detalles"></a>`;
 
-        if (this.autorizador) {
+        if (this.autorizador && this.paramsBusqueda.estadoInterno === AUTORIZACION_PENDIENTE) {
             clon.checkbox = `<input type="checkbox" class="checkbox-visible" ng-model="elemento.seleccionada" uib-tooltip="Seleccionar">`;
             clon.accionAprobar = `<a href="" ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'aprobar'})" uib-tooltip="Aprobar">
                                 <span class="icon-checkmark text-success"></span>
@@ -386,6 +443,7 @@ export default class PeticionesController {
                 idProceso: get(this.paramsBusqueda, 'proceso.id'),
                 nInternoSolicitante: get(this.paramsBusqueda, 'solicitante.codigo'),
                 estado: this.paramsBusqueda.estado ? this.paramsBusqueda.estado.estado : undefined,
+                estadoInterno: this.paramsBusqueda.estadoInterno,
                 etiqueta: get(this.paramsBusqueda, 'estado.descripcion')
             };
 
@@ -400,7 +458,7 @@ export default class PeticionesController {
             this.actualizacionEnProgreso = true;
             const idsSeleccionados = map(this.peticionesSeleccionadas, peticion => { return peticion.id });
             this.datos = null;
-            this.peticionesService.obtenerTodos(this.autorizador, !this.autorizador, 1, orden, filtroBusqueda, forzarActualizacion)
+            this.peticionesService.obtenerTodos(!this.autorizador, 1, orden, filtroBusqueda, forzarActualizacion)
                 .then(resultados => {
                     this.paginaActual = 1;
                     this.datos = map(resultados, peticion => {
@@ -409,6 +467,8 @@ export default class PeticionesController {
                     if (!this.filaEsVisible(this.peticionSeleccionada)) {
                         this.peticionSeleccionada = null;
                     }
+
+                    this.mostrarSoloLectura = !this.autorizador || filtroBusqueda.estadoInterno !== AUTORIZACION_PENDIENTE;
                 })
                 .finally(() => {
                     this.$timeout(() => {
@@ -424,15 +484,19 @@ export default class PeticionesController {
      * @param busquedaForm      -  Formulario de los parámetros de búsqueda
      */
     mostrarTodos(busquedaForm) {
-        this.paramsBusqueda = {};
+        this.paramsBusqueda = {
+            estadoInterno: AUTORIZACION_PENDIENTE
+        };
         this.busquedaActiva = false;
         busquedaForm.$setPristine();
         busquedaForm.$setUntouched();
 
         // Si justo antes ya se había mandado a mostrar todos los resultados, no se hace nada. Comprobando esto se
         // ahorran llamadas innecesarias al API.
-        if (Object.getOwnPropertyNames(this.paramsAnteriores).length > 0) {
-            this.paramsAnteriores = {};
+        if (Object.getOwnPropertyNames(this.paramsAnteriores).length > 0 && this.paramsAnteriores.estadoInterno !== AUTORIZACION_PENDIENTE ) {
+            this.paramsAnteriores = {
+                estadoInterno: AUTORIZACION_PENDIENTE
+            };
 
             if (this.totalItems > this.ITEMS_POR_PAGINA) {
                 this.seleccionarTodos = false;
@@ -442,7 +506,7 @@ export default class PeticionesController {
             this.actualizacionEnProgreso = true;
             const idsSeleccionados = map(this.peticionesSeleccionadas, peticion => { return peticion.id });
             this.datos = null;
-            this.peticionesService.obtenerTodos(this.autorizador, !this.autorizador, 1, null, null)
+            this.peticionesService.obtenerTodos(!this.autorizador, 1, null, this.paramsBusqueda)
                 .then(resultados => {
                     this.paginaActual = 1;
                     this.datos = map(resultados, peticion => {
@@ -451,6 +515,8 @@ export default class PeticionesController {
                     if (!this.filaEsVisible(this.peticionSeleccionada)) {
                         this.peticionSeleccionada = null;
                     }
+
+                    this.mostrarSoloLectura = !this.autorizador;
                 })
                 .finally(() => {
                     this.$timeout(() => {
@@ -477,7 +543,7 @@ export default class PeticionesController {
         const idsSeleccionados = map(this.peticionesSeleccionadas, peticion => { return peticion.id });
         this.datos = null;
         this.procesando = true;
-        return this.peticionesService.obtenerTodos(this.autorizador, !this.autorizador, this.paginaActual, orden, undefined, forzarActualizacion)
+        return this.peticionesService.obtenerTodos(!this.autorizador, this.paginaActual, orden, undefined, forzarActualizacion)
             .then(peticiones => {
                 this.datos = map(peticiones, peticion => {
                     return this._procesarEntidadVisualizacion(peticion, idsSeleccionados);
@@ -486,6 +552,8 @@ export default class PeticionesController {
                 if (!this.filaEsVisible(this.peticionSeleccionada)) {
                     this.peticionSeleccionada = null;
                 }
+
+                this.mostrarSoloLectura = !this.autorizador || this.paramsBusqueda.estadoInterno !== AUTORIZACION_PENDIENTE;
             })
             .catch(() => {
                 this.datos = [];
@@ -514,7 +582,7 @@ export default class PeticionesController {
         let totalPaginas = Math.ceil(this.peticionesService.peticiones.length / this.ITEMS_POR_PAGINA_EXCEL);
         let promesasObtencion = [];
         for (let i=1; i <= totalPaginas; i++) {
-            promesasObtencion.push(this.peticionesService.obtenerTodos(this.autorizador, !this.autorizador, i, undefined, undefined, this.ITEMS_POR_PAGINA_EXCEL));
+            promesasObtencion.push(this.peticionesService.obtenerTodos(!this.autorizador, i, undefined, undefined, this.ITEMS_POR_PAGINA_EXCEL));
         }
         return this.$q.all(promesasObtencion)
             .then(resultado => {
@@ -781,8 +849,10 @@ export default class PeticionesController {
             });
     }
 
-    obtenerSolicitantePeticionAnulada() {
-        const idSolicitante = get(this.peticionSeleccionada, 'peticionQueAnula.solicitante');
+    obtenerSolicitantePeticionRelacionada(peticionAnulacion) {
+        const path = peticionAnulacion ? 'peticionAnulacion' : 'peticionQueAnula';
+
+        const idSolicitante = get(this.peticionSeleccionada, `${path}.solicitante`);
         if (!isNil(idSolicitante)) {
             if (idSolicitante === this.peticionSeleccionada.solicitante.valor.nInterno) {
                 return this.peticionSeleccionada.solicitante.display;
@@ -790,7 +860,7 @@ export default class PeticionesController {
                 return this.solicitantePeticionSeleccionada.nombreApellidos;
             } else if (!this.obteniendoSolicitante) {
                 this.obteniendoSolicitante = true;
-                this.personalService.obtener( get(this.peticionSeleccionada, 'peticionQueAnula.solicitante') )
+                this.personalService.obtener( get(this.peticionSeleccionada, `${path}.solicitante`) )
                     .then(persona => {
                         this.solicitantePeticionSeleccionada = persona;
                         return persona.nombreApellidos;

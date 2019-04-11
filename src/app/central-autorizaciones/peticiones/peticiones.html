@@ -73,7 +73,60 @@
                             </div>
                         </div>
 
-                        <div class="form-group col-lg form-row" ng-if=":: !vm.autorizador"></div>
+                        <div class="form-group col-lg form-row align-items-center" ng-if=":: !vm.autorizador">
+                            <label class="col-sm-3 col-form-label">Estado</label>
+                            <div class="col-sm-9 pl-2 fila-estados">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="estado" id="estadoPendiente" ng-value=":: vm.AUTORIZACION_PENDIENTE"
+                                           ng-model="vm.paramsBusqueda.estadoInterno">
+                                    <label class="form-check-label" for="estadoPendiente" ng-bind=":: vm.ETIQUETA_PENDIENTE"></label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="estado" id="estadoAprobado" ng-value=":: vm.AUTORIZACION_APROBADA"
+                                           ng-model="vm.paramsBusqueda.estadoInterno">
+                                    <label class="form-check-label" for="estadoAprobado" ng-bind=":: vm.ETIQUETA_OK_DESC"></label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="estado" id="estadoRechazado" ng-value=":: vm.AUTORIZACION_RECHAZADA"
+                                           ng-model="vm.paramsBusqueda.estadoInterno">
+                                    <label class="form-check-label" for="estadoRechazado" ng-bind=":: vm.ETIQUETA_NOK_DESC"></label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="estado" id="estadoAnulado" ng-value=":: vm.AUTORIZACION_ANULADA"
+                                           ng-model="vm.paramsBusqueda.estadoInterno">
+                                    <label class="form-check-label" for="estadoAnulado" ng-bind=":: vm.ETIQUETA_ANULADO"></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row" ng-if=":: vm.autorizador">
+                        <div class="form-group form-row col-lg align-items-center">
+                            <label class="col-sm-3 col-form-label">Estado</label>
+                            <div class="col-sm-9 pl-2 fila-estados">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="estado" id="estadoPendiente" ng-value=":: vm.AUTORIZACION_PENDIENTE"
+                                           ng-model="vm.paramsBusqueda.estadoInterno">
+                                    <label class="form-check-label" for="estadoPendiente" ng-bind=":: vm.ETIQUETA_PENDIENTE"></label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="estado" id="estadoAprobado" ng-value=":: vm.AUTORIZACION_APROBADA"
+                                           ng-model="vm.paramsBusqueda.estadoInterno">
+                                    <label class="form-check-label" for="estadoAprobado" ng-bind=":: vm.ETIQUETA_OK_DESC"></label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="estado" id="estadoRechazado" ng-value=":: vm.AUTORIZACION_RECHAZADA"
+                                           ng-model="vm.paramsBusqueda.estadoInterno">
+                                    <label class="form-check-label" for="estadoRechazado" ng-bind=":: vm.ETIQUETA_NOK_DESC"></label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="estado" id="estadoAnulado" ng-value=":: vm.AUTORIZACION_ANULADA"
+                                           ng-model="vm.paramsBusqueda.estadoInterno">
+                                    <label class="form-check-label" for="estadoAnulado" ng-bind=":: vm.ETIQUETA_ANULADO"></label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group col-lg form-row"></div>
                     </div>
 
                     <div class="form-row mr-0 contenedor-botones">
@@ -91,13 +144,15 @@
 
     <div class="contenedor-tabla mx-auto">
         <div class="row">
-            <div class="col-xl-9 contenedor-botones flex-column flex-lg-row" ng-class=":: {'justify-content-end': !vm.autorizador}">
-                <div class="d-flex flex-column flex-lg-row justify-content-between" ng-if=":: vm.autorizador">
+            <div class="col-xl-9 contenedor-botones flex-column flex-lg-row">
+                <div class="d-flex flex-column flex-lg-row justify-content-between">
                     <button type="button" class="btn btn-success mr-0 mr-lg-2" ng-click="vm.aprobarPeticiones()"
+                            ng-show="!vm.mostrarSoloLectura"
                             ng-disabled="vm.peticionesSeleccionadas.length === 0 || vm.procesando">
                         <span class="icon-checkmark"></span> Aprobar Seleccionadas
                     </button>
                     <button type="button" class="btn btn-danger mr-0 mr-lg-2" ng-click="vm.rechazarPeticiones()"
+                            ng-show="!vm.mostrarSoloLectura"
                             ng-disabled="vm.peticionesSeleccionadas.length === 0 || vm.procesando">
                         <span class="icon-cross"></span> Rechazar Seleccionadas
                     </button>
@@ -115,7 +170,7 @@
 
         <div class="row">
             <div class="col-xl-9">
-                <div class="d-flex align-items-center mb-3 mb-md-0" ng-if=":: vm.autorizador">
+                <div class="d-flex align-items-center mb-3 mb-md-0" ng-show="!vm.mostrarSoloLectura">
                     <input type="checkbox" id="seleccionarTodo" class="checkbox-visible mr-2 checkbox-seleccionar-todo" ng-model="vm.seleccionarTodos" ng-change="vm.cambiarSeleccion()"
                     uib-tooltip="{{ vm.seleccionarTodos ? 'Limpiar selección' : 'Seleccionar todos' }}">
                     <label class="form-check-label d-block d-md-none" for="seleccionarTodo">
@@ -148,8 +203,12 @@
                     <div class="card-header" ng-show="vm.peticionSeleccionada.peticionQueAnula">Petición que Anula</div>
                     <div class="card-body" ng-if="vm.peticionSeleccionada.peticionQueAnula">
                         <div class="row">
+                            <label class="col-5 text-right">ID</label>
+                            <p class="ml-3"><a ng-href="#/peticion/{{vm.peticionSeleccionada.peticionQueAnula.id}}" ng-bind="vm.peticionSeleccionada.peticionQueAnula.id"></a></p>
+                        </div>
+                        <div class="row">
                             <label class="col-5 text-right">Solicitante</label>
-                            <p class="ml-3" ng-bind="vm.obtenerSolicitantePeticionAnulada()"></p>
+                            <p class="ml-3" ng-bind="vm.obtenerSolicitantePeticionRelacionada(false)"></p>
                         </div>
                         <div ng-if="vm.peticionSeleccionada.peticionQueAnula.informacionExtra">
                             <div class="row" ng-repeat="item in vm.peticionSeleccionada.peticionQueAnula.informacionExtra">
@@ -165,6 +224,17 @@
                                     </hm-read-more>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                    <div class="card-header" ng-show="vm.peticionSeleccionada.peticionAnulacion">Petición de Anulación</div>
+                    <div class="card-body" ng-if="vm.peticionSeleccionada.peticionAnulacion">
+                        <div class="row">
+                            <label class="col-5 text-right">ID</label>
+                            <p class="ml-3"><a ng-href="#/peticion/{{vm.peticionSeleccionada.peticionAnulacion.id}}" ng-bind="vm.peticionSeleccionada.peticionAnulacion.id"></a></p>
+                        </div>
+                        <div class="row">
+                            <label class="col-5 text-right">Solicitante</label>
+                            <p class="ml-3" ng-bind="vm.obtenerSolicitantePeticionRelacionada(true)"></p>
                         </div>
                     </div>
                     <div class="card-header" ng-show="vm.peticionSeleccionada.informacionExtra">Información Extra</div>

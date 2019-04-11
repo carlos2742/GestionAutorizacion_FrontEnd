@@ -16,6 +16,8 @@ export const ETIQUETA_NOK = 'NOK';
 export const ETIQUETA_NOK_DESC = 'Rechazado';
 /** @type {string} */
 export const ETIQUETA_PENDIENTE = 'Pendiente';
+/** @type {string} */
+export const ETIQUETA_ANULADO = 'Anulado';
 
 /** @type {string} */
 export const TEXTO_CAMBIOS_GUARDADOS = `<i class="icon-floppy-disk"></i> Cambios guardados`;
@@ -28,6 +30,8 @@ export const AUTORIZACION_APROBADA = 'A';
 export const AUTORIZACION_PENDIENTE = 'P';
 /** @type {string} */
 export const AUTORIZACION_RECHAZADA = 'R';
+/** @type {string} */
+export const AUTORIZACION_ANULADA = 'N';
 
 
 // Errores que puede devolver el backend

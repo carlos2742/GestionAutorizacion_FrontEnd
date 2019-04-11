@@ -18,7 +18,7 @@ import get from 'lodash/get';
 import format from 'date-fns/format';
 import toDate from 'date-fns/toDate';
 import {
-    ACTUALIZACION_EN_BULTO_CON_ERRORES,
+    ACTUALIZACION_EN_BULTO_CON_ERRORES, AUTORIZACION_ANULADA,
     AUTORIZACION_APROBADA, AUTORIZACION_PENDIENTE, AUTORIZACION_RECHAZADA, ERROR_DE_RED,
     ERROR_GENERAL,
     ETIQUETA_NOK_DESC,
@@ -132,7 +132,7 @@ export default class PeticionesService {
      * @param {Etiqueta[]} etiquetas    -  Listado de etiquetas existentes. Se usan para mostrar el estado.
      * @returns {Peticion}              -  La misma entidad, con las transformaciones mencionadas.
      */
-    procesarEntidadRecibida(entidad, etiquetas) {
+    procesarEntidadRecibida(entidad, etiquetas, estadoInterno) {
         let peticionProcesada = {
             codigo: entidad.id
         };
@@ -178,6 +178,9 @@ export default class PeticionesService {
                                 descripcion = this.AppConfig.etiquetaPorDefectoEnRevision;
                             }
                             break;
+                        case AUTORIZACION_ANULADA:
+                            descripcion = this.AppConfig.etiquetaPorDefectoAnulada;
+                            break;
                     }
                 }
 
@@ -199,7 +202,8 @@ export default class PeticionesService {
             }
         }
 
-        peticionProcesada.displayOrden = `Aut. ${entidad.cantidadActividadesCompletadas+1}/${entidad.cantidadActividadesTotales}`;
+        const numeroAutorizacion = estadoInterno === AUTORIZACION_PENDIENTE ? entidad.cantidadActividadesCompletadas+1 : entidad.cantidadActividadesCompletadas;
+        peticionProcesada.displayOrden = `Aut. ${numeroAutorizacion}/${entidad.cantidadActividadesTotales}`;
 
         peticionProcesada.editable = false;
         peticionProcesada.eliminable = false;
@@ -288,7 +292,6 @@ export default class PeticionesService {
      * Devuelve una lista de peticiones. Utiliza paginación porque la cantidad total de peticiones puede llegar a ser
      * considerable.
      *
-     * @param {boolean} peticionesPendientes -  Verdadero si nada más interesan las peticiones pendientes.
      * @param {boolean} peticionesPropias    -  Verdadero si lo que se desean son las peticiones propias.
      * @param {number} pagina               -  Página que se desea.
      * @param {[string, string]} orden      -  Cómo deben estar ordenados los resultados.
@@ -298,7 +301,7 @@ export default class PeticionesService {
      * @param {number} elementosPorPagina   -  Cantidad de peticiones que se desea recibir en una página.
      * @return {Promise.<Peticion[]>}       -  Se resuelve con el arreglo de peticiones que corresponden a una página determinada.
      */
-    obtenerTodos(peticionesPendientes, peticionesPropias, pagina, orden, filtro, forzarActualizacion, elementosPorPagina) {
+    obtenerTodos(peticionesPropias, pagina, orden, filtro, forzarActualizacion, elementosPorPagina) {
         let cambioOrden = false;
         if (!isNil(orden) && (isNil(this.ordenActivo) || orden[0] !== this.ordenActivo[0] || orden[1] !== this.ordenActivo[1])) {
             this.ordenActivo = orden;
@@ -316,7 +319,7 @@ export default class PeticionesService {
         const busquedaActiva = !isNil(filtroDefinido);
 
         if (forzarActualizacion || this.peticiones.length === 0 || this.peticiones.length > this.AppConfig.elementosPorPagina) {
-            return this._obtenerServidor(peticionesPendientes, peticionesPropias, pagina, cambioOrden, busquedaActiva, this.filtrosBusqueda, elementosPorPagina);
+            return this._obtenerServidor(peticionesPropias, pagina, cambioOrden, busquedaActiva, this.filtrosBusqueda, elementosPorPagina);
         } else {
             if (cambioOrden) {
                 let campo ='';
@@ -346,7 +349,8 @@ export default class PeticionesService {
                     if ((isNil(this.filtrosBusqueda.idAplicacion) || get(peticion, 'proceso.valor.aplicacion.id') === this.filtrosBusqueda.idAplicacion )
                         && (isNil(this.filtrosBusqueda.idProceso) || get(peticion, 'proceso.valor.id') === this.filtrosBusqueda.idProceso )
                         && (isNil(this.filtrosBusqueda.nInternoSolicitante) || get(peticion, 'solicitante.valor.nInterno') === this.filtrosBusqueda.nInternoSolicitante )
-                        && (isNil(this.filtrosBusqueda.etiqueta) || peticion.estado.display === this.filtrosBusqueda.etiqueta) ) {
+                        && (isNil(this.filtrosBusqueda.etiqueta) || peticion.estado.display === this.filtrosBusqueda.etiqueta)
+                        && (isNil(this.filtrosBusqueda.estadoInterno) || peticion.estadoInterno === this.filtrosBusqueda.estadoInterno) ) {
 
                         resultado.push(peticion);
                     }
@@ -606,7 +610,6 @@ export default class PeticionesService {
     /**
      * Devuelve una lista de peticiones del servidor
      *
-     * @param {boolean} peticionesPendientes -  Verdadero si nada más interesan las peticiones pendientes.
      * @param {boolean} peticionesPropias    -  Verdadero si lo que se desean son las peticiones propias.
      * @param {number} pagina               -  Página que se desea.
      * @param {boolean} cambioOrden         -  Verdadero si el orden de las peticiones fue cambiado.
@@ -615,7 +618,7 @@ export default class PeticionesService {
      * @param {number} elementosPorPagina   -  Cantidad de peticiones que se desea recibir en una página.
      * @return {Promise.<Peticion[]>}       -  Se resuelve con el arreglo de peticiones que corresponden a una página determinada.
      */
-    _obtenerServidor(peticionesPendientes, peticionesPropias, pagina, cambioOrden, busquedaActiva, filtro, elementosPorPagina) {
+    _obtenerServidor(peticionesPropias, pagina, cambioOrden, busquedaActiva, filtro, elementosPorPagina) {
         let totalPeticiones = 0;
         const paginaActual = !isNil(pagina) ? pagina : 1;
         const fin = paginaActual * this.AppConfig.elementosPorPagina;
@@ -636,7 +639,6 @@ export default class PeticionesService {
             paginaActual,
             elementosPorPagina: !isNil(elementosPorPagina) ? elementosPorPagina : this.AppConfig.elementosPorPagina,
             ordenarPor,
-            peticionesPendientes,
             peticionesPropias
         };
 
@@ -646,7 +648,7 @@ export default class PeticionesService {
         ]).then(resultado => {
             totalPeticiones = resultado[0].metadata.cantidadTotal;
             const peticiones = map(resultado[0].data, peticion => {
-                return this.procesarEntidadRecibida(peticion, resultado[1]);
+                return this.procesarEntidadRecibida(peticion, resultado[1], get(filtro, 'estadoInterno'));
             });
             if (busquedaActiva) {
                 this.peticiones = [];
