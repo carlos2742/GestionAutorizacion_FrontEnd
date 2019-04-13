@@ -158,6 +158,8 @@ export default class PeticionesController {
                 {nombre: 'id', display: 'Código', ordenable: true},
                 {nombre: 'fechaNecesaria.display', display: 'Fecha Necesaria', ordenable: 'fecha.valor'},
                 {nombre: 'solicitante.display', display: 'Solicitante', ordenable: 'solicitante'},
+                {nombre: 'tipoSolicitud1', display: 'Tipo Solicitud 1', ordenable: true, ancho: '135px'},
+                {nombre: 'tipoSolicitud2', display: 'Tipo Solicitud 2', ordenable: true, ancho: '135px'},
                 {nombre: 'proceso.display', display: 'Proceso', ordenable: 'proceso'},
                 {nombre: 'displayOrden', display: 'Autorización', ordenable: false},
                 {nombre: 'estado.display', display: 'Etiqueta', ordenable: false},
@@ -171,7 +173,7 @@ export default class PeticionesController {
             this.presentacion.columnas.unshift(
                 {nombre: 'checkbox', display: '', html: true, ancho: '40px'}
             );
-            this.presentacion.columnas.splice(8, 0,
+            this.presentacion.columnas.splice(10, 0,
                 {nombre: 'accionAprobar', display: '', html: true, ancho: '40px'},
                 {nombre: 'accionRechazar', display: '', html: true, ancho: '40px'},
             );
@@ -189,8 +191,8 @@ export default class PeticionesController {
             ]
         };
         this.columnasExcel = {
-            titulos: ['Código', 'Fecha Necesaria', 'Solicitante', 'Proceso', 'Autorización', 'Etiqueta', 'Observaciones'],
-            campos: ['id', 'fechaNecesaria.display', 'solicitante.display', 'proceso.display', 'displayOrden', 'estado.display', 'observaciones']
+            titulos: ['Código', 'Fecha Necesaria', 'Solicitante', 'Tipo Solicitud 1', 'Tipo Solicitud 2', 'Proceso', 'Autorización', 'Etiqueta', 'Observaciones'],
+            campos: ['id', 'fechaNecesaria.display', 'solicitante.display', 'tipoSolicitud1', 'tipoSolicitud2', 'proceso.display', 'displayOrden', 'estado.display', 'observaciones']
         };
 
         /** @type {Peticion} */
@@ -464,6 +466,11 @@ export default class PeticionesController {
                     this.datos = map(resultados, peticion => {
                         return this._procesarEntidadVisualizacion(peticion, idsSeleccionados);
                     });
+                    Object.defineProperty(this.datos, 'yaOrdenados', {
+                        enumerable: false,
+                        get: () => { return true; }
+                    });
+
                     if (!this.filaEsVisible(this.peticionSeleccionada)) {
                         this.peticionSeleccionada = null;
                     }
@@ -512,6 +519,11 @@ export default class PeticionesController {
                     this.datos = map(resultados, peticion => {
                         return this._procesarEntidadVisualizacion(peticion, idsSeleccionados);
                     });
+                    Object.defineProperty(this.datos, 'yaOrdenados', {
+                        enumerable: false,
+                        get: () => { return true; }
+                    });
+
                     if (!this.filaEsVisible(this.peticionSeleccionada)) {
                         this.peticionSeleccionada = null;
                     }
@@ -547,6 +559,10 @@ export default class PeticionesController {
             .then(peticiones => {
                 this.datos = map(peticiones, peticion => {
                     return this._procesarEntidadVisualizacion(peticion, idsSeleccionados);
+                });
+                Object.defineProperty(this.datos, 'yaOrdenados', {
+                    enumerable: false,
+                    get: () => { return true; }
                 });
 
                 if (!this.filaEsVisible(this.peticionSeleccionada)) {
@@ -609,6 +625,10 @@ export default class PeticionesController {
                 return peticion;
             })
         }
+        Object.defineProperty(this.datos, 'yaOrdenados', {
+            enumerable: false,
+            get: () => { return true; }
+        });
     }
 
     manejarAccion(entidad, accion) {
@@ -646,6 +666,10 @@ export default class PeticionesController {
                             const idsSeleccionados = map(this.peticionesSeleccionadas, peticion => { return peticion.id });
                             this.datos = map(datos, peticion => {
                                 return this._procesarEntidadVisualizacion(peticion, idsSeleccionados);
+                            });
+                            Object.defineProperty(this.datos, 'yaOrdenados', {
+                                enumerable: false,
+                                get: () => { return true; }
                             });
 
                             if (!this.filaEsVisible(this.peticionSeleccionada)) {
@@ -709,6 +733,10 @@ export default class PeticionesController {
                             if (!isNil(error.peticionesConError) && error.peticionesConError.length > 0) {
                                 // Se quitan de la tabla las que se pudieron actualizar bien
                                 this.datos = differenceBy(this.datos, error.peticionesExitosas, 'id');
+                                Object.defineProperty(this.datos, 'yaOrdenados', {
+                                    enumerable: false,
+                                    get: () => { return true; }
+                                });
 
                                 let listaErrores = reduce(error.peticionesConError, (resultado, peticion) => {
                                     resultado += `<li>
@@ -818,6 +846,10 @@ export default class PeticionesController {
                         const idsSeleccionados = map(this.peticionesSeleccionadas, peticion => { return peticion.id; });
                         this.datos[indiceEntidadCambiada] = this._procesarEntidadVisualizacion(entidad, idsSeleccionados);
                         this.datos = clone(this.datos);
+                        Object.defineProperty(this.datos, 'yaOrdenados', {
+                            enumerable: false,
+                            get: () => { return true; }
+                        });
                     }
                 } else {
                     this.actualizarPagina();
@@ -844,6 +876,10 @@ export default class PeticionesController {
                         const idsSeleccionados = map(this.peticionesSeleccionadas, peticion => { return peticion.id; });
                         this.datos[indiceEntidadCambiada] = this._procesarEntidadVisualizacion(entidad, idsSeleccionados);
                         this.datos = clone(this.datos);
+                        Object.defineProperty(this.datos, 'yaOrdenados', {
+                            enumerable: false,
+                            get: () => { return true; }
+                        });
                     }
                 }
             });

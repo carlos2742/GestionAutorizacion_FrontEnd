@@ -23,16 +23,24 @@
                     </p>
                 </div>
                 <div class="row">
+                    <label class="col-md-3 font-weight-bold text-md-right">Fecha Necesaria</label>
+                    <p class="col-md-9" ng-bind="vm.peticion.fechaNecesaria.display"></p>
+                </div>
+                <div class="row">
                     <label class="col-md-3 font-weight-bold text-md-right">Solicitante</label>
                     <p class="col-md-9" ng-bind="vm.peticion.solicitante.display"></p>
                 </div>
                 <div class="row">
-                    <label class="col-md-3 font-weight-bold text-md-right">Proceso</label>
-                    <p class="col-md-9" ng-bind="vm.peticion.proceso.display"></p>
+                    <label class="col-md-3 font-weight-bold text-md-right">Tipo Solicitud 1</label>
+                    <p class="col-md-9" ng-bind="vm.peticion.tipoSolicitud1"></p>
                 </div>
                 <div class="row">
-                    <label class="col-md-3 font-weight-bold text-md-right">Fecha Necesaria</label>
-                    <p class="col-md-9" ng-bind="vm.peticion.fechaNecesaria.display"></p>
+                    <label class="col-md-3 font-weight-bold text-md-right">Tipo Solicitud 2</label>
+                    <p class="col-md-9" ng-bind="vm.peticion.tipoSolicitud2"></p>
+                </div>
+                <div class="row">
+                    <label class="col-md-3 font-weight-bold text-md-right">Proceso</label>
+                    <p class="col-md-9" ng-bind="vm.peticion.proceso.display"></p>
                 </div>
                 <div class="row">
                     <label class="col-md-3 font-weight-bold text-md-right">Etiqueta</label>

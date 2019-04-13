@@ -67,7 +67,7 @@ export default class GETablaController {
             /** @type {boolean} */
             this.eliminable = find(this.datos, item => { return item.eliminable });
             if (this.ordenActivo) {
-                if (!this.ordenInicial) {
+                if (!this.ordenInicial && !get(this.datos, 'yaOrdenados')) {
                     this.ordenar({nombre: this.ordenActivo[0]}, this.ordenActivo[1]);
                 } else {
                     this.ordenInicial = false;

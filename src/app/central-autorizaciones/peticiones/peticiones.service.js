@@ -41,8 +41,10 @@ export default class PeticionesService {
      * @property {Proceso} proceso.valor            -  Su valor actual.
      * @property {string} proceso.display           -  Cómo debe ser representado.
      * @property {Object} solicitante               -  Persona que realiza la petición.
-     * @property {Persona} solicitante.valor          -  Su valor actual.
+     * @property {Persona} solicitante.valor        -  Su valor actual.
      * @property {string} solicitante.display       -  Cómo debe ser representado.
+     * @property {string} tipoSolicitud1            -  Primer tipo de solicitud.
+     * @property {string} tipoSolicitud2            -  Segundo tipo de solicitud.
      * @property {string} observaciones             -  Observaciones.
      * @property {Object} informacionExtra          -  Información adicional relacionada con la petición.
      * @property {string} estadoInterno             -  Estado final de la petición.

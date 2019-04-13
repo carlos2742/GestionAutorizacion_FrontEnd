@@ -2,7 +2,7 @@ import clone from 'lodash/clone';
 import get from 'lodash/get';
 import map from 'lodash/map';
 
-import {ELEMENTO_NO_ENCONTRADO, ERROR_GENERAL} from '../../common/constantes';
+import {ADJUNTO_MUY_GRANDE, ELEMENTO_NO_ENCONTRADO, ERROR_GENERAL} from '../../common/constantes';
 
 import './detalles-peticion.scss';
 
@@ -119,6 +119,8 @@ export default class DetallesPeticionController {
                         timeOut: 0,
                         extendedTimeOut: 0
                     });
+                } else if (status === 500 && get(response, 'errorCode') === ADJUNTO_MUY_GRANDE) {
+                    toastr.warning('No se pudo añadir este archivo porque es demasiado grande.');
                 } else if (status === 401) {
                     eliminarPeticion = true;
                     this.$location.path(PATH_401);
