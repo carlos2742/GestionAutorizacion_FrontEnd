@@ -98,7 +98,7 @@ export default class AdjuntosService {
                             if (accion === 'descargar') {
                                 return this.descargar(adjunto, entidad);
                             } else if (accion === 'eliminar') {
-                                return this._accionEliminar(adjunto, entidad);
+                                return this.accionEliminar(adjunto, entidad);
                             }
                         };
                     },
@@ -142,9 +142,8 @@ export default class AdjuntosService {
      * @param {Adjunto} adjunto
      * @param {Peticion} peticion
      * @return {Promise}        -  Se resuelve cuando el adjunto fue eliminado.
-     * @private
      */
-    _accionEliminar(adjunto, peticion) {
+    accionEliminar(adjunto, peticion) {
         return this.$q((resolve, reject) => {
             const contenedor = angular.element(document.getElementById(`customModalEliminarAdjunto`));
             let modal = this.$uibModal.open({

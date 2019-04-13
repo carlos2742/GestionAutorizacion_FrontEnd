@@ -145,20 +145,15 @@ export default class ModalAdjuntosController {
      * @private
      */
     _presentacionTabla() {
-        let presentacion = {
+        return {
             entidad: 'Adjunto',
             atributoPrincipal: 'nombre',
             columnas: [
                 {nombre: 'nombre', display: 'Nombre', ordenable: true},
                 {nombre: 'accionDescargar', html: true, ancho: '40px'},
+                {nombre: 'accionEliminar', html: true, ancho: '40px'}
             ]
         };
-        if (this.modoAutorizador) {
-            presentacion.columnas.push(
-                {nombre: 'accionEliminar', html: true, ancho: '40px'}
-            );
-        }
-        return presentacion;
     }
 
     /**
@@ -203,17 +198,17 @@ export default class ModalAdjuntosController {
      */
     _procesarAdjunto(adjunto) {
         let clon = clone(adjunto);
+
         clon.codigo = clon.id;
         clon.editable = false;
         clon.eliminable = false;
         clon.accionDescargar = `<a href ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'descargar'})"
                                    class="icon-download3" uib-tooltip="Descargar">
                                 </a>`;
-        if (this.modoAutorizador) {
-            clon.accionEliminar = `<a href ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'eliminar'})"
+        clon.accionEliminar = `<a href ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'eliminar'})"
                                        class="icon-bin" uib-tooltip="Eliminar">
                                    </a>`;
-        }
+
         return clon;
     }
 

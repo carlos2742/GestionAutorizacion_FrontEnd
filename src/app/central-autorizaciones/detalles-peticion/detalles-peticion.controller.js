@@ -44,6 +44,7 @@ export default class DetallesPeticionController {
             columnas: [
                 {nombre: 'nombre', display: 'Nombre', ordenable: true},
                 {nombre: 'accionDescargar', html: true, ancho: '40px'},
+                {nombre: 'accionEliminar', html: true, ancho: '40px'}
             ]
         };
 
@@ -71,12 +72,7 @@ export default class DetallesPeticionController {
                         this.mensajes = mensajes;
                     });
 
-                this.adjuntosService.obtenerTodos(this.peticion)
-                    .then(adjuntos => {
-                        this.adjuntos = map(adjuntos, adjunto => {
-                            return this._procesarAdjunto(adjunto);
-                        });
-                    });
+                this._obtenerAdjuntos();
             })
             .catch(response => {
                 if (response.status === 404) {
@@ -152,6 +148,15 @@ export default class DetallesPeticionController {
         }
     }
 
+    _obtenerAdjuntos() {
+        this.adjuntosService.obtenerTodos(this.peticion)
+            .then(adjuntos => {
+                this.adjuntos = map(adjuntos, adjunto => {
+                    return this._procesarAdjunto(adjunto);
+                });
+            });
+    }
+
     enviar() {
         if (this.mensaje) {
             return this.mensajesService.enviarMensaje(this.mensaje, this.peticion)
@@ -179,9 +184,26 @@ export default class DetallesPeticionController {
         }
     }
 
-    descargarAdjunto(entidad) {
-        return this.adjuntosService.descargar(entidad, this.peticion);
-    }
+    ejecutarAccion(entidad, accion) {
+        let promesa;
+        if (accion === 'descargar') {
+            promesa = this.adjuntosService.descargar(entidad, this.peticion);
+        } else if (accion === 'eliminar') {
+            promesa = this.adjuntosService.accionEliminar(entidad, this.peticion);
+        }
+
+        promesa
+            .catch(response => {
+                if (response && response.status === 401) {
+                    this.peticionesService.eliminarEntidad(this.peticion);
+                    this.adjuntos = null;
+                    this.$location.path(PATH_401);
+                }
+            })
+            .finally(() => {
+                this._obtenerAdjuntos();
+            });
+    };
 
     /**
      * Le aplica algunas transformaciones a un adjunto antes de ser visualizado. En todos los casos le añade una acción para
@@ -196,9 +218,12 @@ export default class DetallesPeticionController {
         clon.codigo = clon.id;
         clon.editable = false;
         clon.eliminable = false;
-        clon.accionDescargar = `<a href ng-click="$ctrl.fnAccion({entidad: elemento})"
+        clon.accionDescargar = `<a href ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'descargar'})"
                                    class="icon-download3" uib-tooltip="Descargar">
                                 </a>`;
+        clon.accionEliminar = `<a href ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'eliminar'})"
+                                       class="icon-bin" uib-tooltip="Eliminar">
+                                   </a>`;
 
         return clon;
     }

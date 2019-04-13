@@ -100,7 +100,7 @@
 
                 <div class="contenedor-tabla">
                     <ge-tabla datos="vm.adjuntos" presentacion=":: vm.presentacionAdjuntos"
-                              fn-accion=":: vm.descargarAdjunto(entidad)"></ge-tabla>
+                              fn-accion=":: vm.ejecutarAccion(entidad, accion)"></ge-tabla>
                 </div>
             </section>
 
@@ -127,3 +127,5 @@
     </div>
 
 </div>
+
+<div id="customModalEliminarAdjunto"></div>
