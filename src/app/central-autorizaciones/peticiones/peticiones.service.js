@@ -88,6 +88,7 @@ export default class PeticionesService {
         // Constantes del servicio
         /** @private */
         this.ENDPOINT = '/peticiones';
+        this.ENDPOINT_TIPOS_SOLICITUD = '/tipos_solicitud';
         this.ENDPOINT_APROBAR = `${this.ENDPOINT}/autorizar`;
         this.ENDPOINT_RECHAZAR = `${this.ENDPOINT}/rechazar`;
 
@@ -206,6 +207,11 @@ export default class PeticionesService {
 
         const numeroAutorizacion = estadoInterno === AUTORIZACION_PENDIENTE ? entidad.cantidadActividadesCompletadas+1 : entidad.cantidadActividadesCompletadas;
         peticionProcesada.displayOrden = `Aut. ${numeroAutorizacion}/${entidad.cantidadActividadesTotales}`;
+
+        peticionProcesada.displayTipoSolicitud = entidad.tipoSolicitud1;
+        if (!isNil(entidad.tipoSolicitud2)) {
+            peticionProcesada.displayTipoSolicitud = `${peticionProcesada.displayTipoSolicitud}-${entidad.tipoSolicitud2}`;
+        }
 
         peticionProcesada.editable = false;
         peticionProcesada.eliminable = false;
@@ -352,6 +358,7 @@ export default class PeticionesService {
                         && (isNil(this.filtrosBusqueda.idProceso) || get(peticion, 'proceso.valor.id') === this.filtrosBusqueda.idProceso )
                         && (isNil(this.filtrosBusqueda.nInternoSolicitante) || get(peticion, 'solicitante.valor.nInterno') === this.filtrosBusqueda.nInternoSolicitante )
                         && (isNil(this.filtrosBusqueda.etiqueta) || peticion.estado.display === this.filtrosBusqueda.etiqueta)
+                        && (isNil(this.filtrosBusqueda.tipoSolicitud) || peticion.displayTipoSolicitud === this.filtrosBusqueda.tipoSolicitud)
                         && (isNil(this.filtrosBusqueda.estadoInterno) || peticion.estadoInterno === this.filtrosBusqueda.estadoInterno) ) {
 
                         resultado.push(peticion);
@@ -364,6 +371,13 @@ export default class PeticionesService {
                 return this.$q.resolve(this.peticiones);
             }
         }
+    }
+
+    obtenerTiposSolicitud() {
+        return this.$http.get(this.ENDPOINT_TIPOS_SOLICITUD)
+            .then(response => {
+                return response.data;
+            });
     }
 
     aprobar(peticiones, paginaActual) {

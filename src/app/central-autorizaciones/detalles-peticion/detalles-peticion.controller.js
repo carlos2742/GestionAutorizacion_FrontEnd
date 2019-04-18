@@ -16,6 +16,7 @@ const PATH_404 = '/no-encontrado';
  */
 export default class DetallesPeticionController {
     /**
+     * @param $q
      * @param $routeParams
      * @param $location
      * @param toastr
@@ -26,7 +27,9 @@ export default class DetallesPeticionController {
      * @param {SesionService} SesionService
      * @param AppConfig
      */
-    constructor($routeParams, $location, toastr, FileUploader, PeticionesService, MensajesService, AdjuntosService, SesionService, AppConfig) {
+    constructor($q, $routeParams, $location, toastr, FileUploader, PeticionesService, MensajesService, AdjuntosService, SesionService, AppConfig) {
+        /** @private */
+        this.$q = $q;
         /** @private */
         this.$location = $location;
         /** @private */
@@ -60,25 +63,29 @@ export default class DetallesPeticionController {
             ]
         };
 
-        this.peticionesService.obtener($routeParams.id)
-            .then(peticion => {
-                this.peticion = peticion;
+        const idPeticion = parseInt($routeParams.id);
+        this.$q.all([
+            this.peticionesService.obtener(idPeticion),
+            this._obtenerAdjuntos(idPeticion),
+            this.mensajesService.obtenerTodos(idPeticion)
+        ]).then(resultado => {
+            this.peticion = resultado[0];
+            this.peticion.adjuntos = resultado[1];
 
-                this.historialAutorizaciones = this.peticion.actividades;
-
-                this.mensajes = [];
-                this.mensajesService.obtenerTodos(this.peticion)
-                    .then(mensajes => {
-                        this.mensajes = mensajes;
-                    });
-
-                this._obtenerAdjuntos();
-            })
-            .catch(response => {
-                if (response.status === 404) {
-                    this.$location.path(PATH_404);
+            this.peticion.mensajes = map(resultado[2], mensaje => {
+                if (mensaje.enviadoPor.valor.nInterno === this.peticion.solicitante.valor.nInterno) {
+                    mensaje.enviadoPor.display = `${mensaje.enviadoPor.display} (solicitante)`;
                 }
+                return mensaje;
             });
+            this.mensajes = this.peticion.mensajes;
+
+            this.historialAutorizaciones = this.peticion.actividades;
+        }).catch(response => {
+            if (response.status === 404) {
+                this.$location.path(PATH_404);
+            }
+        });
 
         this.uploader = new FileUploader({
             url: AppConfig.url ? `${AppConfig.url}${this.adjuntosService.ENDPOINT}` : this.adjuntosService.ENDPOINT,
@@ -150,12 +157,13 @@ export default class DetallesPeticionController {
         }
     }
 
-    _obtenerAdjuntos() {
-        this.adjuntosService.obtenerTodos(this.peticion)
+    _obtenerAdjuntos(idPeticion) {
+        this.adjuntosService.obtenerTodos(idPeticion || this.peticion)
             .then(adjuntos => {
                 this.adjuntos = map(adjuntos, adjunto => {
                     return this._procesarAdjunto(adjunto);
                 });
+                return adjuntos;
             });
     }
 

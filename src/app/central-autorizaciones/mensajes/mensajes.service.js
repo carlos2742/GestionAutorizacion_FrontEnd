@@ -65,10 +65,9 @@ export default class MensajesService {
      * de varias de sus propiedaddes.
      *
      * @param {Object} entidad          -  Representa un mensaje recibido del API.
-     * @param {Peticion} peticion       -  Petición a la que pertenece este mensaje.
      * @returns {Mensaje}               -  La misma entidad, con las transformaciones mencionadas.
      */
-    procesarEntidadRecibida(entidad, peticion) {
+    procesarEntidadRecibida(entidad) {
         let mensajeProcesado = {
             codigo: entidad.id
         };
@@ -78,11 +77,7 @@ export default class MensajesService {
                 const personaProcesada = entidad[prop] ? this.personalService.procesarPersonaRecibida(entidad[prop]) : null;
                 let display = '';
                 if (personaProcesada) {
-                    if (personaProcesada.nInterno === peticion.solicitante.valor.nInterno) {
-                        display = `${personaProcesada.nombreApellidos} (solicitante)`;
-                    } else {
-                        display = personaProcesada.nombreApellidos;
-                    }
+                    display = personaProcesada.nombreApellidos;
                 }
                 mensajeProcesado[prop] = {
                     valor: personaProcesada,
@@ -117,13 +112,12 @@ export default class MensajesService {
         return mensajeProcesado;
     }
 
-    obtenerTodos(peticion) {
-        return this.$http.get(this.ENDPOINT, { params: { idPeticion: peticion.id, elementosPorPagina: 0 } })
+    obtenerTodos(idPeticion) {
+        return this.$http.get(this.ENDPOINT, { params: { idPeticion, elementosPorPagina: 0 } })
             .then(response => {
-                peticion.mensajes = map(response.data, mensaje => {
-                    return this.procesarEntidadRecibida(mensaje, peticion);
+                return map(response.data, mensaje => {
+                    return this.procesarEntidadRecibida(mensaje);
                 });
-                return peticion.mensajes;
             });
     }
 

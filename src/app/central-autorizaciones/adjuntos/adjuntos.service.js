@@ -41,10 +41,19 @@ export default class AdjuntosService {
     }
 
     obtenerTodos(peticion) {
-        if (isNil(peticion.adjuntos) || peticion.adjuntos.length === 0) {
-            return this.$http.get(this.ENDPOINT, { params: { idPeticion: peticion.id } })
+        const fnObtencion = (idPeticion) => {
+            return this.$http.get(this.ENDPOINT, { params: { idPeticion } })
                 .then(response => {
-                    peticion.adjuntos = response.data;
+                    return response.data;
+                });
+        };
+
+        if (typeof peticion === 'number') {
+            return fnObtencion(peticion);
+        } else if (isNil(peticion.adjuntos) || peticion.adjuntos.length === 0) {
+            return fnObtencion(peticion.id)
+                .then(adjuntos => {
+                    peticion.adjuntos = adjuntos;
                     return peticion.adjuntos;
                 });
         } else {

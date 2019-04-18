@@ -205,6 +205,12 @@ export default class PeticionesController {
                 this.aplicaciones = aplicaciones;
             });
 
+        PeticionesService.obtenerTiposSolicitud()
+            .then(tiposSolicitud => {
+                this.tiposSolicitud = [].concat(tiposSolicitud);
+                this.tiposSolicitud.unshift({nombre: undefined});
+            });
+
         SesionService.obtenerUsuarioAutenticado()
             .then(usuario => {
                this.usuarioEsGestor = usuario.esGestor;
@@ -406,6 +412,33 @@ export default class PeticionesController {
     }
 
     /**
+     * Propiedad que devuelve true si no se está mostrando la lista completa de tipos de solicitud en un momento determinado.
+     * @return {boolean}
+     */
+    get mostrandoResultadosParcialesTiposSolicitud() {
+        return this.totalTiposSolicitud > this.ITEMS_SELECT + 1;
+    }
+
+    /**
+     * Filtra la lista de tipos de solicitud según el string que haya escrito el usuario. Es case insensitive.
+     * @param {string} busqueda
+     * @return {Proceso[]}
+     */
+    filtrarTiposSolicitud(busqueda) {
+        const busquedaLower = busqueda.toLowerCase();
+        const resultado = filter(this.tiposSolicitud, (elemento) => {
+            return (busqueda && elemento.nombre) ? includes(elemento.nombre.toLowerCase(), busquedaLower) : true;
+        });
+        this.totalTiposSolicitud = resultado.length;
+
+        if (resultado.length > this.ITEMS_SELECT + 1) {
+            return resultado.slice(0, this.ITEMS_SELECT + 1);
+        } else {
+            return resultado;
+        }
+    }
+
+    /**
      * Muestra los detalles de una petición determinada en un panel lateral.
      * @param {Peticion} entidad
      */
@@ -446,7 +479,8 @@ export default class PeticionesController {
                 nInternoSolicitante: get(this.paramsBusqueda, 'solicitante.codigo'),
                 estado: this.paramsBusqueda.estado ? this.paramsBusqueda.estado.estado : undefined,
                 estadoInterno: this.paramsBusqueda.estadoInterno,
-                etiqueta: get(this.paramsBusqueda, 'estado.descripcion')
+                etiqueta: get(this.paramsBusqueda, 'estado.descripcion'),
+                tipoSolicitud: get(this.paramsBusqueda, 'tipoSolicitud.nombre')
             };
 
             this.paramsAnteriores = cloneDeep(this.paramsBusqueda);

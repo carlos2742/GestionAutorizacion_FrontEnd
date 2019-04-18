@@ -14,6 +14,15 @@
 
                 <form id="busquedaPeticionesForm" name="busquedaPeticionesForm" novalidate>
                     <div class="form-row">
+                        <div class="form-group form-row col-lg">
+                            <label for="aplicacionBusqueda" class="col-sm-3 col-form-label">Aplicación</label>
+                            <div class="col-sm-9">
+                                <select class="form-control" id="aplicacionBusqueda" name="aplicacion" ng-model="vm.paramsBusqueda.aplicacion"
+                                        ng-options="aplicacion.nombre for aplicacion in vm.aplicaciones track by aplicacion.id">
+                                    <option></option>
+                                </select>
+                            </div>
+                        </div>
                         <div class="form-group col-lg form-row">
                             <label for="procesoBusqueda" class="col-sm-3 col-form-label">Proceso</label>
                             <div class="col-sm-9">
@@ -30,18 +39,25 @@
                                 </ui-select>
                             </div>
                         </div>
-                        <div class="form-group form-row col-lg">
-                            <label for="aplicacionBusqueda" class="col-sm-3 col-form-label">Aplicación</label>
-                            <div class="col-sm-9">
-                                <select class="form-control" id="aplicacionBusqueda" name="aplicacion" ng-model="vm.paramsBusqueda.aplicacion"
-                                        ng-options="aplicacion.nombre for aplicacion in vm.aplicaciones track by aplicacion.id">
-                                    <option></option>
-                                </select>
-                            </div>
-                        </div>
                     </div>
 
                     <div class="form-row">
+                        <div class="form-group form-row col-lg">
+                            <label for="tipoSolicitudBusqueda" class="col-sm-3 col-form-label">Tipo de Solicitud</label>
+                            <div class="col-sm-9">
+                                <ui-select ng-model="vm.paramsBusqueda.tipoSolicitud" name="tipoSolicitud" input-id="tipoSolicitudBusqueda" ng-animate-children="false">
+                                    <ui-select-match placeholder="Seleccione o busque un tipo">
+                                        <span ng-bind="$select.selected.nombre"></span>
+                                    </ui-select-match>
+                                    <ui-select-choices repeat="tipoSolicitud in vm.filtrarTiposSolicitud($select.search)">
+                                        <span ng-bind-html="tipoSolicitud.nombre | highlight: $select.search"></span>
+                                    </ui-select-choices>
+                                    <ui-select-footer class="text-muted" >
+                                        <span ng-show="vm.mostrandoResultadosParcialesTiposSolicitud">Demasiados resultados, debe refinar la búsqueda</span>
+                                    </ui-select-footer>
+                                </ui-select>
+                            </div>
+                        </div>
                         <div class="form-group form-row col-lg">
                             <label for="estadoBusqueda" class="col-sm-3 col-form-label">Etiqueta</label>
                             <div class="col-sm-9">
@@ -50,10 +66,11 @@
                                         ng-disabled="!vm.paramsBusqueda.proceso">
                                     <option></option>
                                 </select>
-                                <small class="text-muted">Para seleccionar una etiqueta debe primero seleccionar un proceso.</small>
                             </div>
                         </div>
+                    </div>
 
+                    <div class="form-row">
                         <div class="form-group col-lg form-row" ng-if=":: vm.autorizador">
                             <label for="solicitanteParaBusqueda" class="col-sm-3 col-form-label">Solicitante</label>
                             <div class="col-sm-9">
@@ -73,34 +90,6 @@
                             </div>
                         </div>
 
-                        <div class="form-group col-lg form-row align-items-center" ng-if=":: !vm.autorizador">
-                            <label class="col-sm-3 col-form-label">Estado</label>
-                            <div class="col-sm-9 pl-2 fila-estados">
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="estado" id="estadoPendiente" ng-value=":: vm.AUTORIZACION_PENDIENTE"
-                                           ng-model="vm.paramsBusqueda.estadoInterno">
-                                    <label class="form-check-label" for="estadoPendiente" ng-bind=":: vm.ETIQUETA_PENDIENTE"></label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="estado" id="estadoAprobado" ng-value=":: vm.AUTORIZACION_APROBADA"
-                                           ng-model="vm.paramsBusqueda.estadoInterno">
-                                    <label class="form-check-label" for="estadoAprobado" ng-bind=":: vm.ETIQUETA_OK_DESC"></label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="estado" id="estadoRechazado" ng-value=":: vm.AUTORIZACION_RECHAZADA"
-                                           ng-model="vm.paramsBusqueda.estadoInterno">
-                                    <label class="form-check-label" for="estadoRechazado" ng-bind=":: vm.ETIQUETA_NOK_DESC"></label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="estado" id="estadoAnulado" ng-value=":: vm.AUTORIZACION_ANULADA"
-                                           ng-model="vm.paramsBusqueda.estadoInterno">
-                                    <label class="form-check-label" for="estadoAnulado" ng-bind=":: vm.ETIQUETA_ANULADO"></label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-row" ng-if=":: vm.autorizador">
                         <div class="form-group form-row col-lg align-items-center">
                             <label class="col-sm-3 col-form-label">Estado</label>
                             <div class="col-sm-9 pl-2 fila-estados">
@@ -126,7 +115,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="form-group col-lg form-row"></div>
+                        <div class="form-group col-lg form-row" ng-if=":: !vm.autorizador"></div>
                     </div>
 
                     <div class="form-row mr-0 contenedor-botones">

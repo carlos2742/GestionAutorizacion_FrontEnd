@@ -1,5 +1,6 @@
 import clone from 'lodash/clone';
 import get from 'lodash/get';
+import map from 'lodash/map';
 
 import './modal-mensajes.scss';
 import {ELEMENTO_NO_ENCONTRADO, ERROR_GENERAL} from '../../common/constantes';
@@ -37,9 +38,15 @@ export default class ModalMensajesController {
         this.fnResolucion = fnResolucion;
 
         this.mensajes = [];
-        this.mensajesService.obtenerTodos(this.peticion)
+        this.mensajesService.obtenerTodos(this.peticion.id)
             .then(mensajes => {
-                this.mensajes = mensajes;
+                this.peticion.mensajes = map(mensajes, mensaje => {
+                    if (mensaje.enviadoPor.valor.nInterno === this.peticion.solicitante.valor.nInterno) {
+                        mensaje.enviadoPor.display = `${mensaje.enviadoPor.display} (solicitante)`;
+                    }
+                    return mensaje;
+                });
+                this.mensajes = this.peticion.mensajes;
             })
             .catch(response => {
                 let eliminarPeticion = false;
