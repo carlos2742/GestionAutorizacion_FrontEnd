@@ -3,6 +3,7 @@ import find from 'lodash/find';
 import filter from 'lodash/filter';
 import includes from 'lodash/includes';
 import isNil from 'lodash/isNil';
+import isUndefined from 'lodash/isUndefined';
 import isMatch from 'lodash/isMatch';
 import assign from 'lodash/assign';
 import lowerCase from 'lodash/lowerCase';
@@ -324,7 +325,7 @@ export default class PeticionesService {
             cambioOrden = true;
         }
 
-        if (filtro === null || (!isNil(filtro) && !isMatch(this.filtrosBusqueda, filtro))) {
+        if (!isUndefined(filtro)) {
             this.filtrosBusqueda = filtro;
         }
 

@@ -534,7 +534,7 @@ export default class PeticionesController {
 
         // Si justo antes ya se había mandado a mostrar todos los resultados, no se hace nada. Comprobando esto se
         // ahorran llamadas innecesarias al API.
-        if (Object.getOwnPropertyNames(this.paramsAnteriores).length > 0 && this.paramsAnteriores.estadoInterno !== AUTORIZACION_PENDIENTE ) {
+        if (Object.getOwnPropertyNames(this.paramsAnteriores).length > 1 || this.paramsAnteriores.estadoInterno !== AUTORIZACION_PENDIENTE) {
             this.paramsAnteriores = {
                 estadoInterno: AUTORIZACION_PENDIENTE
             };
