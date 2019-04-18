@@ -59,6 +59,10 @@
                         </hm-read-more>
                     </div>
                 </div>
+                <div class="row" ng-if="vm.peticion.enlaceOrigen">
+                    <label class="col-md-3 font-weight-bold text-md-right">Enlace Origen</label>
+                    <p class="col-md-9 contenedor-enlace-origen"><a target="_blank" ng-href="{{ vm.peticion.enlaceOrigen }}" ng-bind="vm.peticion.enlaceOrigen"></a></p>
+                </div>
             </section>
 
             <section class="info-extra mt-4" ng-if=":: vm.peticion.informacionExtra">

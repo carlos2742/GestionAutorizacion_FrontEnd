@@ -71,13 +71,12 @@ export default class ActividadesController {
                 {nombre: 'proceso.display', display: 'Proceso', ordenable: true},
                 {nombre: 'orden', display: 'Orden', ordenable: true},
                 {nombre: 'nombre', display: 'Nombre', ordenable: true},
-                {nombre: 'rol.display', display: 'Rol', ordenable: true},
-                {nombre: 'fechaLimite.display', display: 'Fecha Límite', ordenable: false},
+                {nombre: 'rol.display', display: 'Rol', ordenable: true}
             ]
         };
         this.columnasExcel = {
-            titulos: ['Codigo', 'Proceso', 'Orden', 'Nombre', 'Rol', 'Fecha Límite'],
-            campos: ['codigo', 'proceso.display', 'orden', 'nombre', 'rol.display', 'fechaLimite.display']
+            titulos: ['Codigo', 'Proceso', 'Orden', 'Nombre', 'Rol'],
+            campos: ['codigo', 'proceso.display', 'orden', 'nombre', 'rol.display']
         };
 
         RolesService.obtenerTodos(false)

@@ -128,6 +128,29 @@ Texto que se muestra para peticiones que están En Revisión pero no existe una 
 
 Texto que se muestra para peticiones que están Anuladas.
 
+### urlEnlaceCalendarios
+
+````json
+{
+    ...
+    "urlEnlaceCalendarios": "http://localhost:9400/#/mi-calendario?usuario=<usuario>&anno=<anno>",
+    ...
+}
+````
+
+URL usada para construir los enlaces a la aplicación de Calendarios de peticiones relacionadas con dicha aplicación. Se debe cambiar la URL hasta antes del # y mantener el final igual.
+
+### idCalendarios
+
+````json
+{
+    ...
+    "idCalendarios": "3"
+}
+````
+
+ID de la aplicación de Calendarios en la BD de Autorizaciones.
+
 ## IIS
 
 El frontend de autorizaciones debe tener habilitado **Autenticación por Windows** y la **Autenticación Anónima**.

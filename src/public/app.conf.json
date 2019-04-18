@@ -8,5 +8,7 @@
     "etiquetaPorDefectoRechazada": "Rechazada",
     "etiquetaPorDefectoPendiente": "Pedida",
     "etiquetaPorDefectoEnRevision": "En Revisión",
-    "etiquetaPorDefectoAnulada": "Anulada"
+    "etiquetaPorDefectoAnulada": "Anulada",
+    "urlEnlaceCalendarios": "http://localhost:9400/#/mi-calendario?usuario=<usuario>&anno=<anno>",
+    "idCalendarios": 3
 }

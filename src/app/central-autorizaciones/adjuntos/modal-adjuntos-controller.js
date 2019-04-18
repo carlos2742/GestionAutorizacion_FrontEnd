@@ -62,7 +62,7 @@ export default class ModalAdjuntosController {
 
         this.presentacion = this._presentacionTabla();
         /** @type {Adjunto[]} */
-        this.adjuntos = [];
+        this.adjuntos = null;
         this._listaAdjuntos();
 
         this.uploader = new FileUploader({

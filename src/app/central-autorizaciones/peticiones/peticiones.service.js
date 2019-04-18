@@ -73,6 +73,8 @@ export default class PeticionesService {
      * @property {number} cantidadAdjuntos                       -  Número total de adjuntos de la petición.
      * @property {number} cantidadMensajes                       -  Número total de mensajes de la petición.
      *
+     * @property {string} enlaceOrigen                        - Enlace a la aplicación desde donde se generó la petición.
+     *
      */
 
     /**
@@ -211,6 +213,12 @@ export default class PeticionesService {
         peticionProcesada.displayTipoSolicitud = entidad.tipoSolicitud1;
         if (!isNil(entidad.tipoSolicitud2)) {
             peticionProcesada.displayTipoSolicitud = `${peticionProcesada.displayTipoSolicitud}-${entidad.tipoSolicitud2}`;
+        }
+
+        if (entidad.proceso.aplicacion.id === this.AppConfig.idCalendarios && !isNil(peticionProcesada.fechaNecesaria.valor)) {
+            const usuario = entidad.solicitante.nInterno;
+            const anno = peticionProcesada.fechaNecesaria.valor.getFullYear();
+            peticionProcesada.enlaceOrigen = this.AppConfig.urlEnlaceCalendarios.replace('<usuario>', usuario).replace('<anno>', anno);
         }
 
         peticionProcesada.editable = false;

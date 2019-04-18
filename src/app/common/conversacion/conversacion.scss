@@ -6,6 +6,13 @@
   padding: 8px;
   overflow-y: auto;
 
+  .contenedor-loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 90%;
+  }
+
   .separador-fecha {
     color: $gray-600;
     font-size: 12px;

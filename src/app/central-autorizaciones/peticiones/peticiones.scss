@@ -83,6 +83,10 @@
     font-size: 14px;
 }
 
+.contenedor-enlace-origen a {
+    word-break: break-all;
+}
+
 #toast-container .toast.toast-warning.alerta-peticiones {
     padding-left: 15px;
     background-image: none !important;

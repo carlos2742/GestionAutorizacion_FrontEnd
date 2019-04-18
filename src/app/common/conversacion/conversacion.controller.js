@@ -1,4 +1,7 @@
 import isSameDay from 'date-fns/isSameDay';
+import isNil from "lodash/isNil";
+import find from "lodash/find";
+import get from "lodash/get";
 
 
 /* @ngInject */
@@ -13,6 +16,19 @@ export default class ConversacionController {
     constructor($attrs) {
         /** @private */
         this.$attrs = $attrs;
+
+        /** @type {boolean} */
+        this.mostrarLoader = true;
+    }
+
+    $onChanges(cambios) {
+        if (cambios.mensajes) {
+            if ((cambios.mensajes.isFirstChange() || isNil(cambios.mensajes.previousValue)) && !isNil(cambios.mensajes.currentValue)) {
+                this.mostrarLoader = false;
+            } else if (!isNil(cambios.mensajes.previousValue) && isNil(cambios.mensajes.currentValue)) {
+                this.mostrarLoader = true;
+            }
+        }
     }
 
     mostrarSeparadorFecha(indiceMensaje) {

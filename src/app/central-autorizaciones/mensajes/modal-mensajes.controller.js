@@ -37,7 +37,7 @@ export default class ModalMensajesController {
         /** @private */
         this.fnResolucion = fnResolucion;
 
-        this.mensajes = [];
+        this.mensajes = null;
         this.mensajesService.obtenerTodos(this.peticion.id)
             .then(mensajes => {
                 this.peticion.mensajes = map(mensajes, mensaje => {

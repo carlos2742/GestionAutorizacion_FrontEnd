@@ -1,4 +1,13 @@
 <div class="contenedor-mensajes" scroll-glue force-glue>
+    <div class="contenedor-loader" ng-if="$ctrl.mostrarLoader">
+        <!-- Animación tomada de aquí: https://codepen.io/tomchewitt/pen/yNdQrO?editors=1100 -->
+        <div class="loader JS_on mx-auto" >
+            <span class="binary"></span>
+            <span class="binary"></span>
+            <span class="getting-there">Recibiendo datos...</span>
+        </div>
+    </div>
+
     <div ng-repeat="mensaje in $ctrl.mensajes track by mensaje.id" id="mensaje{{mensaje.id}}">
         <div class="separador-fecha" ng-if="$ctrl.mostrarSeparadorFecha($index)" ng-bind=":: mensaje.fechaEnvio.display"></div>
         <div class="row no-gutters">

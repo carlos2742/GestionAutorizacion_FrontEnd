@@ -189,15 +189,22 @@
                     <div class="card-body empty" ng-show="!vm.peticionSeleccionada">
                         <p class="text-muted">Seleccione una petición para ver sus detalles.</p>
                     </div>
+                    <div class="card-header" ng-show="vm.peticionSeleccionada.enlaceOrigen">Detalles</div>
+                    <div class="card-body" ng-show="vm.peticionSeleccionada.enlaceOrigen">
+                        <div class="row">
+                            <label class="col-5 text-right">Enlace Origen</label>
+                            <p class="col-7 contenedor-enlace-origen"><a target="_blank" ng-href="{{ vm.peticionSeleccionada.enlaceOrigen }}" ng-bind="vm.peticionSeleccionada.enlaceOrigen"></a></p>
+                        </div>
+                    </div>
                     <div class="card-header" ng-show="vm.peticionSeleccionada.peticionQueAnula">Petición que Anula</div>
                     <div class="card-body" ng-if="vm.peticionSeleccionada.peticionQueAnula">
                         <div class="row">
                             <label class="col-5 text-right">ID</label>
-                            <p class="ml-3"><a ng-href="#/peticion/{{vm.peticionSeleccionada.peticionQueAnula.id}}" ng-bind="vm.peticionSeleccionada.peticionQueAnula.id"></a></p>
+                            <p class="col-7"><a ng-href="#/peticion/{{vm.peticionSeleccionada.peticionQueAnula.id}}" ng-bind="vm.peticionSeleccionada.peticionQueAnula.id"></a></p>
                         </div>
                         <div class="row">
                             <label class="col-5 text-right">Solicitante</label>
-                            <p class="ml-3" ng-bind="vm.obtenerSolicitantePeticionRelacionada(false)"></p>
+                            <p class="col-7" ng-bind="vm.obtenerSolicitantePeticionRelacionada(false)"></p>
                         </div>
                         <div ng-if="vm.peticionSeleccionada.peticionQueAnula.informacionExtra">
                             <div class="row" ng-repeat="item in vm.peticionSeleccionada.peticionQueAnula.informacionExtra">
@@ -219,11 +226,11 @@
                     <div class="card-body" ng-if="vm.peticionSeleccionada.peticionAnulacion">
                         <div class="row">
                             <label class="col-5 text-right">ID</label>
-                            <p class="ml-3"><a ng-href="#/peticion/{{vm.peticionSeleccionada.peticionAnulacion.id}}" ng-bind="vm.peticionSeleccionada.peticionAnulacion.id"></a></p>
+                            <p class="col-7"><a ng-href="#/peticion/{{vm.peticionSeleccionada.peticionAnulacion.id}}" ng-bind="vm.peticionSeleccionada.peticionAnulacion.id"></a></p>
                         </div>
                         <div class="row">
                             <label class="col-5 text-right">Solicitante</label>
-                            <p class="ml-3" ng-bind="vm.obtenerSolicitantePeticionRelacionada(true)"></p>
+                            <p class="col-7" ng-bind="vm.obtenerSolicitantePeticionRelacionada(true)"></p>
                         </div>
                     </div>
                     <div class="card-header" ng-show="vm.peticionSeleccionada.informacionExtra">Información Extra</div>
