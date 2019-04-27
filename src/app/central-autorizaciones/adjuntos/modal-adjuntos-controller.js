@@ -1,6 +1,7 @@
 import map from 'lodash/map';
 import clone from 'lodash/clone';
 import get from 'lodash/get';
+import isNil from 'lodash/isNil';
 
 import './modal-adjuntos.scss';
 import {ADJUNTO_MUY_GRANDE, ELEMENTO_NO_ENCONTRADO, ERROR_GENERAL} from "../../common/constantes";
@@ -76,6 +77,10 @@ export default class ModalAdjuntosController {
             queueLimit: 1,
             withCredentials: !DEBUG_MODE,
             onSuccessItem: (item, response) => {
+                if (isNil(this.peticion.adjuntos)) {
+                    this.peticion.adjuntos = [];
+                }
+
                 this.peticion.adjuntos.push(response.data);
                 this.peticion.cantidadAdjuntos = this.peticion.adjuntos.length;
                 let adjunto = this._procesarAdjunto(response.data);
