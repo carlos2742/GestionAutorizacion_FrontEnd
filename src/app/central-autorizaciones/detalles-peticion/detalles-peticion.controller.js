@@ -1,6 +1,7 @@
 import clone from 'lodash/clone';
 import get from 'lodash/get';
 import map from 'lodash/map';
+import isNil from 'lodash/isNil';
 
 import {ADJUNTO_MUY_GRANDE, ELEMENTO_NO_ENCONTRADO, ERROR_GENERAL} from '../../common/constantes';
 
@@ -98,6 +99,10 @@ export default class DetallesPeticionController {
             queueLimit: 1,
             withCredentials: !DEBUG_MODE,
             onSuccessItem: (item, response) => {
+                if (isNil(this.peticion.adjuntos)) {
+                    this.peticion.adjuntos = [];
+                }
+
                 this.peticion.adjuntos.push(response.data);
                 this.peticion.cantidadAdjuntos = this.peticion.adjuntos.length;
                 let adjunto = this._procesarAdjunto(response.data);
