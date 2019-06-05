@@ -416,7 +416,7 @@ export default class PeticionesService {
                     }
                 }
 
-                return this.obtenerTodos(true, false, pagina, undefined, undefined, true)
+                return this.obtenerTodos(false, pagina, undefined, undefined, true)
                     .then(peticionesPagina => {
                         return {
                             peticiones: peticionesPagina,
@@ -494,7 +494,7 @@ export default class PeticionesService {
                 if (inicio + peticionesActualizadas.length >= cantidadPeticiones && paginaActual > 1) {
                     pagina = paginaActual - 1;
                 }
-                return this.obtenerTodos(true, false, pagina, undefined, undefined, true)
+                return this.obtenerTodos( false, pagina, undefined, undefined, true)
                     .then(peticionesPagina => {
                         return {
                             peticiones: peticionesPagina,
@@ -542,12 +542,19 @@ export default class PeticionesService {
      */
     editar(peticion) {
         let error;
-        const indicePeticionCambiada = findIndex(this.peticiones, ['id', peticion.id]);
+
+        // Se verifica si hay una búsqueda activa o no
+        const filtroDefinido = find(this.filtrosBusqueda, filtro => {
+            return !isNil(filtro);
+        });
+        const busquedaActiva = !isNil(filtroDefinido);
+
+        const indicePeticionCambiada = findIndex(filtroDefinido ? this.resultadosBusqueda : this.peticiones, ['id', peticion.id]);
         if (indicePeticionCambiada < 0) {
             return this.$q.reject();
         }
 
-        const peticionCorrespondiente = this.peticiones[indicePeticionCambiada];
+        const peticionCorrespondiente = filtroDefinido ? this.resultadosBusqueda[indicePeticionCambiada] : this.peticiones[indicePeticionCambiada];
         if (peticion.observaciones !== peticionCorrespondiente.observaciones) {
             const datosAEnviar = {
                 'id': peticion.id,
