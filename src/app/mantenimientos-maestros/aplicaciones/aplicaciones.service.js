@@ -14,7 +14,7 @@ import {
 import {elementoRequeridoEsNulo} from '../../common/validadores';
 
 
-export const EVENTO_ACTUALIZACION_MODULO = 'modulo:edicion';
+export const EVENTO_ACTUALIZACION_APLICACION = 'aplicacion:edicion';
 
 
 /* @ngInject */
@@ -228,7 +228,7 @@ export default class AplicacionesService {
 
                         // Notifica a las entidades que contengan una referencia a este módulo que fue actualizado.
                         this.$timeout(() => {
-                            this.Mediator.publish(EVENTO_ACTUALIZACION_MODULO, this.aplicaciones[indiceExistente]);
+                            this.Mediator.publish(EVENTO_ACTUALIZACION_APLICACION, this.aplicaciones[indiceExistente]);
                         }, 1000, false);
 
                         return this.aplicaciones[indiceExistente];
