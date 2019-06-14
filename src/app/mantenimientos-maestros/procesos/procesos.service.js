@@ -13,6 +13,10 @@ import {
     MANTENIMIENTO_MAESTRO_INACTIVO
 } from '../../common/constantes';
 import {elementoRequeridoEsNulo} from '../../common/validadores';
+import {EVENTO_ACTUALIZACION_APLICACION} from "../aplicaciones/aplicaciones.service";
+import forEach from "lodash/forEach";
+
+export const EVENTO_ACTUALIZACION_PROCESO = 'proceso:edicion';
 
 
 /* @ngInject */
@@ -39,11 +43,13 @@ export default class ProcesosService {
     /**
      * @param $q                        -  Servicio de Angular para utilizar Promesas
      * @param $http                     -  Servicio de Angular para hacer llamadas HTTP
+     * @param $timeout
      * @param EtiquetasService
      * @param ErroresValidacionMaestros -  Contiene los errores que pueden devolver las validaciones. Ver {@link ErroresValidacionMaestros}
+     * @param Mediator
      *
      **/
-    constructor($q, $http, EtiquetasService, ErroresValidacionMaestros) {
+    constructor($q, $http, $timeout, EtiquetasService, ErroresValidacionMaestros, Mediator) {
         // Constantes del servicio
         /** @private */
         this.ENDPOINT = '/procesos';
@@ -53,9 +59,24 @@ export default class ProcesosService {
         /** @private */
         this.$http = $http;
         /** @private */
+        this.$timeout = $timeout;
+        /** @private */
         this.etiquetasService = EtiquetasService;
         /** @private */
         this.ErroresValidacionMaestros = ErroresValidacionMaestros;
+        /** @private */
+        this.Mediator = Mediator;
+
+        this.Mediator.subscribe(EVENTO_ACTUALIZACION_APLICACION, (data) => {
+            forEach(this.procesos, etiqueta => {
+                if (etiqueta.aplicacion.valor && etiqueta.aplicacion.valor.id === data.id) {
+                    etiqueta.aplicacion = {
+                        valor: data,
+                        display: data.nombre
+                    }
+                }
+            });
+        });
 
         /** @type {Proceso[]} */
         this.procesos = [];
@@ -261,6 +282,12 @@ export default class ProcesosService {
                         }
 
                         this.procesos[indiceExistente] = procesoRecibido;
+
+                        // Notifica a las entidades que contengan una referencia a este módulo que fue actualizado.
+                        this.$timeout(() => {
+                            this.Mediator.publish(EVENTO_ACTUALIZACION_PROCESO, this.procesos[indiceExistente]);
+                        }, 1000, false);
+
                         return this.procesos[indiceExistente];
                     })
                     .catch(response => {
