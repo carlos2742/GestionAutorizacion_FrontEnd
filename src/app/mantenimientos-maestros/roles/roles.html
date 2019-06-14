@@ -2,9 +2,15 @@
     <h1 class="titulo-centrado">Roles</h1>
 
     <div class="contenedor-tabla mx-auto">
+        <button type="button" class="btn btn-primary" ng-click="vm.mostrarModalRol()">
+            <span class="icon-plus"></span> Añadir rol</button>
 
         <ge-tabla datos="vm.datos" presentacion="vm.presentacion"
+                  fn-edicion="vm.editarRol(entidad)"
                   fn-accion="vm.cambiarEstado(entidad)"
                   campos-excel=":: vm.columnasExcel"></ge-tabla>
     </div>
+</div>
+
+<div id="modalEdicionRol">
 </div>

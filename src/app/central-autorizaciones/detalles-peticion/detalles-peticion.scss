@@ -1,0 +1,23 @@
+.detalles-peticion {
+
+  padding: 0 24px;
+  margin-bottom: 8px;
+
+  p {
+    min-height: 24px;
+  }
+
+  h5 {
+    margin-bottom: 16px;
+  }
+
+  .contenedor-tabla {
+    max-height: 320px;
+    overflow-y: auto;
+  }
+
+  .contenedor-mensajes {
+    height: 250px;
+    margin-bottom: 12px;
+  }
+}

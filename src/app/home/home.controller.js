@@ -7,7 +7,7 @@
 export default class HomeController {
 
     /**
-     * En modo producción, redirige al usuario autenticado a la vista de central de autorizaciones. En modo DEBUG, muestra un
+     * En modo producción, redirige al usuario autenticado a la vista de central de actividades. En modo DEBUG, muestra un
      * formulario donde se puede insertar el id del usuario que se desea simular que está autenticado.
      *
      * @param $location
@@ -20,15 +20,7 @@ export default class HomeController {
         this.$location = $location;
 
         if (!DEBUG_MODE) {
-            SesionService.obtenerUsuarioAutenticado()
-                .then(usuario => {
-                    if (usuario.esGestor) {
-                        // TODO Reemplazar por path real
-                        this.$location.path('/');
-                    } else {
-                        this.$location.path('/acceso-denegado');
-                    }
-                });
+            this.$location.path('/central-autorizaciones');
         }
     }
 

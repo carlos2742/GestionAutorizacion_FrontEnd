@@ -67,6 +67,18 @@ export default class PersonalService {
     }
 
     /**
+     * Devuelve una persona dado su id.
+     * @param {number} nInterno
+     * @return {Promise.<Persona>}       -  Se resuelve con la persona correspondiente a ese id.
+     */
+    obtener(nInterno) {
+        return this.$http.get(`${this.ENDPOINT}/${nInterno}`)
+            .then(response => {
+                return this.procesarPersonaRecibida(response.data);
+            });
+    }
+
+    /**
      * Devuelve una lista de personas. Utiliza paginación porque la cantidad de personas es considerable (alrededor de
      * 3000).
      *

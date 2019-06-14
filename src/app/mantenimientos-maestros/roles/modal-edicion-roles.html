@@ -1,0 +1,65 @@
+<!-- Este es el modal para crear/editar un rol -->
+<form id="edicionRolForm" name="edicionRolForm" ng-submit=":: $modal.editar(edicionRolForm)">
+    <div class="modal-header mantenimiento-maestro">
+        <h5 class="modal-title" ng-bind=":: $modal.titulo"></h5>
+        <button type="reset" class="close" aria-label="Close" ng-click=":: $modal.cancelar()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body mantenimiento-maestro" modal-async>
+        <div class="form-group form-row">
+            <label for="nombreEntidad" class="col-sm-3 col-form-label">Nombre*</label>
+            <div class="col-sm-9">
+                <input id="nombreEntidad"
+                       name="nombre"
+                       class="form-control"
+                       type="text"
+                       placeholder="Nombre"
+                       required
+                       ng-model="$modal.rol.nombre"
+                       ng-model-options="{updateOn: 'blur'}"
+                       custom-validators="{ duplicado: $modal.validarNombreDuplicado }"
+                       ng-class="{'is-invalid': (edicionRolForm.$submitted || edicionRolForm.nombre.$touched) && edicionRolForm.nombre.$invalid}">
+
+                <div class="invalid-feedback" ng-messages="edicionRolForm.nombre.$error"
+                     role="alert" ng-show="edicionRolForm.$submitted || edicionRolForm.nombre.$touched">
+                    <span ng-message="required">El nombre es obligatorio</span>
+                    <span ng-message="duplicado">Ya existe una entidad con este nombre</span>
+                </div>
+            </div>
+        </div>
+        <div class="form-group form-row">
+            <label for="nombreProcedimiento" class="col-sm-3 col-form-label">Procedimiento SQL*</label>
+            <div class="col-sm-9">
+                <input id="nombreProcedimiento"
+                       name="nombreProcedimiento"
+                       class="form-control"
+                       type="text"
+                       placeholder="Procedimiento"
+                       required
+                       ng-model="$modal.rol.nombreProcedimiento"
+                       ng-class="{'is-invalid': (edicionRolForm.$submitted || edicionRolForm.nombreProcedimiento.$touched) && edicionRolForm.nombreProcedimiento.$invalid}">
+
+                <div class="invalid-feedback" ng-messages="edicionRolForm.nombreProcedimiento.$error"
+                     role="alert" ng-show="edicionRolForm.$submitted || edicionRolForm.nombreProcedimiento.$touched">
+                    <span ng-message="required">El procedimiento es obligatorio</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group form-row">
+            <label for="observaciones" class="col-sm-3 col-form-label">Observaciones</label>
+            <div class="col-sm-9">
+                    <textarea id="observaciones"
+                              name="observaciones"
+                              class="form-control"
+                              rows="3"
+                              ng-model="$modal.rol.observaciones"></textarea>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer mantenimiento-maestro">
+        <button class="btn btn-success" type="submit" ng-bind=":: $modal.textoBoton"
+                boton-async></button>
+    </div>
+</form>

@@ -8,19 +8,55 @@
     </div>
     <div class="modal-body mantenimiento-maestro" modal-async>
         <div class="form-group form-row">
-            <label for="modulo" class="col-sm-3 col-form-label">Módulo*</label>
+            <label for="procesoModal" class="col-sm-3 col-form-label">Proceso*</label>
             <div class="col-sm-9">
-                <select class="form-control" id="modulo" name="modulo" ng-model="$modal.entidad.modulo"
-                        ng-options="modulo.nombre for modulo in $modal.modulos track by modulo.id"
-                        required>
-                </select>
+                <ui-select ng-model="$modal.entidad.proceso" name="proceso" input-id="procesoModal" ng-required="true" ng-animate-children="false">
+                    <ui-select-match placeholder="Seleccione o busque un proceso">
+                        <span ng-bind="$select.selected.evento"></span>
+                    </ui-select-match>
+                    <ui-select-choices repeat="proceso in $modal.filtrarProcesos($select.search) track by proceso.id">
+                        <span ng-bind-html="proceso.evento | highlight: $select.search"></span>
+                    </ui-select-choices>
+                    <ui-select-footer class="text-muted" >
+                        <span ng-show="$modal.mostrandoResultadosParcialesProcesos">Demasiados resultados, debe refinar la búsqueda</span>
+                    </ui-select-footer>
+                </ui-select>
 
-                <div class="invalid-feedback" ng-messages="edicionEtiquetaForm.modulo.$error"
-                     role="alert" ng-show="edicionEtiquetaForm.$submitted || edicionEtiquetaForm.modulo.$touched">
-                    <span ng-message="required">El módulo es obligatorio</span>
+                <div class="invalid-feedback" ng-messages="edicionEtiquetaForm.proceso.$error"
+                     ng-show="edicionEtiquetaForm.$submitted || edicionEtiquetaForm.proceso.$touched"
+                     role="alert">
+                    <span ng-message="required">Debe seleccionar un proceso</span>
                 </div>
             </div>
         </div>
+        <div class="form-group form-row">
+            <label for="actividad" class="col-sm-3 col-form-label">Actividad</label>
+            <div class="col-sm-9">
+                <select class="form-control" id="actividad" name="actividad" ng-model="$modal.entidad.actividad"
+                        ng-options="actividad.nombre for actividad in $modal.actividadesFiltradas track by actividad.id"
+                        ng-required="$modal.entidad.descripcionEstado.nombre !== $modal.ETIQUETA_PENDIENTE"
+                        ng-disabled="$modal.entidad.descripcionEstado.nombre === $modal.ETIQUETA_PENDIENTE">
+                </select>
+
+                <div class="invalid-feedback" ng-messages="edicionEtiquetaForm.actividad.$error"
+                     role="alert" ng-show="edicionEtiquetaForm.$submitted || edicionEtiquetaForm.actividad.$touched">
+                    <span ng-message="required">La actividad es obligatoria</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group form-row">
+            <label for="orden" class="col-sm-3 col-form-label">Orden</label>
+            <div class="col-sm-9">
+                <input id="orden"
+                       name="orden"
+                       type="text"
+                       class="form-control-plaintext text-muted ml-3"
+                       readonly
+                       ng-model="$modal.entidad.actividad.orden">
+            </div>
+        </div>
+
         <div class="form-group form-row">
             <label class="col-sm-3 col-form-label">Estado*</label>
             <div class="col-sm-9 pl-2 fila-estados">
@@ -48,27 +84,6 @@
         </div>
 
         <div class="form-group form-row">
-            <label for="autorizacion" class="col-sm-3 col-form-label">Autorización*</label>
-            <div class="col-sm-9">
-                <input id="autorizacion"
-                       name="autorizacion"
-                       class="form-control"
-                       type="number"
-                       min="1"
-                       step="1"
-                       ng-required="!$modal.desactivarAutorizacion"
-                       ng-disabled="$modal.desactivarAutorizacion"
-                       ng-model="$modal.entidad.descripcionEstado.autorizacion"
-                       ng-class="{'is-invalid': (edicionEtiquetaForm.$submitted || edicionEtiquetaForm.autorizacion.$touched) && edicionEtiquetaForm.autorizacion.$invalid}">
-
-                <div class="invalid-feedback" ng-messages="edicionEtiquetaForm.autorizacion.$error"
-                     role="alert" ng-show="edicionEtiquetaForm.$submitted || edicionEtiquetaForm.autorizacion.$touched">
-                    <span ng-message="required">El # de autorización es obligatorio</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="form-group form-row">
             <label for="nombreEntidad" class="col-sm-3 col-form-label">Descripción*</label>
             <div class="col-sm-9">
                 <input id="nombreEntidad"
@@ -89,7 +104,7 @@
     </div>
     <div class="modal-footer mantenimiento-maestro">
         <div uib-alert class="mb-0" ng-class="'alert-danger'" close=":: $modal.cerrarAlert()" ng-if="$modal.mostrarErrorDuplicado">
-            Ya existe otra etiqueta para este módulo con estos mismos valores.
+            Ya existe otra etiqueta para este proceso con estos mismos valores.
         </div>
         <button class="btn btn-success" type="submit" ng-bind=":: $modal.textoBoton"
                 boton-async></button>

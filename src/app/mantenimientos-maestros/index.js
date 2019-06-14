@@ -1,31 +1,32 @@
 import angular from 'angular';
-import ngSanitize from "angular-sanitize";
+import ngSanitize from 'angular-sanitize';
 import modal from 'ui-bootstrap4/src/modal';
-import alert from "ui-bootstrap4/src/alert";
-import pagination from "ui-bootstrap4/src/pagination";
+import alert from 'ui-bootstrap4/src/alert';
+import pagination from 'ui-bootstrap4/src/pagination';
 import 'angular-bootstrap-toggle/dist/angular-bootstrap-toggle.js';
-import uiSelect from "ui-select";
+import uiSelect from 'ui-select';
 
 import geTablaModule from '../common/ge-tabla';
 import botonAsyncModule from '../common/boton-async';
 import modalAsyncModule from '../common/modal-async';
 import customValidatorsModule from '../common/custom-validators';
-import selectorFechaModule from "../common/selector-fecha";
+import selectorFechaModule from '../common/selector-fecha';
 
-import ModulosService from './modulos/modulos.service';
-import ModulosController from './modulos/modulos.controller';
-import ModalEdicionModulosController from './modulos/modal-edicion-modulos.controller';
+import AplicacionesService from './aplicaciones/aplicaciones.service';
+import AplicacionesController from './aplicaciones/aplicaciones.controller';
+import ModalEdicionAplicacionesController from './aplicaciones/modal-edicion-aplicaciones.controller';
 
 import RolesService from './roles/roles.service';
 import RolesController from './roles/roles.controller';
+import ModalEdicionRolesController from './roles/modal-edicion-roles.controller';
 
-import FlujosService from './flujos/flujos.service';
-import FlujosController from './flujos/flujos.controller';
-import ModalEdicionFlujosController from './flujos/modal-edicion-flujos.controller';
+import ProcesosService from './procesos/procesos.service';
+import ProcesosController from './procesos/procesos.controller';
+import ModalEdicionProcesosController from './procesos/modal-edicion-procesos.controller';
 
-import AutorizacionesService from './autorizaciones/autorizaciones.service';
-import AutorizacionesController from './autorizaciones/autorizaciones.controller';
-import ModalEdicionAutorizacionesController from './autorizaciones/modal-edicion-autorizaciones.controller';
+import ActividadesService from './actividades/actividades.service';
+import ActividadesController from './actividades/actividades.controller';
+import ModalEdicionActividadesController from './actividades/modal-edicion-actividades.controller';
 
 import EtiquetasService from './etiquetas/etiquetas.service';
 import EtiquetasController from './etiquetas/etiquetas.controller';
@@ -55,24 +56,25 @@ export default angular.module('mantimientos-maestros', [
         FECHA_FINAL_MENOR_QUE_FECHA_INICIAL: -4,
         ELEMENTO_DUPLICADO: -5
     })
-    .service('ModulosService', ModulosService)
-    .controller('ModulosController', ModulosController)
-    .controller('ModalEdicionModulosController', ModalEdicionModulosController)
+    .service('AplicacionesService', AplicacionesService)
+    .controller('AplicacionesController', AplicacionesController)
+    .controller('ModalEdicionAplicacionesController', ModalEdicionAplicacionesController)
 
     .service('RolesService', RolesService)
     .controller('RolesController', RolesController)
+    .controller('ModalEdicionRolesController', ModalEdicionRolesController)
 
-    .service('FlujosService', FlujosService)
-    .controller('FlujosController', FlujosController)
-    .controller('ModalEdicionFlujosController', ModalEdicionFlujosController)
+    .service('ProcesosService', ProcesosService)
+    .controller('ProcesosController', ProcesosController)
+    .controller('ModalEdicionProcesosController', ModalEdicionProcesosController)
 
     .service('EtiquetasService', EtiquetasService)
     .controller('EtiquetasController', EtiquetasController)
     .controller('ModalEdicionEtiquetasController', ModalEdicionEtiquetasController)
 
-    .service('AutorizacionesService', AutorizacionesService)
-    .controller('AutorizacionesController', AutorizacionesController)
-    .controller('ModalEdicionAutorizacionesController', ModalEdicionAutorizacionesController)
+    .service('ActividadesService', ActividadesService)
+    .controller('ActividadesController', ActividadesController)
+    .controller('ModalEdicionActividadesController', ModalEdicionActividadesController)
 
     .config(($provide, uiSelectConfig) => {
         uiSelectConfig.theme = 'selectize';

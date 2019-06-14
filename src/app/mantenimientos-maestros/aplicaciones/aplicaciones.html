@@ -1,0 +1,16 @@
+<div class="aplicaciones">
+    <h1 class="titulo-centrado">Aplicaciones</h1>
+
+    <div class="contenedor-tabla mx-auto">
+        <button type="button" class="btn btn-primary" ng-click="vm.mostrarModalAplicacion()">
+            <span class="icon-plus"></span> Añadir aplicación</button>
+
+        <ge-tabla datos="vm.datos" presentacion="vm.presentacion"
+                  fn-edicion="vm.editarAplicacion(entidad)"
+                  fn-accion="vm.cambiarEstado(entidad)"
+                  campos-excel=":: vm.columnasExcel"></ge-tabla>
+    </div>
+
+    <div id="modalEdicionAplicacion">
+    </div>
+</div>

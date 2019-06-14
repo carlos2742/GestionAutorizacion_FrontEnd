@@ -1,0 +1,30 @@
+@import "../../../style/variables";
+
+
+.modal-body.mensajes .contenedor-mensajes {
+    height: 400px;
+    margin-bottom: 16px;
+}
+
+.contenedor-envio form {
+    display: flex;
+    flex-direction: row;
+
+    textarea {
+        min-height: 40px;
+        margin-right: 6px !important;
+        margin-bottom: 0 !important;
+    }
+
+    .btn-enviar {
+        border-radius: 50px;
+        line-height: 1;
+        padding: 0 8px;
+        height: 40px;
+
+        i {
+            font-size: 20px;
+            margin-left: 4px;
+        }
+    }
+}

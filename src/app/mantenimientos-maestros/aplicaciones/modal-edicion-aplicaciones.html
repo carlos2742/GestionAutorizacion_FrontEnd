@@ -1,0 +1,37 @@
+<!-- Este es el modal para crear/editar una aplicación -->
+<form id="edicionAplicacionForm" name="edicionAplicacionForm" ng-submit=":: $modal.editar(edicionAplicacionForm)">
+    <div class="modal-header mantenimiento-maestro">
+        <h5 class="modal-title" ng-bind=":: $modal.titulo"></h5>
+        <button type="reset" class="close" aria-label="Close" ng-click=":: $modal.cancelar()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body mantenimiento-maestro" modal-async>
+        <div class="form-group form-row">
+            <label for="nombreEntidad" class="col-sm-2 col-form-label">Nombre*</label>
+            <div class="col-sm-10">
+                <input id="nombreEntidad"
+                       name="nombre"
+                       class="form-control"
+                       type="text"
+                       placeholder="Nombre"
+                       required
+                       ng-model="$modal.entidad.nombre"
+                       ng-model-options="{updateOn: 'blur'}"
+                       custom-validators="{ duplicado: $modal.validarNombreDuplicado }"
+                       ng-class="{'is-invalid': (edicionAplicacionForm.$submitted || edicionAplicacionForm.nombre.$touched) && edicionAplicacionForm.nombre.$invalid}">
+
+                <div class="invalid-feedback" ng-messages="edicionAplicacionForm.nombre.$error"
+                     role="alert" ng-show="edicionAplicacionForm.$submitted || edicionAplicacionForm.nombre.$touched">
+                    <span ng-message="required">El nombre es obligatorio</span>
+                    <span ng-message="duplicado">Ya existe una entidad con este nombre</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-footer mantenimiento-maestro">
+        <button class="btn btn-success" type="submit" ng-bind=":: $modal.textoBoton"
+                boton-async></button>
+    </div>
+</form>

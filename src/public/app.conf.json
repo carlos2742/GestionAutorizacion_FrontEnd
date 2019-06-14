@@ -3,5 +3,12 @@
     "formatoFechas": "DD/MM/YYYY",
     "elementosPorPagina": 25,
     "elementosPorPaginaParaExcel": 25,
-    "elementosBusquedaSelect": 50
+    "elementosBusquedaSelect": 50,
+    "etiquetaPorDefectoAutorizada": "Aprobada",
+    "etiquetaPorDefectoRechazada": "Rechazada",
+    "etiquetaPorDefectoPendiente": "Pedida",
+    "etiquetaPorDefectoEnRevision": "En Revisión",
+    "etiquetaPorDefectoAnulada": "Anulada",
+    "urlEnlaceCalendarios": "http://localhost:9400/#/mi-calendario?usuario=<usuario>&anno=<anno>",
+    "idCalendarios": 3
 }

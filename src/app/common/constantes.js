@@ -16,11 +16,22 @@ export const ETIQUETA_NOK = 'NOK';
 export const ETIQUETA_NOK_DESC = 'Rechazado';
 /** @type {string} */
 export const ETIQUETA_PENDIENTE = 'Pendiente';
+/** @type {string} */
+export const ETIQUETA_ANULADO = 'Anulado';
 
 /** @type {string} */
 export const TEXTO_CAMBIOS_GUARDADOS = `<i class="icon-floppy-disk"></i> Cambios guardados`;
 /** @type {string} */
 export const TITULO_CAMBIOS_GUARDADOS = 'Cambios guardados';
+
+/** @type {string} */
+export const AUTORIZACION_APROBADA = 'A';
+/** @type {string} */
+export const AUTORIZACION_PENDIENTE = 'P';
+/** @type {string} */
+export const AUTORIZACION_RECHAZADA = 'R';
+/** @type {string} */
+export const AUTORIZACION_ANULADA = 'N';
 
 
 // Errores que puede devolver el backend
@@ -48,7 +59,16 @@ export const ENTIDAD_NO_ELIMINABLE = -11;
 export const ELEMENTO_YA_ESTA_INACTIVO = -12;
 
 /** @type {number} */
+export const PETICION_NO_PENDIENTE = -13;
+
+/** @type {number} */
 export const FUNCION_ROL_NO_IMPLEMENTADA = -15;
 
 /** @type {number} */
 export const PROPIEDAD_NO_EDITABLE = -16;
+
+/** @type {number} */
+export const ACTUALIZACION_EN_BULTO_CON_ERRORES = -18;
+
+/** @type {number} */
+export const ADJUNTO_MUY_GRANDE = -19;

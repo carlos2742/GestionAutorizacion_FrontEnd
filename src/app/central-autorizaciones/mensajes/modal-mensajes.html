@@ -1,0 +1,23 @@
+<!-- Este es el modal de la conversación de una petición -->
+<div class="modal-header mensajes">
+    <h5 class="modal-title">Conversación</h5>
+    <button type="button" class="close" aria-label="Close" ng-click=":: $modal.cancelar()">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+<div class="modal-body mensajes" modal-async>
+    <conversacion mensajes="$modal.mensajes"></conversacion>
+    <div class="contenedor-envio">
+        <form id="edicionEtiquetaForm" name="edicionEtiquetaForm" ng-submit=":: $modal.enviar()" novalidate>
+            <textarea class="form-control mb-2 mr-sm-2"
+                      id="mensaje"
+                      placeholder="Escriba su mensaje"
+                      rows="1"
+                      ng-model="$modal.mensaje"></textarea>
+
+            <button class="btn btn-success btn-enviar" type="submit" ng-disabled="!$modal.mensaje" boton-async>
+                <i class="icon-send"></i>
+            </button>
+        </form>
+    </div>
+</div>
