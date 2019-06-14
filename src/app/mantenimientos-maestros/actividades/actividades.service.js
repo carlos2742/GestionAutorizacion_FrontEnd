@@ -9,6 +9,11 @@ import forEach from 'lodash/forEach';
 import format from 'date-fns/format';
 import assign from 'lodash/assign';
 import {elementoRequeridoEsNulo} from '../../common/validadores';
+import {EVENTO_ACTUALIZACION_PROCESO} from "../procesos/procesos.service";
+import {EVENTO_ACTUALIZACION_ROL} from "../roles/roles.service";
+
+
+export const EVENTO_ACTUALIZACION_ACTIVIDAD = 'actividad:edicion';
 
 
 /* @ngInject */
@@ -39,12 +44,14 @@ export default class ActividadesService {
     /**
      * @param $q                        -  Servicio de Angular para utilizar Promesas
      * @param $http                     -  Servicio de Angular para hacer llamadas HTTP
+     * @param $timeout
      * @param EtiquetasService
      * @param ErroresValidacionMaestros
+     * @param Mediator
      * @param AppConfig                 -  Contiene la configuración del app.
      *
      **/
-    constructor($q, $http, EtiquetasService, ErroresValidacionMaestros, AppConfig) {
+    constructor($q, $http, $timeout, EtiquetasService, ErroresValidacionMaestros, Mediator, AppConfig) {
         // Constantes del servicio
         /** @private */
         this.ENDPOINT = '/actividades';
@@ -54,11 +61,36 @@ export default class ActividadesService {
         /** @private */
         this.$http = $http;
         /** @private */
+        this.$timeout = $timeout;
+        /** @private */
         this.etiquetasService = EtiquetasService;
         /** @private */
         this.ErroresValidacionMaestros = ErroresValidacionMaestros;
         /** @private */
+        this.Mediator = Mediator;
+        /** @private */
         this.AppConfig = AppConfig;
+
+        this.Mediator.subscribe(EVENTO_ACTUALIZACION_PROCESO, (data) => {
+            forEach(this.actividades, actividad => {
+                if (actividad.proceso.valor && actividad.proceso.valor.id === data.id) {
+                    actividad.proceso = {
+                        valor: data,
+                        display: data.evento
+                    }
+                }
+            });
+        });
+        this.Mediator.subscribe(EVENTO_ACTUALIZACION_ROL, (data) => {
+            forEach(this.actividades, actividad => {
+                if (actividad.rol.valor && actividad.rol.valor.id === data.id) {
+                    actividad.rol = {
+                        valor: data,
+                        display: data.nombre
+                    }
+                }
+            });
+        });
 
         /** @type {Actividad[]} */
         this.actividades = [];
@@ -359,6 +391,11 @@ export default class ActividadesService {
                             return this._posicionarActividadCambiada(actividadEditada, paginaActual);
                         })
                         .then(resultado => {
+                            // Notifica a las entidades que contengan una referencia a este módulo que fue actualizado.
+                            this.$timeout(() => {
+                                this.Mediator.publish(EVENTO_ACTUALIZACION_ACTIVIDAD, actividadEditada);
+                            }, 1000, false);
+
                             return {actividad: actividadEditada, pagina: resultado.pagina, actividadesPagina: resultado.actividadesPagina};
                         })
                         .catch(response => {
