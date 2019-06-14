@@ -9,12 +9,13 @@ import get from 'lodash/get';
 
 import {
     ETIQUETA_NOK, ETIQUETA_NOK_DESC, ETIQUETA_OK, ETIQUETA_OK_DESC, ETIQUETA_PENDIENTE} from '../../common/constantes';
-import {EVENTO_ACTUALIZACION_APLICACION} from "../aplicaciones/aplicaciones.service";
+import {EVENTO_ACTUALIZACION_PROCESO} from "../procesos/procesos.service";
 
 export const EVENTO_ACTUALIZACION_ETIQUETA = 'etiqueta:edicion';
 
 
 import {elementoRequeridoEsNulo} from '../../common/validadores';
+import {EVENTO_ACTUALIZACION_ACTIVIDAD} from "../actividades/actividades.service";
 
 
 /* @ngInject */
@@ -68,10 +69,20 @@ export default class EtiquetasService {
         /** @type {Etiqueta[]} */
         this.etiquetas = [];
 
-        this.Mediator.subscribe(EVENTO_ACTUALIZACION_APLICACION, (data) => {
+        this.Mediator.subscribe(EVENTO_ACTUALIZACION_PROCESO, (data) => {
             forEach(this.etiquetas, etiqueta => {
-                if (etiqueta.modulo.valor && etiqueta.modulo.valor.id === data.id) {
-                    etiqueta.modulo = {
+                if (etiqueta.proceso.valor && etiqueta.proceso.valor.id === data.id) {
+                    etiqueta.proceso = {
+                        valor: data,
+                        display: data.evento
+                    }
+                }
+            });
+        });
+        this.Mediator.subscribe(EVENTO_ACTUALIZACION_ACTIVIDAD, (data) => {
+            forEach(this.etiquetas, etiqueta => {
+                if (etiqueta.actividad.valor && etiqueta.actividad.valor.id === data.id) {
+                    etiqueta.actividad = {
                         valor: data,
                         display: data.nombre
                     }
