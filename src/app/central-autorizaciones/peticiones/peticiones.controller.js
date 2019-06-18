@@ -307,7 +307,7 @@ export default class PeticionesController {
                                    class="icon-bubbles4" uib-tooltip="Conversación">
                                 </a><small class="ml-1 ${entidad.cantidadMensajes > 0 ? 'font-weight-bold' : 'text-muted'}">(${entidad.cantidadMensajes})</small>`;
 
-        clon.enlaceDetalles = `<a href class="icon-view-show d-print-none" ng-href="#/peticion/${entidad.id}" uib-tooltip="Ver Detalles"></a>`;
+        clon.enlaceDetalles = `<a href target="_blank" class="icon-view-show d-print-none" ng-href="#/peticion/${entidad.id}" uib-tooltip="Ver Detalles"></a>`;
 
         if (this.autorizador && this.paramsBusqueda.estadoInterno === AUTORIZACION_PENDIENTE) {
             clon.checkbox = `<input type="checkbox" class="checkbox-visible" ng-model="elemento.seleccionada" uib-tooltip="Seleccionar">`;
