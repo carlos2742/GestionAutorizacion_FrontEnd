@@ -78,7 +78,7 @@ export default class ModalEdicionProcesosController {
             })
             .catch(error => {
                 if (get(error, 'error.errorCode') === ELEMENTO_NO_ENCONTRADO) {
-                    this.toastr.warning('No se pudo encontrar la aplicación relacionada con el proceso, por lo que no se guardaron los cambios.');
+                    this.toastr.error('No se pudo encontrar la aplicación relacionada con el proceso, por lo que no se guardaron los cambios.');
                 }
                 this.$uibModalInstance.close();
             });

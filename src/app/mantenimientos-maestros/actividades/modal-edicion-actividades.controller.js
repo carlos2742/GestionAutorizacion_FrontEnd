@@ -185,12 +185,12 @@ export default class ModalEdicionActividadesController {
                 if (response && response.status === 404) {
                     this.fnDespuesEdicion(null);
                 } else if (get(response, 'error.errorCode') === ELEMENTO_NO_ENCONTRADO) {
-                    this.toastr.warning('No se pudo encontrar alguna de las entidades relacionadas con la actividad, por lo que no se guardaron los cambios.');
+                    this.toastr.error('No se pudo encontrar alguna de las entidades relacionadas con la actividad, por lo que no se guardaron los cambios.');
                 } else if (response === this.ErroresValidacionMaestros.YA_EXISTE_ORDEN) {
                     this.mostrarErrorDuplicado = true;
                     cerrarModal = false;
                 } else if (get(response, 'error.errorCode') === PROPIEDAD_NO_EDITABLE) {
-                    this.toastr.warning('Se realizaron cambios en propiedades de esta actividad que ya no son editables, por lo que no se guardaron los cambios.');
+                    this.toastr.error('Se realizaron cambios en propiedades de esta actividad que ya no son editables, por lo que no se guardaron los cambios.');
                 }
 
                 if (cerrarModal) {

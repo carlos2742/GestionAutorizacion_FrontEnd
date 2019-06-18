@@ -36,16 +36,16 @@ export default function apiInterceptor($rootScope, $q, $injector, $location, App
      */
     function _manejarErroresBackend(rejection) {
         if (rejection.error.errorCode === ERROR_GENERAL) {
-            toastr.warning(rejection.error.message, null, {
+            toastr.error(rejection.error.message, null, {
                 closeButton: true,
                 timeOut: 0,
                 extendedTimeOut: 0
             });
 
         } else if (rejection.error.errorCode === ERROR_DE_VALIDACION) {
-            toastr.warning('Se produjo un error mientras se validaba este elemento');
+            toastr.error('Se produjo un error mientras se validaba este elemento');
         } else if (rejection.error.errorCode === ELEMENTO_YA_EXISTE) {
-            toastr.warning('No se pudo guardar este elemento en la base de datos porque ya existe otro igual');
+            toastr.error('No se pudo guardar este elemento en la base de datos porque ya existe otro igual');
         }
 
         return $q.reject(rejection);
@@ -141,7 +141,7 @@ export default function apiInterceptor($rootScope, $q, $injector, $location, App
                 }
             } else if (rejection.status === 404 && startsWith(rejection.config.url, AppConfig.url)) {
                 if (!(includes(rejection.config.url, '/peticiones/') && rejection.config.method === "GET")) {
-                    toastr.warning('Lo sentimos, este elemento no fue encontrado en la base de datos');
+                    toastr.error('Lo sentimos, este elemento no fue encontrado en la base de datos');
                 }
             } else if (rejection.status === 500) {
                 if (!(includes(rejection.config.url, '/etiquetas') && (rejection.config.method === "POST" || rejection.config.method === "PUT"))) {

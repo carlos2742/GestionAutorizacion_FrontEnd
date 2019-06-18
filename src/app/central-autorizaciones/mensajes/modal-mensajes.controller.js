@@ -54,7 +54,7 @@ export default class ModalMensajesController {
                 if (response.status === -1 || (response.status === 500 && get(response, 'error.errorCode') === ERROR_GENERAL)) {
                     this.$uibModalInstance.close();
                 } else if (response.status === 401) {
-                    this.toastr.warning('Lo sentimos, ya no tiene permiso para acceder a esta petición.');
+                    this.toastr.error('Lo sentimos, ya no tiene permiso para acceder a esta petición.');
                     eliminarPeticion = true;
                 } else if (response.status === 404) {
                     eliminarPeticion = true;
@@ -83,10 +83,10 @@ export default class ModalMensajesController {
                 .catch(response => {
                     let eliminarPeticion = false;
                     if (response.status === 401) {
-                        this.toastr.warning('Lo sentimos, ya no tiene permiso para acceder a esta petición.');
+                        this.toastr.error('Lo sentimos, ya no tiene permiso para acceder a esta petición.');
                         eliminarPeticion = true;
                     } else if (get(response, 'error.errorCode') === ELEMENTO_NO_ENCONTRADO) {
-                        this.toastr.warning('Lo sentimos, no se encontró la petición asociada a esta conversación');
+                        this.toastr.error('Lo sentimos, no se encontró la petición asociada a esta conversación');
                         eliminarPeticion = true;
                     }
 

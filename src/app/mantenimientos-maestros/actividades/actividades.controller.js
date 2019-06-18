@@ -281,7 +281,7 @@ export default class ActividadesController {
                     }
                     this.actualizarPagina();
                 } else if (get(response, 'error.errorCode') === ENTIDAD_NO_ELIMINABLE) {
-                    this.toastr.warning(`Esta actividad no se puede eliminar porque ya ha sido usada en una petición. Si ya no es necesaria, debe <a href="#/procesos">crear un proceso nuevo</a>.`, null, {
+                    this.toastr.error(`Esta actividad no se puede eliminar porque ya ha sido usada en una petición. Si ya no es necesaria, debe <a href="#/procesos">crear un proceso nuevo</a>.`, null, {
                         allowHtml: true,
                         closeButton: true,
                         timeOut: 0,

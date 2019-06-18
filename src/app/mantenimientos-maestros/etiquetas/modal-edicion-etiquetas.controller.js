@@ -194,7 +194,7 @@ export default class ModalEdicionEtiquetasController {
                         this.etiquetasService.etiquetas = [];
                         this.etiquetasService.obtenerTodos()
                             .then(() => {
-                                this.toastr.warning(msg);
+                                this.toastr.error(msg);
                                 this.$uibModalInstance.close();
                             });
                     } else {

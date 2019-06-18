@@ -114,7 +114,7 @@ export default class DetallesPeticionController {
                     this.uploader.clearQueue();
                     this.uploader.addToQueue(item);
                 } else {
-                    this.toastr.warning('Lo sentimos, no se pudo añadir este adjunto');
+                    this.toastr.error('Lo sentimos, no se pudo añadir este adjunto');
                 }
             },
             onErrorItem: (item, response, status) => {
@@ -126,13 +126,13 @@ export default class DetallesPeticionController {
                         extendedTimeOut: 0
                     });
                 } else if (status === 500 && get(response, 'errorCode') === ERROR_GENERAL) {
-                    toastr.warning(response.message, null, {
+                    toastr.error(response.message, null, {
                         closeButton: true,
                         timeOut: 0,
                         extendedTimeOut: 0
                     });
                 } else if (status === 500 && get(response, 'errorCode') === ADJUNTO_MUY_GRANDE) {
-                    toastr.warning('No se pudo añadir este archivo porque es demasiado grande.');
+                    toastr.error('No se pudo añadir este archivo porque es demasiado grande.');
                 } else if (status === 401) {
                     eliminarPeticion = true;
                     this.$location.path(PATH_401);

@@ -111,9 +111,9 @@ export default class PermisosAdminController {
             })
             .catch(response => {
                 if (response.error.errorCode === USUARIO_YA_ES_ADMIN) {
-                    this.toastr.warning('Esta persona ya era administrador');
+                    this.toastr.error('Esta persona ya era administrador');
                 } else if (response.error.errorCode === USUARIO_NO_ES_ADMIN) {
-                    this.toastr.warning('Esta persona no era administrador');
+                    this.toastr.error('Esta persona no era administrador');
                 } else {
                     entidad.esGestor = !entidad.esGestor;
                 }

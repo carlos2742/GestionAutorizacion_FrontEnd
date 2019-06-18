@@ -129,7 +129,7 @@ export class ModalExcelController {
                 this.$rootScope.$emit('GestionAutorizacionAPI:responseError');
                 this.exportacionEnProgreso = false;
                 this.$uibModalInstance.close();
-                this.toastr.warning('Se produjo un error mientras se exportaban los datos');
+                this.toastr.error('Se produjo un error mientras se exportaban los datos');
             });
         };
 

@@ -86,7 +86,7 @@ export default class ModalEdicionRolesController {
             })
             .catch(error => {
                 if (get(error, 'error.errorCode') === FUNCION_ROL_NO_IMPLEMENTADA) {
-                    this.toastr.warning('Lo sentimos, no se pudo encontrar este procedimiento SQL en la Base de Datos.');
+                    this.toastr.error('Lo sentimos, no se pudo encontrar este procedimiento SQL en la Base de Datos.');
                 }
                 this.$uibModalInstance.close();
             });

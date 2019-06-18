@@ -95,7 +95,7 @@ export default class RolesController {
                 this.datos = map(this.rolesService.roles, entidad => { return this._procesarEntidadVisualizacion(entidad) });
             } else {
                 if (get(response, 'error.errorCode') === FUNCION_ROL_NO_IMPLEMENTADA) {
-                    this.toastr.warning('Lo sentimos, este rol no se puede activar.');
+                    this.toastr.error('Lo sentimos, este rol no se puede activar.');
                 }
                 entidad.estado.activo =  !entidad.estado.activo;
             }

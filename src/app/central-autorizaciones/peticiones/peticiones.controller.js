@@ -829,13 +829,13 @@ export default class PeticionesController {
                     if (response.status === 401) {
                         actualizar = true;
                         this.peticionSeleccionada = null;
-                        this.toastr.warning('Lo sentimos, ya no tiene permiso para modificar esta petición.');
+                        this.toastr.error('Lo sentimos, ya no tiene permiso para modificar esta petición.');
                     } else if (response.status === 404) {
                         actualizar = true;
                         this.peticionSeleccionada = null;
                     } else if (get(response, 'error.errorCode') === PROPIEDAD_NO_EDITABLE) {
                         actualizar = true;
-                        this.toastr.warning('Lo sentimos, no se pudieron guardar los cambios porque la petición estaba desactualizada. Por favor, inténtelo de nuevo.');
+                        this.toastr.error('Lo sentimos, no se pudieron guardar los cambios porque la petición estaba desactualizada. Por favor, inténtelo de nuevo.');
                     }
 
                     if (actualizar) {

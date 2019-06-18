@@ -188,7 +188,7 @@ export default class ProcesosController {
                 if (response && response.status === 404) {
                     fnActualizarProcesos();
                 } else if (get(response, 'error.errorCode') === ENTIDAD_NO_ELIMINABLE) {
-                    this.toastr.warning(`El proceso "${proceso.evento}" no se puede eliminar porque existe información que depende de él.`, null, {
+                    this.toastr.error(`El proceso "${proceso.evento}" no se puede eliminar porque existe información que depende de él.`, null, {
                         allowHtml: true,
                         closeButton: true,
                         timeOut: 0,
