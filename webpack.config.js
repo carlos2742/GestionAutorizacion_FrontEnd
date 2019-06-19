@@ -29,10 +29,15 @@ module.exports = {
         rules: [
             {
                 test: /\.js$/,
-                use: [{
-                    loader: 'babel-loader'
-                }],
-                exclude: /node_modules\/(?!zipcelx)/
+                loader: 'babel-loader',
+                options: {
+                    configFile: path.resolve('babel.config.js')
+                },
+                include: [
+                    path.resolve('src'),
+                    // These dependencies have es6 syntax which ie11 doesn't like.
+                    path.resolve('node_modules/zipcelx')
+                ]
             }, {
                 test: /\.(css|sass|scss)$/,
                 use: [
