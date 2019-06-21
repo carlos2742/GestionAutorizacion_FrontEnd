@@ -28,6 +28,7 @@ export default class Roles {
      * @property {string} nombreProcedimiento   -  Nombre del procedimiento SQL que se ejecuta para determinar si un usuario está
      *                                              autorizado a ver una petición.
      * @property {string} observaciones         -  Observaciones.
+     * @property {boolean} dependePeticion      -  Verdadero si este rol se debe determinar por cada una de las peticiones.
      * @property {Object} estado                -  Determina si un rol está activo o inactivo
      * @property {boolean} estado.activo
      * @property {string} estado.valor          -  Puede tener los valores 'A' (para activo), o 'I' (para inactivo).
@@ -184,6 +185,7 @@ export default class Roles {
                     nombre: rol.nombre,
                     nombreProcedimiento: rol.nombreProcedimiento,
                     observaciones: rol.observaciones,
+                    dependePeticion: rol.dependePeticion
                 })
             }).then(response => {
                 let nuevoObj = this.procesarEntidadRecibida(response.data);
@@ -200,13 +202,13 @@ export default class Roles {
      */
     editar(rol) {
         // Se seleccionan los campos que interesan para la edición
-        let objEditado = pick(rol, ['codigo', 'id', 'nombre', 'nombreProcedimiento', 'observaciones', 'estado', 'editable', 'eliminable']);
+        let objEditado = pick(rol, ['codigo', 'id', 'nombre', 'nombreProcedimiento', 'observaciones', 'dependePeticion', 'estado', 'editable', 'eliminable']);
 
         // Si lo que se editó fue el estado de la entidad, hay que actualizar el valor del estado, ya que con el UI
         // lo que se actualiza es la propiedad "activo"
         let cambioEstado = false;
         if ((objEditado.estado.activo && objEditado.estado.valor === MANTENIMIENTO_MAESTRO_INACTIVO)
-            || (!objEditado.estado.activo && objEditado.estado.valor === MANTENIMIENTO_MAESTRO_ACTIVO)) {
+            || (!objEditado.estado.activo && objEditado.observacionesestado.valor === MANTENIMIENTO_MAESTRO_ACTIVO)) {
             cambioEstado = true;
             objEditado.estado = {
                 activo: rol.estado.activo,
@@ -253,7 +255,7 @@ export default class Roles {
         let indiceExistente = findIndex(this.roles, ['id', rol.id]);
         if (indiceExistente < 0 ){ return this.$q.reject() }
 
-        let objAEliminar = pick(rol, ['codigo', 'id', 'nombre', 'nombreProcedimiento', 'observaciones', 'estado', 'editable', 'eliminable']);
+        let objAEliminar = pick(rol, ['codigo', 'id', 'nombre', 'nombreProcedimiento', 'observaciones', 'dependePeticion', 'estado', 'editable', 'eliminable']);
         objAEliminar.estado.valor = rol.estado.activo ? MANTENIMIENTO_MAESTRO_ACTIVO : MANTENIMIENTO_MAESTRO_INACTIVO;
 
         return this.$http.delete(`${this.ENDPOINT}/${rol.id}`)

@@ -40,6 +40,10 @@ export default class ModalEdicionRolesController {
             this.titulo = 'Nuevo Rol';
             /** @type {string} */
             this.textoBoton = 'Crear';
+
+            this.rol = {
+                dependePeticion: false
+            }
         } else {
             this.modoEdicion = true;
             this.titulo = 'Actualizar Rol';

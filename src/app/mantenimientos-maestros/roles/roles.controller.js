@@ -45,13 +45,14 @@ export default class RolesController {
                 {nombre: 'nombre', display: 'Nombre', ordenable: true},
                 {nombre: 'nombreProcedimiento', display: 'Procedimiento', ordenable: true},
                 {nombre: 'observacionesInput', display: 'Observaciones', ancho: '250px', html: true},
+                {nombre: 'dependePeticionCheck', display: 'Depende de Petición', html: true},
                 {nombre: 'estadoToggle', display: 'Activo', ordenable: false, html: true, ancho:'100px'}
             ]
         };
 
         this.columnasExcel = {
-            titulos: ['ID', 'Nombre', 'Procedimiento', 'Observaciones', 'Activo'],
-            campos: ['codigo', 'nombre', 'nombreProcedimiento', 'observaciones', 'estado.activo']
+            titulos: ['ID', 'Nombre', 'Procedimiento', 'Observaciones', 'Depende de Petición', 'Activo'],
+            campos: ['codigo', 'nombre', 'nombreProcedimiento', 'observaciones', 'dependePeticion', 'estado.activo']
         }
     }
 
@@ -71,6 +72,8 @@ export default class RolesController {
         clon.observacionesInput = `<textarea rows="3" 
                                             disabled
                                             style="width: 100%;">${!isNil(entidad.observaciones) ? entidad.observaciones : ''}</textarea>`;
+
+        clon.dependePeticionCheck = `<input type="checkbox" readonly disabled class="checkbox-visible readonly" ${entidad.dependePeticion ? 'checked' : ''}>`;
 
         return clon;
     }
