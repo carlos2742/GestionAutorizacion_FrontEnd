@@ -10,6 +10,7 @@ import filter from 'lodash/filter';
 import includes from 'lodash/includes';
 import get from 'lodash/get';
 import reduce from 'lodash/reduce';
+import format from 'date-fns/format';
 import differenceBy from 'lodash/differenceBy';
 
 import './peticiones.scss';
@@ -101,6 +102,8 @@ export default class PeticionesController {
         /** @private */
         this.$scope = $scope;
         /** @private */
+        this.AppConfig = AppConfig;
+        /** @private */
         this.$q = $q;
         /** @private */
         this.$timeout = $timeout;
@@ -163,9 +166,8 @@ export default class PeticionesController {
                 {nombre: 'proceso.display', display: 'Proceso', ordenable: 'proceso'},
                 {nombre: 'displayOrden', display: 'Autorización', ordenable: false},
                 {nombre: 'estado.display', display: 'Etiqueta', ordenable: false},
-                {nombre: 'observacionesInput', display: 'Observaciones', ancho: '250px', html: true},
+                {nombre: 'accionMensajes', display: 'Chat', html: true, ancho: '40px', ordenable: 'fechaUltimoMensaje.valor'},
                 {nombre: 'accionAdjuntos', display: '', html: true, ancho: '40px'},
-                {nombre: 'accionMensajes', display: '', html: true, ancho: '40px'},
                 {nombre: 'enlaceDetalles', display: '', html: true, ancho: '40px'}
             ]
         };
@@ -173,7 +175,8 @@ export default class PeticionesController {
             this.presentacion.columnas.unshift(
                 {nombre: 'checkbox', display: '', html: true, ancho: '40px'}
             );
-            this.presentacion.columnas.splice(10, 0,
+            this.presentacion.columnas.splice(9, 0,
+                {nombre: 'observacionesInput', display: 'Comentarios Internos', ancho: '300px', html: true},
                 {nombre: 'accionAprobar', display: '', html: true, ancho: '40px'},
                 {nombre: 'accionRechazar', display: '', html: true, ancho: '40px'},
             );
@@ -191,9 +194,13 @@ export default class PeticionesController {
             ]
         };
         this.columnasExcel = {
-            titulos: ['Código', 'Fecha Necesaria', 'Solicitante', 'Tipo Solicitud 1', 'Tipo Solicitud 2', 'Proceso', 'Autorización', 'Etiqueta', 'Observaciones'],
-            campos: ['id', 'fechaNecesaria.display', 'solicitante.display', 'tipoSolicitud1', 'tipoSolicitud2', 'proceso.display', 'displayOrden', 'estado.display', 'observaciones']
+            titulos: ['Código', 'Fecha Necesaria', 'Solicitante', 'Tipo Solicitud 1', 'Tipo Solicitud 2', 'Proceso', 'Autorización', 'Etiqueta'],
+            campos: ['id', 'fechaNecesaria.display', 'solicitante.display', 'tipoSolicitud1', 'tipoSolicitud2', 'proceso.display', 'displayOrden', 'estado.display']
         };
+        if (this.autorizador) {
+            this.columnasExcel.titulos.push('Comentarios Internos');
+            this.columnasExcel.campos.push('observaciones');
+        }
 
         /** @type {Peticion} */
         this.peticionSeleccionada = null;
@@ -303,9 +310,15 @@ export default class PeticionesController {
         clon.accionAdjuntos =  `<a href ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'adjuntos'})"
                                    class="icon-attachment" uib-tooltip="Adjuntos">
                                 </a><small class="ml-1 ${entidad.cantidadAdjuntos > 0 ? 'font-weight-bold' : 'text-muted'}">(${entidad.cantidadAdjuntos})</small>`;
-        clon.accionMensajes =  `<a href ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'mensajes'})"
-                                   class="icon-bubbles4" uib-tooltip="Conversación">
-                                </a><small class="ml-1 ${entidad.cantidadMensajes > 0 ? 'font-weight-bold' : 'text-muted'}">(${entidad.cantidadMensajes})</small>`;
+        clon.accionMensajes =  `<div class="d-flex flex-column">
+                                    <div>
+                                        <a href ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'mensajes'})"
+                                            class="icon-bubbles4" uib-tooltip="Conversación">
+                                        </a>
+                                        <small class="ml-1 ${entidad.cantidadMensajes > 0 ? 'font-weight-bold' : 'text-muted'}">(${entidad.cantidadMensajes})</small>
+                                    </div>
+                                    <small class="text-muted">${entidad.cantidadMensajes > 0 ? entidad.fechaUltimoMensaje.display : ''}</small>
+                                </div>`;
 
         clon.enlaceDetalles = `<a href target="_blank" class="icon-view-show d-print-none" ng-href="#/peticion/${entidad.id}" uib-tooltip="Ver Detalles"></a>`;
 
@@ -528,7 +541,6 @@ export default class PeticionesController {
         this.paramsBusqueda = {
             estadoInterno: AUTORIZACION_PENDIENTE
         };
-        this.busquedaActiva = false;
         busquedaForm.$setPristine();
         busquedaForm.$setUntouched();
 
@@ -629,7 +641,7 @@ export default class PeticionesController {
      * Excel. Esta exportación respeta el ordenamiento activo y cualquier filtro seleccionado.
      */
     obtenerDatosAExportar() {
-        let totalPaginas = Math.ceil(this.peticionesService.peticiones.length / this.ITEMS_POR_PAGINA_EXCEL);
+        let totalPaginas = Math.ceil(this.datosAExportar.length / this.ITEMS_POR_PAGINA_EXCEL);
         let promesasObtencion = [];
         for (let i=1; i <= totalPaginas; i++) {
             promesasObtencion.push(this.peticionesService.obtenerTodos(!this.autorizador, i, undefined, undefined, this.ITEMS_POR_PAGINA_EXCEL));
@@ -677,7 +689,7 @@ export default class PeticionesController {
         }
     }
 
-    _cambiarEstado(peticiones, accion) {
+     _cambiarEstado(peticiones, accion) {
         return this.$q((resolve, reject) => {
             const contenedor = angular.element(document.getElementById("modalConfirmacionAutorizacion"));
             const modal = this.$uibModal.open({
@@ -905,6 +917,13 @@ export default class PeticionesController {
                     this.actualizarPagina();
                 } else {
                     entidad.cantidadMensajes = mensajes.length;
+                    if (mensajes.length > 0) {
+                        const ultimoMensaje = mensajes[mensajes.length - 1];
+                        entidad.fechaUltimoMensaje = {
+                            valor: ultimoMensaje.fechaEnvio.valor,
+                            display: format(ultimoMensaje.fechaEnvio.valor, `${this.AppConfig.formatoFechas} HH:mm:ss`)
+                        };
+                    }
                     const indiceEntidadCambiada = findIndex(this.datos, ['codigo', entidad.codigo]);
                     if (indiceEntidadCambiada > -1) {
                         const idsSeleccionados = map(this.peticionesSeleccionadas, peticion => { return peticion.id; });

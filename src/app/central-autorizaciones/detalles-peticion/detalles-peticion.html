@@ -46,8 +46,8 @@
                     <label class="col-md-3 font-weight-bold text-md-right">Etiqueta</label>
                     <p class="col-md-9" ng-bind="vm.peticion.estado.display"></p>
                 </div>
-                <div class="row">
-                    <label class="col-md-3 font-weight-bold text-md-right">Observaciones</label>
+                <div class="row" ng-if=":: vm.peticion.observaciones">
+                    <label class="col-md-3 font-weight-bold text-md-right">Comentarios internos</label>
                     <div class="col-md-9 contenedor-texto-truncado">
                         <hm-read-more
                                 hm-text="{{ vm.peticion.observaciones }}"

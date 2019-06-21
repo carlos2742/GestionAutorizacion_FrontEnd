@@ -15,6 +15,7 @@ import forEach from 'lodash/forEach';
 import reduce from 'lodash/reduce';
 import remove from 'lodash/remove';
 import orderBy from 'lodash/orderBy';
+import omit from 'lodash/omit';
 import get from 'lodash/get';
 import format from 'date-fns/format';
 import toDate from 'date-fns/toDate';
@@ -160,6 +161,12 @@ export default class PeticionesService {
                 peticionProcesada[prop] = {
                     valor: fechaNecesariaObj,
                     display: fechaNecesariaObj ? format(fechaNecesariaObj, this.AppConfig.formatoFechas) : ''
+                };
+            } else if (prop === 'fechaUltimoMensaje') {
+                const fechaObj = entidad[prop] ? new Date(Date.parse(entidad[prop])) : null;
+                peticionProcesada[prop] = {
+                    valor: fechaObj,
+                    display: fechaObj ? format(fechaObj, `${this.AppConfig.formatoFechas} HH:mm:ss`) : ''
                 };
             } else if (prop === 'informacionExtra') {
                 const info = entidad.informacionExtra;
@@ -390,7 +397,7 @@ export default class PeticionesService {
     }
 
     aprobar(peticiones, paginaActual) {
-        const fnActualizacion = (peticionesActualizadas) => {
+        const fnActualizacion = (peticionesActualizadas, respuestaServidor) => {
             let pagina = paginaActual;
 
             // Se verifica si hay una búsqueda activa o no
@@ -424,6 +431,14 @@ export default class PeticionesService {
                         }
                     });
             } else {
+                const fnRetorno = () => {
+                    const peticionesPagina = busquedaActiva ? this.resultadosBusqueda : this.peticiones;
+                    return {
+                        peticiones: peticionesPagina,
+                        pagina
+                    };
+                };
+
                 // Se eliminan de la lista de peticiones las que ya no tienen más actividades pendientes
                 remove(this.peticiones, peticion => {
                     const indiceCoincidencia = findIndex(peticionesActualizadas, ['id', peticion.id]);
@@ -448,23 +463,35 @@ export default class PeticionesService {
                 const peticionesCambiadas = filter(busquedaActiva ? this.resultadosBusqueda : this.peticiones, peticion => {
                     return includes(idsActualizados, peticion.id);
                 });
-                forEach(peticionesCambiadas, peticion => {
-                    peticion.actividades.push(this._procesarActividad({
-                        actividad: peticion.cantidadActividadesCompletadas + 1,
-                        autorizador: this.usuario,
-                        estado: AUTORIZACION_APROBADA,
-                        fecha: new Date().toISOString().replace('Z', '')
-                    }, peticion.cantidadActividadesCompletadas, peticion.cantidadActividadesTotales));
+                if (peticionesCambiadas.length > 0) {
+                    return this.etiquetasService.obtenerTodos()
+                        .then(etiquetas => {
+                            forEach(peticionesCambiadas, peticion => {
+                                peticion.actividades.push(this._procesarActividad({
+                                    actividad: peticion.cantidadActividadesCompletadas + 1,
+                                    autorizador: this.usuario,
+                                    estado: AUTORIZACION_APROBADA,
+                                    fecha: new Date().toISOString().replace('Z', '')
+                                }, peticion.cantidadActividadesCompletadas, peticion.cantidadActividadesTotales));
 
-                    peticion.cantidadActividadesCompletadas++;
-                    peticion.displayOrden = `Aut. ${peticion.cantidadActividadesCompletadas+1}/${peticion.cantidadActividadesTotales}`;
-                });
+                                const respuestaCorrespondiente = find(respuestaServidor, ['id', peticion.id]);
+                                if (!isNil(respuestaCorrespondiente)) {
+                                    const objHidratado = assign({},
+                                        omit(respuestaCorrespondiente, ['solicitante', 'proceso', 'peticionQueAnula', 'peticionAnulacion']),
+                                        { proceso: peticion.proceso.valor, solicitante: peticion.solicitante.valor }
+                                    );
+                                    assign(peticion, this.procesarEntidadRecibida(
+                                        objHidratado,
+                                        etiquetas, AUTORIZACION_PENDIENTE)
+                                    );
+                                }
+                            });
 
-                const peticionesPagina = busquedaActiva ? this.resultadosBusqueda : this.peticiones;
-                return {
-                    peticiones: peticionesPagina,
-                    pagina
-                };
+                            return fnRetorno();
+                        });
+                } else {
+                    return fnRetorno();
+                }
             }
         };
 
@@ -604,7 +631,7 @@ export default class PeticionesService {
 
             return this.$http.post(endpoint, assign({}, {ids}, dataExtra))
                 .then(response => {
-                    return fnActualizacion(peticiones);
+                    return fnActualizacion(peticiones, response.data);
                 })
                 .catch(response => {
                     error = true;
