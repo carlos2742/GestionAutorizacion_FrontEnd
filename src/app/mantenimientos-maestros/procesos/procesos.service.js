@@ -169,7 +169,7 @@ export default class ProcesosService {
     obtenerTodos(soloActivos) {
         const fnRetorno = () => {
             // Por defecto se devuelven los procesos ordenados ascendentemente por el campo "evento"
-            let resultado = sortBy(this.procesos, 'evento');
+            let resultado = sortBy(this.procesos, ['evento']);
 
             if (isNil(soloActivos) || soloActivos) {
                 return filter(resultado, (entidad) => {

@@ -4,7 +4,6 @@ import filter from 'lodash/filter';
 import includes from 'lodash/includes';
 import isNil from 'lodash/isNil';
 import isUndefined from 'lodash/isUndefined';
-import isMatch from 'lodash/isMatch';
 import assign from 'lodash/assign';
 import lowerCase from 'lodash/lowerCase';
 import capitalize from 'lodash/capitalize';
@@ -12,17 +11,14 @@ import join from 'lodash/join';
 import fill from 'lodash/fill';
 import map from 'lodash/map';
 import forEach from 'lodash/forEach';
-import reduce from 'lodash/reduce';
 import remove from 'lodash/remove';
-import orderBy from 'lodash/orderBy';
 import omit from 'lodash/omit';
 import get from 'lodash/get';
 import format from 'date-fns/format';
 import toDate from 'date-fns/toDate';
 import {
     ACTUALIZACION_EN_BULTO_CON_ERRORES, AUTORIZACION_ANULADA,
-    AUTORIZACION_APROBADA, AUTORIZACION_PENDIENTE, AUTORIZACION_RECHAZADA, ERROR_DE_RED,
-    ERROR_GENERAL,
+    AUTORIZACION_APROBADA, AUTORIZACION_PENDIENTE, AUTORIZACION_RECHAZADA,
     ETIQUETA_NOK_DESC,
     ETIQUETA_OK_DESC, PROPIEDAD_NO_EDITABLE
 } from '../../common/constantes';
@@ -109,8 +105,6 @@ export default class PeticionesService {
 
         /** @type {Peticion[]} */
         this.peticiones = [];
-        /** @type {Peticion[]} */
-        this.resultadosBusqueda = [];
 
         /** @private */
         this.ordenActivo = null;
@@ -126,7 +120,6 @@ export default class PeticionesService {
 
     reiniciarEstado() {
         this.peticiones = [];
-        this.resultadosBusqueda = [];
         this.ordenActivo = null;
         this.filtrosBusqueda = null;
     }
@@ -139,7 +132,7 @@ export default class PeticionesService {
      * @param {Etiqueta[]} etiquetas    -  Listado de etiquetas existentes. Se usan para mostrar el estado.
      * @returns {Peticion}              -  La misma entidad, con las transformaciones mencionadas.
      */
-    procesarEntidadRecibida(entidad, etiquetas, estadoInterno) {
+    procesarEntidadRecibida(entidad, etiquetas) {
         let peticionProcesada = {
             codigo: entidad.id
         };
@@ -215,8 +208,7 @@ export default class PeticionesService {
             }
         }
 
-        const numeroAutorizacion = estadoInterno === AUTORIZACION_PENDIENTE ? entidad.cantidadActividadesCompletadas+1 : entidad.cantidadActividadesCompletadas;
-        peticionProcesada.displayOrden = `Aut. ${numeroAutorizacion}/${entidad.cantidadActividadesTotales}`;
+        peticionProcesada.displayOrden = `${entidad.cantidadActividadesCompletadas}/${entidad.cantidadActividadesTotales}`;
 
         peticionProcesada.displayTipoSolicitud = entidad.tipoSolicitud1;
         if (!isNil(entidad.tipoSolicitud2)) {
@@ -288,7 +280,7 @@ export default class PeticionesService {
                 actividadProcesada[prop] = actividad[prop];
             }
 
-            actividadProcesada.displayOrden = `Aut. ${indice+1}/${totalActividades}`;
+            actividadProcesada.displayOrden = `${indice+1}/${totalActividades}`;
         }
         return actividadProcesada;
     }
@@ -320,12 +312,10 @@ export default class PeticionesService {
      * @param {number} pagina               -  Página que se desea.
      * @param {[string, string]} orden      -  Cómo deben estar ordenados los resultados.
      * @param filtro                        -  Se puede usar para filtrar los resultados por varios campos.
-     * @param {boolean} forzarActualizacion -  Verdadero si se desean pedir de nuevo las peticiones al servidor. En caso contrario,
-     *                                          no se piden si el total de páginas = 1.
      * @param {number} elementosPorPagina   -  Cantidad de peticiones que se desea recibir en una página.
      * @return {Promise.<Peticion[]>}       -  Se resuelve con el arreglo de peticiones que corresponden a una página determinada.
      */
-    obtenerTodos(peticionesPropias, pagina, orden, filtro, forzarActualizacion, elementosPorPagina) {
+    obtenerTodos(peticionesPropias, pagina, orden, filtro, elementosPorPagina) {
         let cambioOrden = false;
         if (!isNil(orden) && (isNil(this.ordenActivo) || orden[0] !== this.ordenActivo[0] || orden[1] !== this.ordenActivo[1])) {
             this.ordenActivo = orden;
@@ -335,58 +325,7 @@ export default class PeticionesService {
         if (!isUndefined(filtro)) {
             this.filtrosBusqueda = filtro;
         }
-
-        // Se verifica si hay una búsqueda activa o no
-        const filtroDefinido = find(this.filtrosBusqueda, filtro => {
-            return !isNil(filtro);
-        });
-        const busquedaActiva = !isNil(filtroDefinido);
-
-        if (forzarActualizacion || this.peticiones.length === 0 || this.peticiones.length > this.AppConfig.elementosPorPagina) {
-            return this._obtenerServidor(peticionesPropias, pagina, cambioOrden, busquedaActiva, this.filtrosBusqueda, elementosPorPagina);
-        } else {
-            if (cambioOrden) {
-                let campo ='';
-                switch (this.ordenActivo[0]) {
-                    case 'id':
-                        campo = 'id';
-                        break;
-                    case 'fecha.valor':
-                        campo = 'fechaNecesaria.valor';
-                        break;
-                    case 'solicitante':
-                        campo = 'solicitante.display';
-                        break;
-                    case 'proceso':
-                        campo = 'proceso.display';
-                        break;
-                }
-
-                this.peticiones = orderBy(this.peticiones,
-                    [entidad => {
-                        const valor = get(entidad, campo);
-                        return typeof valor === 'string' ? valor.toLowerCase() : valor }],
-                    [this.ordenActivo[1]]);
-            }
-            if (busquedaActiva) {
-                this.resultadosBusqueda = reduce(this.peticiones, (resultado, peticion) => {
-                    if ((isNil(this.filtrosBusqueda.idAplicacion) || get(peticion, 'proceso.valor.aplicacion.id') === this.filtrosBusqueda.idAplicacion )
-                        && (isNil(this.filtrosBusqueda.idProceso) || get(peticion, 'proceso.valor.id') === this.filtrosBusqueda.idProceso )
-                        && (isNil(this.filtrosBusqueda.nInternoSolicitante) || get(peticion, 'solicitante.valor.nInterno') === this.filtrosBusqueda.nInternoSolicitante )
-                        && (isNil(this.filtrosBusqueda.etiqueta) || peticion.estado.display === this.filtrosBusqueda.etiqueta)
-                        && (isNil(this.filtrosBusqueda.tipoSolicitud) || peticion.displayTipoSolicitud === this.filtrosBusqueda.tipoSolicitud)
-                        && (isNil(this.filtrosBusqueda.estadoInterno) || peticion.estadoInterno === this.filtrosBusqueda.estadoInterno) ) {
-
-                        resultado.push(peticion);
-                    }
-
-                    return resultado;
-                }, []);
-                return this.$q.resolve(this.resultadosBusqueda);
-            } else {
-                return this.$q.resolve(this.peticiones);
-            }
-        }
+        return this._obtenerServidor(peticionesPropias, pagina, cambioOrden, this.filtrosBusqueda, elementosPorPagina);
     }
 
     obtenerTiposSolicitud() {
@@ -397,157 +336,91 @@ export default class PeticionesService {
     }
 
     aprobar(peticiones, paginaActual) {
-        const fnActualizacion = (peticionesActualizadas, respuestaServidor) => {
-            let pagina = paginaActual;
-
-            // Se verifica si hay una búsqueda activa o no
-            const filtroDefinido = find(this.filtrosBusqueda, filtro => {
-                return !isNil(filtro);
-            });
-            const busquedaActiva = !isNil(filtroDefinido);
-            const cantidadPeticiones = busquedaActiva ? this.resultadosBusqueda.length : this.peticiones.length;
-
-            if (!this.usuario.esGestor || cantidadPeticiones > this.AppConfig.elementosPorPagina) {
-                const fin = paginaActual * this.AppConfig.elementosPorPagina;
-                const inicio = fin - this.AppConfig.elementosPorPagina;
-                // Si es la última página y se aprobaron/rechazaron todos los elementos, hay que cambiar de página
-                if (inicio + peticionesActualizadas.length >= cantidadPeticiones && paginaActual > 1) {
-                    //Se comprueba si todas las peticiones ya están en su aprobación final
-                    const peticionesFinales = filter(peticionesActualizadas, peticion => {
-                        return peticion.cantidadActividadesTotales === peticion.cantidadActividadesCompletadas + 1
-                                || !isNil(peticion.errorCode);
-                    });
-
-                    if (peticionesFinales.length === peticionesActualizadas.length) {
-                        pagina = paginaActual - 1;
-                    }
-                }
-
-                return this.obtenerTodos(false, pagina, undefined, undefined, true)
-                    .then(peticionesPagina => {
-                        return {
-                            peticiones: peticionesPagina,
-                            pagina
-                        }
-                    });
-            } else {
-                const fnRetorno = () => {
-                    const peticionesPagina = busquedaActiva ? this.resultadosBusqueda : this.peticiones;
-                    return {
-                        peticiones: peticionesPagina,
-                        pagina
-                    };
-                };
-
-                // Se eliminan de la lista de peticiones las que ya no tienen más actividades pendientes
-                remove(this.peticiones, peticion => {
-                    const indiceCoincidencia = findIndex(peticionesActualizadas, ['id', peticion.id]);
-                    if (indiceCoincidencia > -1) {
-                        return !isNil(peticionesActualizadas[indiceCoincidencia].errorCode) || peticion.cantidadActividadesTotales === peticion.cantidadActividadesCompletadas + 1;
-                    }
-                    return false;
-                });
-                // Se eliminan también de los resultados de búsqueda
-                remove(this.resultadosBusqueda, peticion => {
-                    const indiceCoincidencia = findIndex(peticionesActualizadas, ['id', peticion.id]);
-                    if (indiceCoincidencia > -1) {
-                        return !isNil(peticionesActualizadas[indiceCoincidencia].errorCode) || peticion.cantidadActividadesTotales === peticion.cantidadActividadesCompletadas + 1;
-                    }
-                    return false;
-                });
-
-                // Se actualizan las peticiones que quedan
-                const idsActualizados = map(peticionesActualizadas, peticion => {
-                    return peticion.id
-                });
-                const peticionesCambiadas = filter(busquedaActiva ? this.resultadosBusqueda : this.peticiones, peticion => {
-                    return includes(idsActualizados, peticion.id);
-                });
-                if (peticionesCambiadas.length > 0) {
-                    return this.etiquetasService.obtenerTodos()
-                        .then(etiquetas => {
-                            forEach(peticionesCambiadas, peticion => {
-                                peticion.actividades.push(this._procesarActividad({
-                                    actividad: peticion.cantidadActividadesCompletadas + 1,
-                                    autorizador: this.usuario,
-                                    estado: AUTORIZACION_APROBADA,
-                                    fecha: new Date().toISOString().replace('Z', '')
-                                }, peticion.cantidadActividadesCompletadas, peticion.cantidadActividadesTotales));
-
-                                const respuestaCorrespondiente = find(respuestaServidor, ['id', peticion.id]);
-                                if (!isNil(respuestaCorrespondiente)) {
-                                    const objHidratado = assign({},
-                                        omit(respuestaCorrespondiente, ['solicitante', 'proceso', 'peticionQueAnula', 'peticionAnulacion']),
-                                        { proceso: peticion.proceso.valor, solicitante: peticion.solicitante.valor }
-                                    );
-                                    assign(peticion, this.procesarEntidadRecibida(
-                                        objHidratado,
-                                        etiquetas, AUTORIZACION_PENDIENTE)
-                                    );
-                                }
-                            });
-
-                            return fnRetorno();
-                        });
-                } else {
-                    return fnRetorno();
-                }
-            }
-        };
-
-        return this._cambiarEstadoPeticiones(peticiones, {}, paginaActual, this.ENDPOINT_APROBAR, fnActualizacion);
+        return this._cambiarEstadoPeticiones(peticiones, {}, paginaActual, this.ENDPOINT_APROBAR, AUTORIZACION_APROBADA);
     }
 
     rechazar(peticiones, paginaActual) {
-        const fnActualizacion = (peticionesActualizadas) => {
-            let pagina = paginaActual;
+        return this._cambiarEstadoPeticiones(peticiones, {}, paginaActual, this.ENDPOINT_RECHAZAR, AUTORIZACION_RECHAZADA);
+    }
 
-            const idsActualizados = map(peticionesActualizadas, peticion => {
-                return peticion.id
-            });
-
-            // Se verifica si hay una búsqueda activa o no
-            const filtroDefinido = find(this.filtrosBusqueda, filtro => {
-                return !isNil(filtro);
-            });
-            const busquedaActiva = !isNil(filtroDefinido);
-            const cantidadPeticiones = busquedaActiva ? this.resultadosBusqueda.length : this.peticiones.length;
-
-            // Si la lista de peticiones está paginada, se vuelve a pedir la página en la que estaba el usuario
-            if (cantidadPeticiones > this.AppConfig.elementosPorPagina) {
+    _actualizarPeticiones(peticiones, respuestaServidor, paginaActual, accion) {
+        return this.etiquetasService.obtenerTodos()
+            .then(etiquetas => {
+                let pagina = paginaActual;
                 const fin = paginaActual * this.AppConfig.elementosPorPagina;
                 const inicio = fin - this.AppConfig.elementosPorPagina;
-                // Si es la última página y se aprobaron/rechazaron todos los elementos, hay que cambiar de página
-                if (inicio + peticionesActualizadas.length >= cantidadPeticiones && paginaActual > 1) {
-                    pagina = paginaActual - 1;
-                }
-                return this.obtenerTodos( false, pagina, undefined, undefined, true)
-                    .then(peticionesPagina => {
-                        return {
-                            peticiones: peticionesPagina,
-                            pagina
+                const totalPaginas = Math.ceil(this.peticiones.length / this.AppConfig.elementosPorPagina);
+
+                let actualizarPagina = false;
+                if (peticiones.length !== respuestaServidor.length) {
+                    actualizarPagina = true;
+                } else {
+                    forEach(respuestaServidor, resultado => {
+                        const indicePeticion = findIndex(this.peticiones, ['id', resultado.id]);
+
+                        if (this._sigueSiendoVisible(resultado)) {
+                            const peticionCorrespondiente = this.peticiones[indicePeticion];
+
+                            peticionCorrespondiente.actividades.push(
+                                this._procesarActividad({
+                                    actividad: peticionCorrespondiente.cantidadActividadesCompletadas + 1,
+                                    autorizador: this.usuario,
+                                    estado: accion,
+                                    fecha: new Date().toISOString().replace('Z', '')
+                                }, peticionCorrespondiente.cantidadActividadesCompletadas, peticionCorrespondiente.cantidadActividadesTotales)
+                            );
+
+                            const objHidratado = assign({},
+                                omit(resultado, ['solicitante', 'proceso', 'peticionQueAnula', 'peticionAnulacion']),
+                                {proceso: peticionCorrespondiente.proceso.valor, solicitante: peticionCorrespondiente.solicitante.valor}
+                            );
+                            assign(peticionCorrespondiente, this.procesarEntidadRecibida( objHidratado, etiquetas) );
+                        } else {
+                            this.peticiones.splice(indicePeticion, 1);
+                            if (pagina < totalPaginas) {
+                                actualizarPagina = true;
+                            }
                         }
                     });
-            } else {
-                // Se eliminan de la lista de peticiones pendientes, porque ya este usuario no tiene que autorizarlas.
-                remove(this.peticiones, peticion => {
-                    return includes(idsActualizados, peticion.id);
-                });
-                // Se eliminan también de los resultados de búsqueda
-                remove(this.resultadosBusqueda, peticion => {
-                    return includes(idsActualizados, peticion.id);
-                });
 
-                const peticionesPagina = busquedaActiva ? this.resultadosBusqueda : this.peticiones;
-                return {
-                    peticiones: peticionesPagina,
-                    pagina
+                    if (inicio >= this.peticiones.length) {
+                        if (paginaActual > 1) {
+                            pagina -= 1;
+                            actualizarPagina = true;
+                        } else {
+                            return {
+                                peticiones: [],
+                                pagina
+                            }
+                        }
+                    }
                 }
-            }
-        };
 
-        return this._cambiarEstadoPeticiones(peticiones, {}, paginaActual, this.ENDPOINT_RECHAZAR, fnActualizacion);
+                if (actualizarPagina) {
+                    return this.obtenerTodos(false, pagina, undefined, undefined)
+                        .then(peticionesPagina => {
+                            return {
+                                peticiones: peticionesPagina,
+                                pagina
+                            }
+                        });
+                } else {
+                    return {
+                        peticiones: this.peticiones.slice(inicio, fin),
+                        pagina
+                    }
+                }
+            });
     }
+
+    _sigueSiendoVisible(peticion) {
+        if (peticion.estadoInterno === AUTORIZACION_PENDIENTE) {
+            return this.usuario.esGestor && !get(this.filtrosBusqueda, 'idRol');
+        } else {
+            return isNil(this.filtrosBusqueda) || !this.filtrosBusqueda.estadosInternos || includes(this.filtrosBusqueda.estadosInternos, peticion.estadoInterno);
+        }
+    }
+
 
     /**
      * Elimina una petición de la lista
@@ -570,18 +443,12 @@ export default class PeticionesService {
     editar(peticion) {
         let error;
 
-        // Se verifica si hay una búsqueda activa o no
-        const filtroDefinido = find(this.filtrosBusqueda, filtro => {
-            return !isNil(filtro);
-        });
-        const busquedaActiva = !isNil(filtroDefinido);
-
-        const indicePeticionCambiada = findIndex(filtroDefinido ? this.resultadosBusqueda : this.peticiones, ['id', peticion.id]);
+        const indicePeticionCambiada = findIndex(this.peticiones, ['id', peticion.id]);
         if (indicePeticionCambiada < 0) {
             return this.$q.reject();
         }
 
-        const peticionCorrespondiente = filtroDefinido ? this.resultadosBusqueda[indicePeticionCambiada] : this.peticiones[indicePeticionCambiada];
+        const peticionCorrespondiente = this.peticiones[indicePeticionCambiada];
         if (peticion.observaciones !== peticionCorrespondiente.observaciones) {
             const datosAEnviar = {
                 'id': peticion.id,
@@ -620,7 +487,7 @@ export default class PeticionesService {
         }
     }
 
-    _cambiarEstadoPeticiones(peticiones, dataExtra, paginaActual, endpoint, fnActualizacion) {
+    _cambiarEstadoPeticiones(peticiones, dataExtra, paginaActual, endpoint, accion) {
         const ids = map(peticiones, peticion => {
             return peticion.id
         });
@@ -631,7 +498,7 @@ export default class PeticionesService {
 
             return this.$http.post(endpoint, assign({}, {ids}, dataExtra))
                 .then(response => {
-                    return fnActualizacion(peticiones, response.data);
+                    return this._actualizarPeticiones(peticiones, response.data, paginaActual, accion);
                 })
                 .catch(response => {
                     error = true;
@@ -639,12 +506,7 @@ export default class PeticionesService {
                     if (get(response, 'error.errorCode') === ACTUALIZACION_EN_BULTO_CON_ERRORES) {
                         peticionesConError = response.error.fallos;
                         peticionesExitosas = response.error.exitos;
-                        const peticionesErrorNoRecuperable = filter(peticionesConError, fallo => {
-                            return ( (fallo.httpStatusCode === 500 && (fallo.errorCode !== ERROR_GENERAL && fallo.errorCode !== ERROR_DE_RED))
-                                || fallo.httpStatusCode === 401 || fallo.httpStatusCode === 404);
-                        });
-
-                        return fnActualizacion(peticionesExitosas.concat(peticionesErrorNoRecuperable));
+                        return this._actualizarPeticiones(peticiones, response.error.exitos, paginaActual, accion);
                     } else {
                         throw response;
                     }
@@ -672,12 +534,11 @@ export default class PeticionesService {
      * @param {boolean} peticionesPropias    -  Verdadero si lo que se desean son las peticiones propias.
      * @param {number} pagina               -  Página que se desea.
      * @param {boolean} cambioOrden         -  Verdadero si el orden de las peticiones fue cambiado.
-     * @param {boolean} busquedaActiva      -  Verdadero si hay algún filtro activado.
      * @param filtro                        -  Se puede usar para filtrar los resultados por varios campos.
      * @param {number} elementosPorPagina   -  Cantidad de peticiones que se desea recibir en una página.
      * @return {Promise.<Peticion[]>}       -  Se resuelve con el arreglo de peticiones que corresponden a una página determinada.
      */
-    _obtenerServidor(peticionesPropias, pagina, cambioOrden, busquedaActiva, filtro, elementosPorPagina) {
+    _obtenerServidor(peticionesPropias, pagina, cambioOrden, filtro, elementosPorPagina) {
         let totalPeticiones = 0;
         const paginaActual = !isNil(pagina) ? pagina : 1;
         const fin = paginaActual * this.AppConfig.elementosPorPagina;
@@ -707,12 +568,9 @@ export default class PeticionesService {
         ]).then(resultado => {
             totalPeticiones = resultado[0].metadata.cantidadTotal;
             const peticiones = map(resultado[0].data, peticion => {
-                return this.procesarEntidadRecibida(peticion, resultado[1], get(filtro, 'estadoInterno'));
+                return this.procesarEntidadRecibida(peticion, resultado[1]);
             });
-            if (busquedaActiva) {
-                this.peticiones = [];
-            }
-            this._procesarResultadosPaginados(peticiones, totalPeticiones, inicio, busquedaActiva);
+            this._procesarResultadosPaginados(peticiones, totalPeticiones, inicio);
             return peticiones;
         });
     }
@@ -722,24 +580,13 @@ export default class PeticionesService {
      * @param {Peticion[]} resultados           -  Representa una página de peticiones.
      * @param {number} total                    -  Total de peticiones existentes.
      * @param {number} inicio                   -  Posición inicial del arreglo donde se debe insertar la página.
-     * @param {boolean} busquedaActiva          -  Verdadero si los resultados corresponden a filtros de búsqueda activos.
      * @private
      */
-    _procesarResultadosPaginados(resultados, total, inicio, busquedaActiva) {
-        if (busquedaActiva) {
-            this.resultadosBusqueda = [];
-            this.resultadosBusqueda.push(... fill(Array(total), undefined));
-            forEach(resultados, (peticion, index) => {
-                this.resultadosBusqueda[index+inicio] = peticion;
-            });
-        } else {
-            this.peticiones = [];
-            this.peticiones.push(... fill(Array(total), undefined));
-            forEach(resultados, (peticion, index) => {
-                this.peticiones[index+inicio] = peticion;
-            });
-        }
-
-
+    _procesarResultadosPaginados(resultados, total, inicio) {
+        this.peticiones = [];
+        this.peticiones.push(...fill(Array(total), undefined));
+        forEach(resultados, (peticion, index) => {
+            this.peticiones[index + inicio] = peticion;
+        });
     }
 }

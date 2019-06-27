@@ -188,7 +188,7 @@ export default class EtiquetasService {
     obtenerTodos() {
         const fnRetorno = () => {
             // Por defecto se devuelven las etiquetas ordenadas ascendentemente por el campo "descripcion"
-            return sortBy(this.etiquetas, 'descripcion');
+            return sortBy(this.etiquetas, ['descripcion']);
         };
 
         if (this.etiquetas.length === 0) {

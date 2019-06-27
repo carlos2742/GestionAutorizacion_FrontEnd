@@ -139,7 +139,7 @@ export default class AplicacionesService {
     obtenerTodos(soloActivos) {
         const fnRetorno = () => {
             // Por defecto se devuelven las aplicaciones ordenadas ascendentemente por el campo "nombre"
-            let resultado = sortBy(this.aplicaciones, 'nombre');
+            let resultado = sortBy(this.aplicaciones, ['nombre']);
 
             if (isNil(soloActivos) || soloActivos) {
                 return filter(resultado, (entidad) => {

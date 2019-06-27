@@ -1,6 +1,7 @@
 import isNil from 'lodash/isNil';
 import find from 'lodash/find';
 import findIndex from 'lodash/findIndex';
+import forEach from 'lodash/forEach';
 import clone from 'lodash/clone';
 import cloneDeep from 'lodash/cloneDeep';
 import map from 'lodash/map';
@@ -24,6 +25,7 @@ import {
     PROPIEDAD_NO_EDITABLE,
     TEXTO_CAMBIOS_GUARDADOS
 } from "../../common/constantes";
+import {procesarFechaAEnviar} from "../../common/utiles";
 
 /* @ngInject */
 /**
@@ -42,7 +44,7 @@ export default class PeticionesController {
      * @param {AdjuntosService} AdjuntosService
      * @param {MensajesService} MensajesService
      * @param {AplicacionesService} AplicacionesService
-     * @param {ProcesosService} ProcesosService
+     * @param {RolesService} RolesService
      * @param EtiquetasService
      * @param {PersonalService} PersonalService
      * @param SesionService
@@ -50,7 +52,7 @@ export default class PeticionesController {
      * @param autorizador
      **/
     constructor($scope, $q, $timeout, $location, $uibModal, toastr, PeticionesService, AdjuntosService, MensajesService,
-                AplicacionesService, ProcesosService, EtiquetasService, PersonalService, SesionService, AppConfig, autorizador) {
+                AplicacionesService, RolesService, EtiquetasService, PersonalService, SesionService, AppConfig, autorizador) {
         /** @type {number} */
         this.ITEMS_POR_PAGINA = AppConfig.elementosPorPagina;
         /** @private */
@@ -76,6 +78,8 @@ export default class PeticionesController {
         /** @type {string} */
         this.AUTORIZACION_ANULADA = AUTORIZACION_ANULADA;
 
+        this.popupFechaInicialAbierto = false;
+        this.popupFechaFinalAbierto = false;
 
         /** @type {boolean} */
         this.busquedaVisible = true;
@@ -83,7 +87,7 @@ export default class PeticionesController {
         this.busquedaActiva = false;
         /** @type {Object} */
         this.paramsBusqueda = {
-            estadoInterno: AUTORIZACION_PENDIENTE
+            pendiente: true
         };
         /** @private */
         this.paramsAnteriores = {};
@@ -119,13 +123,9 @@ export default class PeticionesController {
         this.mensajesService = MensajesService;
         /** @private */
         this.personalService = PersonalService;
-        /** @private */
-        this.procesosService = ProcesosService;
-        /** @private */
-        this.etiquetasService = EtiquetasService;
 
         /** @private */
-        this.totalProcesos = 0;
+        this.totalRoles = 0;
         /** @private */
         this.totalPersonas = 0;
         /** @type {Persona[]} */
@@ -164,7 +164,7 @@ export default class PeticionesController {
                 {nombre: 'tipoSolicitud1', display: 'Tipo Solicitud 1', ordenable: true, ancho: '135px'},
                 {nombre: 'tipoSolicitud2', display: 'Tipo Solicitud 2', ordenable: true, ancho: '135px'},
                 {nombre: 'proceso.display', display: 'Proceso', ordenable: 'proceso'},
-                {nombre: 'displayOrden', display: 'Autorización', ordenable: false},
+                {nombre: 'displayOrden', display: 'Autorizaciones Completadas', ordenable: false},
                 {nombre: 'estado.display', display: 'Etiqueta', ordenable: false},
                 {nombre: 'accionMensajes', display: 'Chat', html: true, ancho: '40px', ordenable: 'fechaUltimoMensaje.valor'},
                 {nombre: 'accionAdjuntos', display: '', html: true, ancho: '40px'},
@@ -194,7 +194,7 @@ export default class PeticionesController {
             ]
         };
         this.columnasExcel = {
-            titulos: ['Código', 'Fecha Necesaria', 'Solicitante', 'Tipo Solicitud 1', 'Tipo Solicitud 2', 'Proceso', 'Autorización', 'Etiqueta'],
+            titulos: ['Código', 'Fecha Necesaria', 'Solicitante', 'Tipo Solicitud 1', 'Tipo Solicitud 2', 'Proceso', 'Autorizaciones Completadas', 'Etiqueta'],
             campos: ['id', 'fechaNecesaria.display', 'solicitante.display', 'tipoSolicitud1', 'tipoSolicitud2', 'proceso.display', 'displayOrden', 'estado.display']
         };
         if (this.autorizador) {
@@ -212,6 +212,12 @@ export default class PeticionesController {
                 this.aplicaciones = aplicaciones;
             });
 
+        RolesService.obtenerTodos(false)
+            .then(roles => {
+                /** @type {Rol[]} */
+                this.roles = roles;
+            });
+
         PeticionesService.obtenerTiposSolicitud()
             .then(tiposSolicitud => {
                 this.tiposSolicitud = [].concat(tiposSolicitud);
@@ -223,77 +229,15 @@ export default class PeticionesController {
                this.usuarioEsGestor = usuario.esGestor;
             });
 
-        const quitarWatcherFn = $scope.$watch('vm.paramsBusqueda.aplicacion', (newValue, oldValue) => {
-            if (newValue !== oldValue || isNil(this.procesos)) {
-                this.procesosService.obtenerTodos(false)
-                    .then(procesos => {
-                        if (isNil(newValue)) {
-                            /** @type {Proceso[]} */
-                            this.procesos = [].concat(...procesos);
-                        } else {
-                            this.procesos = filter(procesos, proceso => {
-                                return proceso.aplicacion.valor.id === newValue.id;
-                            });
-                        }
-
-                        this.procesos.unshift({id: undefined, nombre: ''});
-                    });
-            }
-        });
-        const quitarWatcherProcesoFn = $scope.$watch('vm.paramsBusqueda.proceso', (newValue, oldValue) => {
-            this.etiquetasService.obtenerTodos()
-                .then(etiquetas => {
-                    if (isNil(newValue)) {
-                        delete this.paramsBusqueda.estado;
-                    }
-
-                    /** @type {Etiqueta[]} */
-                    this.etiquetas = this._filtrarEtiquetas(etiquetas);
-                });
-        });
-
-        const quitarWatcherEstadoInternoFn = $scope.$watch('vm.paramsBusqueda.estadoInterno', (newValue, oldValue) => {
-            this.etiquetasService.obtenerTodos()
-                .then(etiquetas => {
-                    if (newValue !== oldValue) {
-                        delete this.paramsBusqueda.estado;
-                    }
-
-                    this.etiquetas = this._filtrarEtiquetas(etiquetas);
-                });
-        });
-
         const deregisterFn = $scope.$on('$destroy', () => {
             this.peticionesService.reiniciarEstado();
-            quitarWatcherFn();
-            quitarWatcherProcesoFn();
-            quitarWatcherEstadoInternoFn();
             deregisterFn();
         });
 
     }
 
-    _filtrarEtiquetas(etiquetas) {
-        if (isNil(this.paramsBusqueda.proceso)) {
-            return [];
-        } else {
-            return  filter(etiquetas, etiqueta => {
-                let estadoValido = false;
-
-                if (this.paramsBusqueda.estadoInterno === AUTORIZACION_PENDIENTE) {
-                    estadoValido = !includes(etiqueta.estado, ETIQUETA_NOK);
-                } else if (this.paramsBusqueda.estadoInterno === AUTORIZACION_APROBADA) {
-                    estadoValido = !includes(etiqueta.estado, ETIQUETA_NOK) && etiqueta.estado !== '0';
-                } else if (this.paramsBusqueda.estadoInterno === AUTORIZACION_RECHAZADA) {
-                    estadoValido = includes(etiqueta.estado, ETIQUETA_NOK);
-                } else if (this.paramsBusqueda.estadoInterno === AUTORIZACION_ANULADA) {
-                    estadoValido = false;
-                }
-
-                return estadoValido && etiqueta.proceso.valor.id === this.paramsBusqueda.proceso.id;
-            });
-        }
-
+    toggleSelectorFecha(nombre) {
+        this[`popupFecha${nombre}Abierto`] = !this[`popupFecha${nombre}Abierto`];
     }
 
     /**
@@ -306,7 +250,7 @@ export default class PeticionesController {
     _procesarEntidadVisualizacion(entidad, idsSeleccionados) {
         let clon = clone(entidad);
 
-        clon.seleccionada = includes(idsSeleccionados, clon.id);
+        clon.seleccionada = includes(idsSeleccionados, clon.id) && entidad.estadoInterno === AUTORIZACION_PENDIENTE;
         clon.accionAdjuntos =  `<a href ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'adjuntos'})"
                                    class="icon-attachment" uib-tooltip="Adjuntos">
                                 </a><small class="ml-1 ${entidad.cantidadAdjuntos > 0 ? 'font-weight-bold' : 'text-muted'}">(${entidad.cantidadAdjuntos})</small>`;
@@ -322,7 +266,7 @@ export default class PeticionesController {
 
         clon.enlaceDetalles = `<a href target="_blank" class="icon-view-show d-print-none" ng-href="#/peticion/${entidad.id}" uib-tooltip="Ver Detalles"></a>`;
 
-        if (this.autorizador && this.paramsBusqueda.estadoInterno === AUTORIZACION_PENDIENTE) {
+        if (this.autorizador && entidad.estadoInterno === AUTORIZACION_PENDIENTE) {
             clon.checkbox = `<input type="checkbox" class="checkbox-visible" ng-model="elemento.seleccionada" uib-tooltip="Seleccionar">`;
             clon.accionAprobar = `<a href="" ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'aprobar'})" uib-tooltip="Aprobar">
                                 <span class="icon-checkmark text-success"></span>
@@ -339,6 +283,9 @@ export default class PeticionesController {
                                           ng-model-options="{ updateOn: 'blur' }"
                                           ng-change="$ctrl.fnAccion({entidad: elemento, accion: 'actualizar'})"></textarea>`;
         } else {
+            clon.checkbox = '';
+            clon.accionAprobar = '';
+            clon.accionRechazar = '';
             clon.observacionesInput = `<textarea 
                                             rows="3" 
                                             class="form-control"
@@ -351,7 +298,7 @@ export default class PeticionesController {
     }
 
     get datosAExportar() {
-        return this.busquedaActiva ? this.peticionesService.resultadosBusqueda : this.peticionesService.peticiones;
+        return this.peticionesService.peticiones;
     }
 
     /**
@@ -359,7 +306,7 @@ export default class PeticionesController {
      * @return {Number}
      */
     get totalItems() {
-        return this.busquedaActiva ? this.peticionesService.resultadosBusqueda.length : this.peticionesService.peticiones.length;
+        return this.peticionesService.peticiones.length;
     }
 
     /**
@@ -398,24 +345,24 @@ export default class PeticionesController {
     }
 
     /**
-     * Propiedad que devuelve true si no se está mostrando la lista completa de procesos en un momento determinado.
+     * Propiedad que devuelve true si no se está mostrando la lista completa de roles en un momento determinado.
      * @return {boolean}
      */
-    get mostrandoResultadosParcialesProcesos() {
-        return this.totalProcesos > this.ITEMS_SELECT + 1;
+    get mostrandoResultadosParcialesRoles() {
+        return this.totalRoles > this.ITEMS_SELECT + 1;
     }
 
     /**
-     * Filtra la lista de procesos según el string que haya escrito el usuario. Es case insensitive.
+     * Filtra la lista de roles según el string que haya escrito el usuario. Es case insensitive.
      * @param {string} busqueda
-     * @return {Proceso[]}
+     * @return {Rol[]}
      */
-    filtrarProcesos(busqueda) {
+    filtrarRoles(busqueda) {
         const busquedaLower = busqueda.toLowerCase();
-        const resultado = filter(this.procesos, (elemento) => {
-            return (busqueda && elemento.evento) ? includes(elemento.evento.toLowerCase(), busquedaLower) : true;
+        const resultado = filter(this.roles, (elemento) => {
+            return (busqueda && elemento.nombre) ? includes(elemento.nombre.toLowerCase(), busquedaLower) : true;
         });
-        this.totalProcesos = resultado.length;
+        this.totalRoles = resultado.length;
 
         if (resultado.length > this.ITEMS_SELECT + 1) {
             return resultado.slice(0, this.ITEMS_SELECT + 1);
@@ -461,7 +408,8 @@ export default class PeticionesController {
 
     actualizarPeticiones() {
         this.paginaActual = 1;
-        this.actualizarPagina(null, true);
+        this.paramsAnteriores = {};
+        this.buscar();
     }
 
     /**
@@ -479,21 +427,37 @@ export default class PeticionesController {
         });
     }
 
+    _generarStringEstados() {
+        let resultado = '';
+
+        forEach([['pendiente', AUTORIZACION_PENDIENTE], ['aprobada', AUTORIZACION_APROBADA], ['rechazada', AUTORIZACION_RECHAZADA], ['anulada', AUTORIZACION_ANULADA]], item => {
+            if (this.paramsBusqueda[item[0]]) {
+                resultado += `${resultado ? '_' : ''}${item[1]}`;
+            }
+        });
+
+        if (!resultado) {
+            return undefined;
+        }
+
+        return resultado;
+    }
+
     /**
      * Pide al API todas las peticiones que cumplan con los parámetros de búsqueda seleccionados por el usuario.
      */
-    buscar(orden, forzarActualizacion) {
+    buscar(orden) {
         // Si justo antes ya se había mandado a hacer una búsqueda exactamente igual, no se hace nada. Comprobando esto se
         // ahorran llamadas innecesarias al API.
         if (!isMatch(this.paramsAnteriores, this.paramsBusqueda)) {
             let filtroBusqueda = {
                 idAplicacion: get(this.paramsBusqueda, 'aplicacion.id'),
-                idProceso: get(this.paramsBusqueda, 'proceso.id'),
+                idRol: get(this.paramsBusqueda, 'rol.id'),
                 nInternoSolicitante: get(this.paramsBusqueda, 'solicitante.codigo'),
-                estado: this.paramsBusqueda.estado ? this.paramsBusqueda.estado.estado : undefined,
-                estadoInterno: this.paramsBusqueda.estadoInterno,
-                etiqueta: get(this.paramsBusqueda, 'estado.descripcion'),
-                tipoSolicitud: get(this.paramsBusqueda, 'tipoSolicitud.nombre')
+                estadosInternos: this._generarStringEstados(),
+                tipoSolicitud: get(this.paramsBusqueda, 'tipoSolicitud.nombre'),
+                fechaInicial: get(this.paramsBusqueda, 'fechaInicial') ? procesarFechaAEnviar(this.paramsBusqueda.fechaInicial) : undefined,
+                fechaFinal: get(this.paramsBusqueda, 'fechaFinal') ? procesarFechaAEnviar(this.paramsBusqueda.fechaFinal) : undefined
             };
 
             this.paramsAnteriores = cloneDeep(this.paramsBusqueda);
@@ -507,7 +471,7 @@ export default class PeticionesController {
             this.actualizacionEnProgreso = true;
             const idsSeleccionados = map(this.peticionesSeleccionadas, peticion => { return peticion.id });
             this.datos = null;
-            this.peticionesService.obtenerTodos(!this.autorizador, 1, orden, filtroBusqueda, forzarActualizacion)
+            this.peticionesService.obtenerTodos(!this.autorizador, 1, orden, filtroBusqueda)
                 .then(resultados => {
                     this.paginaActual = 1;
                     this.datos = map(resultados, peticion => {
@@ -539,16 +503,16 @@ export default class PeticionesController {
      */
     mostrarTodos(busquedaForm) {
         this.paramsBusqueda = {
-            estadoInterno: AUTORIZACION_PENDIENTE
+            pendiente: true
         };
         busquedaForm.$setPristine();
         busquedaForm.$setUntouched();
 
         // Si justo antes ya se había mandado a mostrar todos los resultados, no se hace nada. Comprobando esto se
         // ahorran llamadas innecesarias al API.
-        if (Object.getOwnPropertyNames(this.paramsAnteriores).length > 1 || this.paramsAnteriores.estadoInterno !== AUTORIZACION_PENDIENTE) {
+        if (Object.getOwnPropertyNames(this.paramsAnteriores).length > 1 || !this.paramsAnteriores.pendiente) {
             this.paramsAnteriores = {
-                estadoInterno: AUTORIZACION_PENDIENTE
+                pendiente: true
             };
 
             if (this.totalItems > this.ITEMS_POR_PAGINA) {
@@ -559,7 +523,7 @@ export default class PeticionesController {
             this.actualizacionEnProgreso = true;
             const idsSeleccionados = map(this.peticionesSeleccionadas, peticion => { return peticion.id });
             this.datos = null;
-            this.peticionesService.obtenerTodos(!this.autorizador, 1, null, this.paramsBusqueda)
+            this.peticionesService.obtenerTodos(!this.autorizador, 1, null, { estadosInternos: AUTORIZACION_PENDIENTE })
                 .then(resultados => {
                     this.paginaActual = 1;
                     this.datos = map(resultados, peticion => {
@@ -601,7 +565,7 @@ export default class PeticionesController {
         const idsSeleccionados = map(this.peticionesSeleccionadas, peticion => { return peticion.id });
         this.datos = null;
         this.procesando = true;
-        return this.peticionesService.obtenerTodos(!this.autorizador, this.paginaActual, orden, undefined, forzarActualizacion)
+        return this.peticionesService.obtenerTodos(!this.autorizador, this.paginaActual, orden)
             .then(peticiones => {
                 this.datos = map(peticiones, peticion => {
                     return this._procesarEntidadVisualizacion(peticion, idsSeleccionados);
@@ -662,7 +626,7 @@ export default class PeticionesController {
     cambiarSeleccion() {
         if (this.seleccionarTodos) {
             this.datos = map(this.datos, peticion => {
-                peticion.seleccionada = true;
+                peticion.seleccionada = peticion.estadoInterno === AUTORIZACION_PENDIENTE;
                 return peticion;
             });
         } else {
@@ -708,7 +672,7 @@ export default class PeticionesController {
                         this.seleccionarTodos = false;
                         this.cambiarSeleccion();
 
-                        const fnActualizarTabla = (datos) => {
+                        const fnActualizarTabla = (datos, peticionesConError) => {
                             const idsSeleccionados = map(this.peticionesSeleccionadas, peticion => { return peticion.id });
                             this.datos = map(datos, peticion => {
                                 return this._procesarEntidadVisualizacion(peticion, idsSeleccionados);
@@ -727,7 +691,8 @@ export default class PeticionesController {
                             const listaPeticionesTodaviaVisibles = reduce(peticiones, (resultado, peticion) => {
                                 const indiceCorrespondiente = findIndex(this.datos, ['id', peticion.id]);
                                 if (indiceCorrespondiente > -1) {
-                                    if (this.datos[indiceCorrespondiente].cantidadActividadesCompletadas > peticion.cantidadActividadesCompletadas) {
+                                    const indiceError = findIndex(peticionesConError, ['id', peticion.id]);
+                                    if (this.datos[indiceCorrespondiente].estadoInterno === AUTORIZACION_PENDIENTE && indiceError < 0) {
                                         resultado += `<li>
                                                         <strong>${peticion.id}</strong>
                                                       </li>`;
@@ -771,7 +736,7 @@ export default class PeticionesController {
                             this.toastr.success(message);
 
                             this.paginaActual = resultado.pagina;
-                            fnActualizarTabla(resultado.peticiones);
+                            fnActualizarTabla(resultado.peticiones, []);
                             resolve();
                         }).catch(error => {
                             resolve();
@@ -801,7 +766,7 @@ export default class PeticionesController {
                                     iconClass: 'toast-warning alerta-peticiones',
                                     onHidden: () => {
                                         this.paginaActual = error.pagina;
-                                        fnActualizarTabla(error.peticiones);
+                                        fnActualizarTabla(error.peticiones, error.peticionesConError);
                                     }
                                 });
                             } else {
@@ -856,8 +821,7 @@ export default class PeticionesController {
                         let forzarActualizacion = false;
 
                         // Si es la última página y ya no tiene elementos, hay que cambiar de página
-                        if (this.paginaActual > 1 && ( (this.busquedaActiva && inicio >= this.peticionesService.resultadosBusqueda.length)
-                            || inicio >= this.peticionesService.peticiones.length) ) {
+                        if (this.paginaActual > 1 && inicio >= this.peticionesService.peticiones.length) {
                             this.paginaActual -= 1;
                             forzarActualizacion = true;
                         }

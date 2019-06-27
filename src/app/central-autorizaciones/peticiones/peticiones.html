@@ -23,25 +23,6 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="form-group col-lg form-row">
-                            <label for="procesoBusqueda" class="col-sm-3 col-form-label">Proceso</label>
-                            <div class="col-sm-9">
-                                <ui-select ng-model="vm.paramsBusqueda.proceso" name="proceso" input-id="procesoBusqueda" ng-animate-children="false">
-                                    <ui-select-match placeholder="Seleccione o busque un proceso">
-                                        <span ng-bind="$select.selected.evento"></span>
-                                    </ui-select-match>
-                                    <ui-select-choices repeat="proceso in vm.filtrarProcesos($select.search) track by proceso.id">
-                                        <span ng-bind-html="proceso.evento | highlight: $select.search"></span>
-                                    </ui-select-choices>
-                                    <ui-select-footer class="text-muted" >
-                                        <span ng-show="vm.mostrandoResultadosParcialesProcesos">Demasiados resultados, debe refinar la búsqueda</span>
-                                    </ui-select-footer>
-                                </ui-select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
                         <div class="form-group form-row col-lg">
                             <label for="tipoSolicitudBusqueda" class="col-sm-3 col-form-label">Tipo de Solicitud</label>
                             <div class="col-sm-9">
@@ -58,20 +39,64 @@
                                 </ui-select>
                             </div>
                         </div>
+                    </div>
+
+                    <div class="form-row">
                         <div class="form-group form-row col-lg">
-                            <label for="estadoBusqueda" class="col-sm-3 col-form-label">Etiqueta</label>
+                            <label for="fechaInicioBusqueda" class="col-sm-3 col-form-label">Fecha Desde</label>
                             <div class="col-sm-9">
-                                <select class="form-control" id="estadoBusqueda" name="estado" ng-model="vm.paramsBusqueda.estado"
-                                        ng-options="etiqueta.descripcion for etiqueta in vm.etiquetas track by etiqueta.id"
-                                        ng-disabled="!vm.paramsBusqueda.proceso">
-                                    <option></option>
-                                </select>
+                                <div class="selector-fecha input-group">
+                                    <input id="fechaInicioBusqueda"
+                                           name="fechaInicial"
+                                           class="form-control"
+                                           type="text"
+                                           placeholder="Fecha"
+                                           ng-model="vm.paramsBusqueda.fechaInicial"
+                                           ng-model-options="{timezone: 'utc'}"
+                                           is-open="vm.popupFechaInicialAbierto"
+                                           uib-datepicker-popup="dd/MM/yyyy"
+                                           datepicker-options="{showWeeks: false, maxDate: vm.paramsBusqueda.fechaFinal}"
+                                           clear-text="Reiniciar"
+                                           close-text="Cerrar"
+                                           current-text="Hoy"
+                                           popup-placement="auto bottom-right">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-calendario icon-calendar" type="button" ng-click="vm.toggleSelectorFecha('Inicial')"
+                                                uib-tooltip="Seleccionar fecha"></button>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="form-group form-row col-lg">
+                            <label for="fechaFinalBusqueda" class="col-sm-3 col-form-label">Fecha Hasta</label>
+                            <div class="col-sm-9">
+                                <div class="selector-fecha input-group">
+                                    <input id="fechaFinalBusqueda"
+                                           name="fechaFinal"
+                                           class="form-control"
+                                           type="text"
+                                           placeholder="Fecha"
+                                           ng-model="vm.paramsBusqueda.fechaFinal"
+                                           ng-model-options="{timezone: 'utc'}"
+                                           is-open="vm.popupFechaFinalAbierto"
+                                           uib-datepicker-popup="dd/MM/yyyy"
+                                           datepicker-options="{showWeeks: false, minDate: vm.paramsBusqueda.fechaInicial}"
+                                           clear-text="Reiniciar"
+                                           close-text="Cerrar"
+                                           current-text="Hoy"
+                                           popup-placement="auto bottom-right">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-calendario icon-calendar" type="button" ng-click="vm.toggleSelectorFecha('Final')"
+                                                uib-tooltip="Seleccionar fecha"></button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="form-row">
-                        <div class="form-group col-lg form-row" ng-if=":: vm.autorizador">
+                    <div class="form-row" ng-if=":: vm.autorizador">
+                        <div class="form-group col-lg form-row">
                             <label for="solicitanteParaBusqueda" class="col-sm-3 col-form-label">Solicitante</label>
                             <div class="col-sm-9">
                                 <ui-select ng-model="vm.paramsBusqueda.solicitante" name="solicitante" input-id="solicitanteParaBusqueda" ng-animate-children="false">
@@ -90,32 +115,51 @@
                             </div>
                         </div>
 
+                        <div class="form-group col-lg form-row">
+                            <label for="rolBusqueda" class="col-sm-3 col-form-label">Rol</label>
+                            <div class="col-sm-9">
+                                <ui-select ng-model="vm.paramsBusqueda.rol" name="rol" input-id="rolBusqueda" ng-animate-children="false">
+                                    <ui-select-match placeholder="Seleccione o busque un rol">
+                                        <span ng-bind="$select.selected.nombre"></span>
+                                    </ui-select-match>
+                                    <ui-select-choices repeat="rol in vm.filtrarRoles($select.search) track by rol.id">
+                                        <span ng-bind-html="rol.nombre | highlight: $select.search"></span>
+                                    </ui-select-choices>
+                                    <ui-select-footer class="text-muted" >
+                                        <span ng-show="vm.mostrandoResultadosParcialesRoles">Demasiados resultados, debe refinar la búsqueda</span>
+                                    </ui-select-footer>
+                                </ui-select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
                         <div class="form-group form-row col-lg align-items-center">
                             <label class="col-sm-3 col-form-label">Estado</label>
                             <div class="col-sm-9 pl-2 fila-estados">
                                 <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="estado" id="estadoPendiente" ng-value=":: vm.AUTORIZACION_PENDIENTE"
-                                           ng-model="vm.paramsBusqueda.estadoInterno">
+                                    <input class="form-check-input" type="checkbox" name="estado" id="estadoPendiente" ng-value=":: vm.AUTORIZACION_PENDIENTE"
+                                           ng-model="vm.paramsBusqueda.pendiente">
                                     <label class="form-check-label" for="estadoPendiente" ng-bind=":: vm.ETIQUETA_PENDIENTE"></label>
                                 </div>
                                 <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="estado" id="estadoAprobado" ng-value=":: vm.AUTORIZACION_APROBADA"
-                                           ng-model="vm.paramsBusqueda.estadoInterno">
+                                    <input class="form-check-input" type="checkbox" name="estado" id="estadoAprobado" ng-value=":: vm.AUTORIZACION_APROBADA"
+                                           ng-model="vm.paramsBusqueda.aprobada">
                                     <label class="form-check-label" for="estadoAprobado" ng-bind=":: vm.ETIQUETA_OK_DESC"></label>
                                 </div>
                                 <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="estado" id="estadoRechazado" ng-value=":: vm.AUTORIZACION_RECHAZADA"
-                                           ng-model="vm.paramsBusqueda.estadoInterno">
+                                    <input class="form-check-input" type="checkbox" name="estado" id="estadoRechazado" ng-value=":: vm.AUTORIZACION_RECHAZADA"
+                                           ng-model="vm.paramsBusqueda.rechazada">
                                     <label class="form-check-label" for="estadoRechazado" ng-bind=":: vm.ETIQUETA_NOK_DESC"></label>
                                 </div>
                                 <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="estado" id="estadoAnulado" ng-value=":: vm.AUTORIZACION_ANULADA"
-                                           ng-model="vm.paramsBusqueda.estadoInterno">
+                                    <input class="form-check-input" type="checkbox" name="estado" id="estadoAnulado" ng-value=":: vm.AUTORIZACION_ANULADA"
+                                           ng-model="vm.paramsBusqueda.anulada">
                                     <label class="form-check-label" for="estadoAnulado" ng-bind=":: vm.ETIQUETA_ANULADO"></label>
                                 </div>
                             </div>
                         </div>
-                        <div class="form-group col-lg form-row" ng-if=":: !vm.autorizador"></div>
+                        <div class="form-group col-lg form-row"></div>
                     </div>
 
                     <div class="form-row mr-0 contenedor-botones">
@@ -136,12 +180,12 @@
             <div class="col-xl-9 contenedor-botones flex-column flex-lg-row">
                 <div class="d-flex flex-column flex-lg-row justify-content-between">
                     <button type="button" class="btn btn-success mr-0 mr-lg-2" ng-click="vm.aprobarPeticiones()"
-                            ng-show="!vm.mostrarSoloLectura"
+                            ng-if=":: vm.autorizador"
                             ng-disabled="vm.peticionesSeleccionadas.length === 0 || vm.procesando">
                         <span class="icon-checkmark"></span> Aprobar Seleccionadas
                     </button>
                     <button type="button" class="btn btn-danger mr-0 mr-lg-2" ng-click="vm.rechazarPeticiones()"
-                            ng-show="!vm.mostrarSoloLectura"
+                            ng-if=":: vm.autorizador"
                             ng-disabled="vm.peticionesSeleccionadas.length === 0 || vm.procesando">
                         <span class="icon-cross"></span> Rechazar Seleccionadas
                     </button>
@@ -159,7 +203,7 @@
 
         <div class="row">
             <div class="col-xl-9">
-                <div class="d-flex align-items-center mb-3 mb-md-0" ng-show="!vm.mostrarSoloLectura">
+                <div class="d-flex align-items-center mb-3 mb-md-0" ng-if=":: vm.autorizador">
                     <input type="checkbox" id="seleccionarTodo" class="checkbox-visible mr-2 checkbox-seleccionar-todo" ng-model="vm.seleccionarTodos" ng-change="vm.cambiarSeleccion()"
                     uib-tooltip="{{ vm.seleccionarTodos ? 'Limpiar selección' : 'Seleccionar todos' }}">
                     <label class="form-check-label d-block d-md-none" for="seleccionarTodo">

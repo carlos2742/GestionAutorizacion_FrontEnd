@@ -147,7 +147,7 @@ export default class Roles {
     obtenerTodos(soloActivos) {
         const fnRetorno = () => {
             // Por defecto se devuelven los roles ordenadas ascendentemente por el campo "nombre"
-            let resultado = sortBy(this.roles, 'nombre');
+            let resultado = sortBy(this.roles, ['nombre']);
 
             if (isNil(soloActivos) || soloActivos) {
                 return filter(resultado, (entidad) => {
