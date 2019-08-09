@@ -451,6 +451,7 @@ export default class PeticionesController {
         // ahorran llamadas innecesarias al API.
         if (!isMatch(this.paramsAnteriores, this.paramsBusqueda)) {
             let filtroBusqueda = {
+                idPeticion:  get(this.paramsBusqueda, 'idPeticion'),
                 idAplicacion: get(this.paramsBusqueda, 'aplicacion.id'),
                 idRol: get(this.paramsBusqueda, 'rol.id'),
                 nInternoSolicitante: get(this.paramsBusqueda, 'solicitante.codigo'),

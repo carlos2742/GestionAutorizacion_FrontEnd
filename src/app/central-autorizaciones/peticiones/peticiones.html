@@ -15,6 +15,44 @@
                 <form id="busquedaPeticionesForm" name="busquedaPeticionesForm" novalidate>
                     <div class="form-row">
                         <div class="form-group form-row col-lg">
+                            <label for="idBusqueda" class="col-sm-3 col-form-label pr-0">ID</label>
+                            <div class="col-sm-9">
+                                <input id="idBusqueda"
+                                       name="idPeticion"
+                                       class="form-control"
+                                       type="text"
+                                       placeholder="ID"
+                                       ng-model="vm.paramsBusqueda.idPeticion">
+                            </div>
+                        </div>
+                        <div class="form-group form-row col-lg align-items-center">
+                            <label class="col-sm-3 col-form-label">Estado</label>
+                            <div class="col-sm-9 pl-2 fila-estados">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" name="estado" id="estadoPendiente" ng-value=":: vm.AUTORIZACION_PENDIENTE"
+                                           ng-model="vm.paramsBusqueda.pendiente">
+                                    <label class="form-check-label" for="estadoPendiente" ng-bind=":: vm.ETIQUETA_PENDIENTE"></label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" name="estado" id="estadoAprobado" ng-value=":: vm.AUTORIZACION_APROBADA"
+                                           ng-model="vm.paramsBusqueda.aprobada">
+                                    <label class="form-check-label" for="estadoAprobado" ng-bind=":: vm.ETIQUETA_OK_DESC"></label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" name="estado" id="estadoRechazado" ng-value=":: vm.AUTORIZACION_RECHAZADA"
+                                           ng-model="vm.paramsBusqueda.rechazada">
+                                    <label class="form-check-label" for="estadoRechazado" ng-bind=":: vm.ETIQUETA_NOK_DESC"></label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" name="estado" id="estadoAnulado" ng-value=":: vm.AUTORIZACION_ANULADA"
+                                           ng-model="vm.paramsBusqueda.anulada">
+                                    <label class="form-check-label" for="estadoAnulado" ng-bind=":: vm.ETIQUETA_ANULADO"></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group form-row col-lg">
                             <label for="aplicacionBusqueda" class="col-sm-3 col-form-label">Aplicación</label>
                             <div class="col-sm-9">
                                 <select class="form-control" id="aplicacionBusqueda" name="aplicacion" ng-model="vm.paramsBusqueda.aplicacion"
@@ -131,35 +169,6 @@
                                 </ui-select>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group form-row col-lg align-items-center">
-                            <label class="col-sm-3 col-form-label">Estado</label>
-                            <div class="col-sm-9 pl-2 fila-estados">
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="checkbox" name="estado" id="estadoPendiente" ng-value=":: vm.AUTORIZACION_PENDIENTE"
-                                           ng-model="vm.paramsBusqueda.pendiente">
-                                    <label class="form-check-label" for="estadoPendiente" ng-bind=":: vm.ETIQUETA_PENDIENTE"></label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="checkbox" name="estado" id="estadoAprobado" ng-value=":: vm.AUTORIZACION_APROBADA"
-                                           ng-model="vm.paramsBusqueda.aprobada">
-                                    <label class="form-check-label" for="estadoAprobado" ng-bind=":: vm.ETIQUETA_OK_DESC"></label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="checkbox" name="estado" id="estadoRechazado" ng-value=":: vm.AUTORIZACION_RECHAZADA"
-                                           ng-model="vm.paramsBusqueda.rechazada">
-                                    <label class="form-check-label" for="estadoRechazado" ng-bind=":: vm.ETIQUETA_NOK_DESC"></label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="checkbox" name="estado" id="estadoAnulado" ng-value=":: vm.AUTORIZACION_ANULADA"
-                                           ng-model="vm.paramsBusqueda.anulada">
-                                    <label class="form-check-label" for="estadoAnulado" ng-bind=":: vm.ETIQUETA_ANULADO"></label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-group col-lg form-row"></div>
                     </div>
 
                     <div class="form-row mr-0 contenedor-botones">
