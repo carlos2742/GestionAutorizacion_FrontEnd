@@ -242,9 +242,13 @@
                     <div class="card-body empty" ng-show="!vm.peticionSeleccionada">
                         <p class="text-muted">Seleccione una petición para ver sus detalles.</p>
                     </div>
-                    <div class="card-header" ng-show="vm.peticionSeleccionada.enlaceOrigen">Detalles</div>
-                    <div class="card-body" ng-show="vm.peticionSeleccionada.enlaceOrigen">
-                        <div class="row">
+                    <div class="card-header" ng-show="vm.peticionSeleccionada.fechaCreacion.valor || vm.peticionSeleccionada.enlaceOrigen">Detalles</div>
+                    <div class="card-body" ng-show="vm.peticionSeleccionada.fechaCreacion.valor || vm.peticionSeleccionada.enlaceOrigen">
+                        <div class="row" ng-show="vm.peticionSeleccionada.fechaCreacion.valor">
+                            <label class="col-5 text-right">Fecha Creación</label>
+                            <p class="ml-3" ng-bind="vm.peticionSeleccionada.fechaCreacion.display"></p>
+                        </div>
+                        <div class="row" ng-show="vm.peticionSeleccionada.enlaceOrigen">
                             <label class="col-5 text-right">Enlace Origen</label>
                             <p class="col-7 contenedor-enlace-origen"><a target="_blank" ng-href="{{ vm.peticionSeleccionada.enlaceOrigen }}" ng-bind="vm.peticionSeleccionada.enlaceOrigen"></a></p>
                         </div>

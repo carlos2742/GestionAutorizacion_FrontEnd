@@ -2,6 +2,7 @@ import isNil from 'lodash/isNil';
 import isUndefined from 'lodash/isUndefined';
 import startsWith from 'lodash/startsWith';
 import includes from 'lodash/includes';
+import get from 'lodash/get';
 
 import {ERROR_GENERAL, ERROR_DE_VALIDACION, ELEMENTO_YA_EXISTE} from "../constantes";
 
@@ -108,7 +109,9 @@ export default function apiInterceptor($rootScope, $q, $injector, $location, App
                     response.data = response.data.data;
                 }
 
-                $rootScope.$emit('GestionAutorizacionAPI:response', response.config.method);
+                if (!get(response, 'config.params.batch')) {
+                    $rootScope.$emit('GestionAutorizacionAPI:response', response.config.method);
+                }
             }
             return response;
         },
@@ -117,7 +120,9 @@ export default function apiInterceptor($rootScope, $q, $injector, $location, App
             rejection.error = rejection.data;
             rejection.data = null;
 
-            $rootScope.$emit('GestionAutorizacionAPI:responseError', rejection.config.method);
+            if (!get(rejection, 'config.params.batch')) {
+                $rootScope.$emit('GestionAutorizacionAPI:responseError', rejection.config.method);
+            }
 
             if (!toastr) {
                 // Es necesario instanciarlo aquí para que no dé un problema de dependencia circular

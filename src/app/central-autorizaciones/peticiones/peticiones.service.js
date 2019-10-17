@@ -49,6 +49,9 @@ export default class PeticionesService {
      * @property {Object} estado                    -  Estado actual de la petición.
      * @property {Object} estado.valor              -  Su valor actual.
      * @property {string} estado.display            -  Cómo debe representarse.
+     * @property {Object} fechaCreacion             -  Fecha de creación de la petición.
+     * @property {Date} fechaCreacion.valor         -  Su valor actual.
+     * @property {string} fechaCreacion.display     -  Cómo debe representarse esta fecha.
      * @property {Object} fechaNecesaria            -  Fecha necesaria de la petición.
      * @property {Date} fechaNecesaria.valor        -  Su valor actual.
      * @property {string} fechaNecesaria.display    -  Cómo debe representarse esta fecha.
@@ -149,7 +152,7 @@ export default class PeticionesService {
                     valor: personaProcesada,
                     display: personaProcesada ? personaProcesada.nombreApellidos : ''
                 };
-            } else if (prop === 'fechaNecesaria') {
+            } else if (prop === 'fechaCreacion' || prop === 'fechaNecesaria') {
                 const fechaNecesariaObj = entidad[prop] ? new Date(Date.parse(entidad[prop])) : null;
                 peticionProcesada[prop] = {
                     valor: fechaNecesariaObj,
@@ -313,19 +316,26 @@ export default class PeticionesService {
      * @param {[string, string]} orden      -  Cómo deben estar ordenados los resultados.
      * @param filtro                        -  Se puede usar para filtrar los resultados por varios campos.
      * @param {number} elementosPorPagina   -  Cantidad de peticiones que se desea recibir en una página.
+     * @param {boolean} persistirResultado
+     * @param {boolean} batch
      * @return {Promise.<Peticion[]>}       -  Se resuelve con el arreglo de peticiones que corresponden a una página determinada.
      */
-    obtenerTodos(peticionesPropias, pagina, orden, filtro, elementosPorPagina) {
+    obtenerTodos(peticionesPropias, pagina, orden, filtro, elementosPorPagina, persistirResultado, batch) {
         let cambioOrden = false;
-        if (!isNil(orden) && (isNil(this.ordenActivo) || orden[0] !== this.ordenActivo[0] || orden[1] !== this.ordenActivo[1])) {
-            this.ordenActivo = orden;
-            cambioOrden = true;
+        const guardarCambios = isNil(persistirResultado) || persistirResultado;
+
+        if (guardarCambios) {
+            if (!isNil(orden) && (isNil(this.ordenActivo) || orden[0] !== this.ordenActivo[0] || orden[1] !== this.ordenActivo[1])) {
+                this.ordenActivo = orden;
+                cambioOrden = true;
+            }
+
+            if (!isUndefined(filtro)) {
+                this.filtrosBusqueda = filtro;
+            }
         }
 
-        if (!isUndefined(filtro)) {
-            this.filtrosBusqueda = filtro;
-        }
-        return this._obtenerServidor(peticionesPropias, pagina, cambioOrden, this.filtrosBusqueda, elementosPorPagina);
+        return this._obtenerServidor(peticionesPropias, pagina, cambioOrden, this.filtrosBusqueda, elementosPorPagina, persistirResultado, batch);
     }
 
     obtenerTiposSolicitud() {
@@ -454,6 +464,7 @@ export default class PeticionesService {
                 'id': peticion.id,
                 'proceso': peticion.proceso.valor.id,
                 'estado': peticion.estado.valor,
+                'fechaCreacion': procesarFechaAEnviar(peticion.fechaCreacion.valor),
                 'fechaNecesaria': procesarFechaAEnviar(peticion.fechaNecesaria.valor),
                 'observaciones': peticion.observaciones,
                 'solicitante': peticion.solicitante.valor.nInterno
@@ -536,16 +547,20 @@ export default class PeticionesService {
      * @param {boolean} cambioOrden         -  Verdadero si el orden de las peticiones fue cambiado.
      * @param filtro                        -  Se puede usar para filtrar los resultados por varios campos.
      * @param {number} elementosPorPagina   -  Cantidad de peticiones que se desea recibir en una página.
+     * @param {boolean} persistirResultado
+     * @param {boolean} batch
      * @return {Promise.<Peticion[]>}       -  Se resuelve con el arreglo de peticiones que corresponden a una página determinada.
      */
-    _obtenerServidor(peticionesPropias, pagina, cambioOrden, filtro, elementosPorPagina) {
+    _obtenerServidor(peticionesPropias, pagina, cambioOrden, filtro, elementosPorPagina, persistirResultado, batch) {
         let totalPeticiones = 0;
         const paginaActual = !isNil(pagina) ? pagina : 1;
         const fin = paginaActual * this.AppConfig.elementosPorPagina;
         const inicio = fin - this.AppConfig.elementosPorPagina;
 
+        const guardarCambios = isNil(persistirResultado) || persistirResultado;
+
         let ordenarPor;
-        if (cambioOrden) {
+        if (guardarCambios && cambioOrden) {
             this.peticiones = [];
         }
         if (!isNil(this.ordenActivo)) {
@@ -559,18 +574,21 @@ export default class PeticionesService {
             paginaActual,
             elementosPorPagina: !isNil(elementosPorPagina) ? elementosPorPagina : this.AppConfig.elementosPorPagina,
             ordenarPor,
-            peticionesPropias
+            peticionesPropias,
+            batch
         };
 
         return this.$q.all([
             this.$http.get(this.ENDPOINT, { params: assign(params, filtro) }),
             this.etiquetasService.obtenerTodos()
         ]).then(resultado => {
-            totalPeticiones = resultado[0].metadata.cantidadTotal;
             const peticiones = map(resultado[0].data, peticion => {
                 return this.procesarEntidadRecibida(peticion, resultado[1]);
             });
-            this._procesarResultadosPaginados(peticiones, totalPeticiones, inicio);
+            if (guardarCambios) {
+                totalPeticiones = resultado[0].metadata.cantidadTotal;
+                this._procesarResultadosPaginados(peticiones, totalPeticiones, inicio);
+            }
             return peticiones;
         });
     }

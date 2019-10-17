@@ -34,6 +34,7 @@ import {procesarFechaAEnviar} from "../../common/utiles";
 export default class PeticionesController {
 
     /**
+     * @param $rootScope
      * @param $scope
      * @param $q
      * @param $timeout
@@ -51,7 +52,7 @@ export default class PeticionesController {
      * @param AppConfig
      * @param autorizador
      **/
-    constructor($scope, $q, $timeout, $location, $uibModal, toastr, PeticionesService, AdjuntosService, MensajesService,
+    constructor($rootScope, $scope, $q, $timeout, $location, $uibModal, toastr, PeticionesService, AdjuntosService, MensajesService,
                 AplicacionesService, RolesService, EtiquetasService, PersonalService, SesionService, AppConfig, autorizador) {
         /** @type {number} */
         this.ITEMS_POR_PAGINA = AppConfig.elementosPorPagina;
@@ -103,6 +104,8 @@ export default class PeticionesController {
         /** @type {boolean} */
         this.autorizador = autorizador;
 
+        /** @private */
+        this.$rootScope = $rootScope;
         /** @private */
         this.$scope = $scope;
         /** @private */
@@ -609,11 +612,16 @@ export default class PeticionesController {
         let totalPaginas = Math.ceil(this.datosAExportar.length / this.ITEMS_POR_PAGINA_EXCEL);
         let promesasObtencion = [];
         for (let i=1; i <= totalPaginas; i++) {
-            promesasObtencion.push(this.peticionesService.obtenerTodos(!this.autorizador, i, undefined, undefined, this.ITEMS_POR_PAGINA_EXCEL));
+            promesasObtencion.push(this.peticionesService.obtenerTodos(!this.autorizador, i, undefined, undefined, this.ITEMS_POR_PAGINA_EXCEL, false, true));
         }
         return this.$q.all(promesasObtencion)
             .then(resultado => {
+                this.$rootScope.$emit('GestionAutorizacionAPI:response');
                 return concat([], ...resultado);
+            })
+            .catch(error => {
+                this.$rootScope.$emit('GestionAutorizacionAPI:responseError');
+                throw error;
             });
     }
 

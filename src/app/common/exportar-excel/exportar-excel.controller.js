@@ -73,6 +73,7 @@ export class ModalExcelController {
 
     /* @ngInject */
     /**
+     * @param $timeout
      * @param $rootScope
      * @param $uibModalInstance
      * @param toastr
@@ -81,7 +82,9 @@ export class ModalExcelController {
      * @param fnObtencionDatos
      *
      */
-    constructor($rootScope, $uibModalInstance, toastr, datos, propiedades, fnObtencionDatos) {
+    constructor($timeout, $rootScope, $uibModalInstance, toastr, datos, propiedades, fnObtencionDatos) {
+        /** @private */
+        this.$timeout = $timeout;
         /** @private */
         this.$rootScope = $rootScope;
         /** @private */
@@ -112,7 +115,7 @@ export class ModalExcelController {
 
         this.exportacionEnProgreso = true;
         // Se simula una llamada al API para que la animación en el botón funcione
-        this.$rootScope.$emit('GestionAutorizacionAPI:request');
+        this.$rootScope.$emit('GestionAutorizacionAPI:request', 'POST');
 
         const fnZipcelx = (datos) => {
             let celdas = this._generarDatosExcel(datos);
@@ -138,6 +141,9 @@ export class ModalExcelController {
             return this.fnObtencionDatos()
                 .then(datos => {
                     return fnZipcelx(datos);
+                })
+                .catch(() => {
+                    this.$timeout(() => { this.$uibModalInstance.close(); });
                 })
         } else if (!isNil(this.datos)) {
             return fnZipcelx(this.datos);
