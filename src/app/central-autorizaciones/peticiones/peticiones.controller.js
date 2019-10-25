@@ -856,10 +856,18 @@ export default class PeticionesController {
     mostrarPopupAdjuntos(entidad) {
         const contenedor = angular.element(document.getElementById("modalAdjuntosPeticion"));
         this.adjuntosService.mostrar(entidad, { contenedor, modoEdicion: true, modoAutorizador: this.autorizador })
-            .then(adjuntos => {
-                if (!isNil(adjuntos)) {
-                    entidad.adjuntos = adjuntos;
-                    entidad.cantidadAdjuntos = adjuntos.length;
+            .then(resultado => {
+                if (!isNil(resultado.adjuntos)) {
+                    entidad.adjuntos = resultado.adjuntos;
+                    entidad.cantidadAdjuntos = resultado.adjuntos.length;
+
+                    if (resultado.mensajes.length > 0) {
+                        entidad.fechaUltimoMensaje = {
+                            valor: resultado.mensajes[0].fechaEnvio.valor,
+                            display: format(resultado.mensajes[0].fechaEnvio.valor, `${this.AppConfig.formatoFechas} HH:mm:ss`)
+                        };
+                    }
+
                     const indiceEntidadCambiada = findIndex(this.datos, ['codigo', entidad.codigo]);
                     if (indiceEntidadCambiada > -1) {
                         const idsSeleccionados = map(this.peticionesSeleccionadas, peticion => { return peticion.id; });

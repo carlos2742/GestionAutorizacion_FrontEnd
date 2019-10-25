@@ -19,6 +19,7 @@ export default class ModalAdjuntosController {
      * @param FileUploader
      * @param {AdjuntosService} AdjuntosService
      * @param {PeticionesService} PeticionesService
+     * @param {MensajesService} MensajesService
      * @param {SesionService} SesionService
      * @param AppConfig
      * @param {Peticion} peticion
@@ -27,7 +28,7 @@ export default class ModalAdjuntosController {
      * @param {function} fnAccion
      * @param {function} fnResolucion
      */
-    constructor($uibModalInstance, $scope, toastr, FileUploader, AdjuntosService, PeticionesService, SesionService, AppConfig,
+    constructor($uibModalInstance, $scope, toastr, FileUploader, AdjuntosService, PeticionesService, MensajesService, SesionService, AppConfig,
                 peticion, modoEdicion, modoAutorizador, fnAccion, fnResolucion) {
         /** @private */
         this.$uibModalInstance = $uibModalInstance;
@@ -36,9 +37,14 @@ export default class ModalAdjuntosController {
         /** @private */
         this.adjuntosService = AdjuntosService;
         /** @private */
+        this.mensajesService = MensajesService;
+        /** @private */
         this.peticionesService = PeticionesService;
         /** @private */
         this.peticion = peticion;
+        if (isNil(this.peticion.mensajes)) {
+            this.peticion.mensajes = [];
+        }
         /** @type {boolean} */
         this.modoEdicion = modoEdicion;
         /** @type {boolean} */
@@ -64,6 +70,7 @@ export default class ModalAdjuntosController {
         this.presentacion = this._presentacionTabla();
         /** @type {Adjunto[]} */
         this.adjuntos = null;
+        this.mensajes = [];
         this._listaAdjuntos();
 
         this.uploader = new FileUploader({
@@ -86,6 +93,12 @@ export default class ModalAdjuntosController {
                 let adjunto = this._procesarAdjunto(response.data);
                 this.adjuntos = this.adjuntos.concat(adjunto);
                 this.toastr.success(adjunto.nombre, 'Adjunto añadido');
+
+                // Se envía un mensaje a la conversación de la petición notificando que se ha subido un adjunto
+                this.mensajesService.enviarMensaje(`${this.mensajesService.MENSAJE_NUEVO_ADJUNTO} "${adjunto.nombre}"`, this.peticion)
+                    .then(mensaje => {
+                        this.mensajes.unshift(mensaje);
+                    });
             },
             onWhenAddingFileFailed: (item, filter) => {
                 if(filter.name === "queueLimit") {
@@ -141,7 +154,7 @@ export default class ModalAdjuntosController {
 
         // Cuando se cierra el modal, por el motivo que sea, resuelve la promesa con la lista de adjuntos.
         let deregister = $scope.$on('modal.closing', () => {
-            fnResolucion(this.adjuntos);
+            fnResolucion({adjuntos: this.adjuntos, mensajes: this.mensajes});
             deregister();
         });
     }

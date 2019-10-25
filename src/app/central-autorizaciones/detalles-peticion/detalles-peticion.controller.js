@@ -108,6 +108,12 @@ export default class DetallesPeticionController {
                 let adjunto = this._procesarAdjunto(response.data);
                 this.adjuntos = this.adjuntos.concat(adjunto);
                 this.toastr.success(adjunto.nombre, 'Adjunto añadido');
+
+                // Se envía un mensaje a la conversación de la petición notificando que se ha subido un adjunto
+                this.mensajesService.enviarMensaje(`${this.mensajesService.MENSAJE_NUEVO_ADJUNTO} "${adjunto.nombre}"`, this.peticion)
+                    .then(() => {
+                        this.mensajes = clone(this.peticion.mensajes);
+                    });
             },
             onWhenAddingFileFailed: (item, filter) => {
                 if(filter.name === 'queueLimit') {

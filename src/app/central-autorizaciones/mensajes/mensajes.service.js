@@ -40,6 +40,8 @@ export default class MensajesService {
         /** @type {string} */
         this.ENDPOINT = '/mensajes';
 
+        this.MENSAJE_NUEVO_ADJUNTO = 'Se ha subido el adjunto';
+
         /** @private */
         this.$q = $q;
         /** @private */
@@ -130,7 +132,7 @@ export default class MensajesService {
             mensajeCreado.enviadoPor = this.usuario;
             const mensajeProcesado = this.procesarEntidadRecibida(mensajeCreado, peticion);
             peticion.mensajes.push(mensajeProcesado);
-            peticion.cantidadMensajes = peticion.mensajes.length;
+            peticion.cantidadMensajes += 1;
             return mensajeProcesado;
         });
     }
