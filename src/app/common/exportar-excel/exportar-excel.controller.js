@@ -81,6 +81,7 @@ export class ModalExcelController {
     /**
      * @param $timeout
      * @param $rootScope
+     * @param $scope
      * @param $uibModalInstance
      * @param toastr
      * @param AppConfig
@@ -89,7 +90,7 @@ export class ModalExcelController {
      * @param fnObtencionDatos
      * @param datosObtenidos
      */
-    constructor($timeout, $rootScope, $uibModalInstance, toastr, AppConfig, datos, propiedades, fnObtencionDatos, datosObtenidos) {
+    constructor($timeout, $rootScope, $scope, $uibModalInstance, toastr, AppConfig, datos, propiedades, fnObtencionDatos, datosObtenidos) {
         /** @private */
         this.ITEMS_POR_PAGINA_EXCEL = AppConfig.elementosPorPaginaParaExcel;
         /** @private */

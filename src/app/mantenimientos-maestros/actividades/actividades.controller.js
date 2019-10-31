@@ -4,11 +4,11 @@ import find from 'lodash/find';
 import findIndex from 'lodash/findIndex';
 import clone from 'lodash/clone';
 import cloneDeep from 'lodash/cloneDeep';
-import concat from 'lodash/concat';
 import isMatch from 'lodash/isMatch';
 import filter from 'lodash/filter';
 import includes from 'lodash/includes';
 import get from 'lodash/get';
+import reduce from 'lodash/reduce';
 
 import './actividades.scss';
 import templateModal from './modal-edicion-actividades.html';
@@ -327,11 +327,19 @@ export default class ActividadesController {
         let totalPaginas = Math.ceil(this.actividadesService.actividades.length / this.ITEMS_POR_PAGINA_EXCEL);
         let promesasObtencion = [];
         for (let i=1; i <= totalPaginas; i++) {
-            promesasObtencion.push(this.actividadesService.obtenerTodos(i, undefined, undefined, this.ITEMS_POR_PAGINA_EXCEL));
+            promesasObtencion.push(this.actividadesService.obtenerTodos(i, undefined, undefined, this.ITEMS_POR_PAGINA_EXCEL)
+                .then(resultado => {
+                    this.datosObtenidos.total += resultado.length;
+                    return resultado;
+                })
+            );
         }
         return this.$q.all(promesasObtencion)
             .then(resultado => {
-                return concat([], ...resultado);
+                return reduce(resultado, (arregloResultados, item) => {
+                    arregloResultados = arregloResultados.concat(item);
+                    return arregloResultados;
+                }, []);
             });
     }
 }
