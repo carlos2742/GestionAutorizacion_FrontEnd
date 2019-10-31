@@ -1,8 +1,8 @@
 import map from 'lodash/map';
 import clone from 'lodash/clone';
+import concat from 'lodash/concat';
 import isMatch from 'lodash/isMatch';
 import isNil from 'lodash/isNil';
-import reduce from 'lodash/reduce';
 
 import {USUARIO_YA_ES_ADMIN, USUARIO_NO_ES_ADMIN} from "../common/constantes";
 
@@ -202,19 +202,11 @@ export default class PermisosAdminController {
         }
 
         for (let i=1; i <= totalPaginas; i++) {
-            promesasObtencion.push(this.personalService.obtenerTodos(i, this.ordenActivo, this.paramsBusqueda, this.ITEMS_POR_PAGINA_EXCEL, true)
-                .then(resultado => {
-                    this.datosObtenidos.total += resultado.length;
-                    return resultado;
-                })
-            );
+            promesasObtencion.push(this.personalService.obtenerTodos(i, this.ordenActivo, this.paramsBusqueda, this.ITEMS_POR_PAGINA_EXCEL, true));
         }
         return this.$q.all(promesasObtencion)
             .then(resultado => {
-                return reduce(resultado, (arregloResultados, item) => {
-                    arregloResultados = arregloResultados.concat(item);
-                    return arregloResultados;
-                }, []);
+                return concat([], ...resultado);
             });
     }
 }

@@ -5,6 +5,7 @@ import forEach from 'lodash/forEach';
 import clone from 'lodash/clone';
 import cloneDeep from 'lodash/cloneDeep';
 import map from 'lodash/map';
+import concat from 'lodash/concat';
 import isMatch from 'lodash/isMatch';
 import filter from 'lodash/filter';
 import includes from 'lodash/includes';
@@ -611,20 +612,12 @@ export default class PeticionesController {
         let totalPaginas = Math.ceil(this.datosAExportar.length / this.ITEMS_POR_PAGINA_EXCEL);
         let promesasObtencion = [];
         for (let i=1; i <= totalPaginas; i++) {
-            promesasObtencion.push(this.peticionesService.obtenerTodos(!this.autorizador, i, undefined, undefined, this.ITEMS_POR_PAGINA_EXCEL, false, true)
-                .then(resultado => {
-                    this.datosObtenidos.total += resultado.length;
-                    return resultado;
-                })
-            );
+            promesasObtencion.push(this.peticionesService.obtenerTodos(!this.autorizador, i, undefined, undefined, this.ITEMS_POR_PAGINA_EXCEL, false, true));
         }
         return this.$q.all(promesasObtencion)
             .then(resultado => {
                 this.$rootScope.$emit('GestionAutorizacionAPI:response');
-                return reduce(resultado, (arregloResultados, item) => {
-                    arregloResultados = arregloResultados.concat(item);
-                    return arregloResultados;
-                }, []);
+                return concat([], ...resultado);
             })
             .catch(error => {
                 this.$rootScope.$emit('GestionAutorizacionAPI:responseError');
