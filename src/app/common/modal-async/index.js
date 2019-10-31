@@ -35,9 +35,11 @@ export default angular.module('modal-async', [])
                         });
                     }
                 });
-                const listenerResponse = $rootScope.$on('GestionAutorizacionAPI:response', () => {
-                    modalDeshabilitado = false;
-                    fnHabilitarHijos();
+                const listenerResponse = $rootScope.$on('GestionAutorizacionAPI:response', (event, method) => {
+                    if (method !== 'GET') {
+                        modalDeshabilitado = false;
+                        fnHabilitarHijos();
+                    }
                 });
                 const listenerResponseError = $rootScope.$on('GestionAutorizacionAPI:responseError', () => {
                     modalDeshabilitado = false;
