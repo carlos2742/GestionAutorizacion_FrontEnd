@@ -31,10 +31,8 @@ export default angular.module('boton-async', [])
                         element.prop('disabled', true);
                     }
                 });
-                const listenerResponse = $rootScope.$on('GestionAutorizacionAPI:response', (event, method) => {
-                    if (method !== 'GET') {
-                        reiniciarEstado();
-                    }
+                const listenerResponse = $rootScope.$on('GestionAutorizacionAPI:response', () => {
+                    reiniciarEstado();
                 });
                 const listenerResponseError = $rootScope.$on('GestionAutorizacionAPI:responseError', () => {
                     reiniciarEstado();
