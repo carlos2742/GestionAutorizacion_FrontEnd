@@ -30,9 +30,6 @@ export default class ExportarExcelController {
     $onInit() {
         this.fnObtencionDatosDefinida = !!this.$attrs.fnObtencionDatos;
         this.datosDefinidos = !!this.$attrs.datos;
-        this.datosObtenidos = {
-            total: 0
-        };
     }
 
     /**
@@ -60,9 +57,6 @@ export default class ExportarExcelController {
                     } else {
                         return null;
                     }
-                },
-                datosObtenidos: () => {
-                    return this.datosObtenidos;
                 }
             }
         }).result.catch(() => {
@@ -83,15 +77,12 @@ export class ModalExcelController {
      * @param $rootScope
      * @param $uibModalInstance
      * @param toastr
-     * @param AppConfig
      * @param datos
      * @param propiedades
      * @param fnObtencionDatos
-     * @param datosObtenidos
+     *
      */
-    constructor($timeout, $rootScope, $uibModalInstance, toastr, AppConfig, datos, propiedades, fnObtencionDatos, datosObtenidos) {
-        /** @private */
-        this.ITEMS_POR_PAGINA_EXCEL = AppConfig.elementosPorPaginaParaExcel;
+    constructor($timeout, $rootScope, $uibModalInstance, toastr, datos, propiedades, fnObtencionDatos) {
         /** @private */
         this.$timeout = $timeout;
         /** @private */
@@ -106,17 +97,10 @@ export class ModalExcelController {
         this.propiedades = propiedades;
         /** @private */
         this.fnObtencionDatos = fnObtencionDatos;
-        /** @private */
-        this.datosObtenidos = datosObtenidos;
 
         this.excel = {};
         this.patronNombreArchivo = /^(?!\.)(?!com[0-9]$)(?!con$)(?!lpt[0-9]$)(?!nul$)(?!prn$)[^\|\*\?\\:<>/$"]*[^\.\|\*\?\\:<>/$"]+$/;
         this.exportacionEnProgreso = false;
-
-        let deregister = $scope.$on('modal.closing', () => {
-            deregister();
-            this.datosObtenidos.total = 0;
-        });
     }
 
     /**
@@ -154,7 +138,6 @@ export class ModalExcelController {
 
         // Si se pasa una función asíncrona para obtener los datos, se usa eso en vez del atributo 'datos' directamente
         if (!isNil(this.fnObtencionDatos)) {
-            this.enProgreso = true;
             return this.fnObtencionDatos()
                 .then(datos => {
                     return fnZipcelx(datos);
@@ -162,17 +145,10 @@ export class ModalExcelController {
                 .catch(() => {
                     this.$timeout(() => { this.$uibModalInstance.close(); });
                 })
-                .finally(() => {
-                    this.enProgreso = false;
-                });
         } else if (!isNil(this.datos)) {
             return fnZipcelx(this.datos);
         }
 
-    }
-
-    get progresoObtencionDatos() {
-        return this.datosObtenidos.total / this.datos.length * 100;
     }
 
     /**
