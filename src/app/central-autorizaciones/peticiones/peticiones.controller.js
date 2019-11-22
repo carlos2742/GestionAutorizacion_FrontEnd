@@ -217,13 +217,14 @@ export default class PeticionesController {
         RolesService.obtenerTodos(false)
             .then(roles => {
                 /** @type {Rol[]} */
-                this.roles = roles;
+                this.roles = [].concat(roles);
+                this.roles.push({id:undefined, nombre: undefined});
             });
 
         PeticionesService.obtenerTiposSolicitud()
             .then(tiposSolicitud => {
                 this.tiposSolicitud = [].concat(tiposSolicitud);
-                this.tiposSolicitud.unshift({nombre: undefined});
+                this.tiposSolicitud.push({nombre: undefined});
             });
 
         SesionService.obtenerUsuarioAutenticado()
@@ -329,7 +330,7 @@ export default class PeticionesController {
             return this.personalService.obtenerTodos(1, ['apellidos', 'asc'], { busquedaGeneral }, this.ITEMS_SELECT)
                 .then(personas => {
                     this.personas = [].concat(...personas);
-                    this.personas.unshift({codigo: undefined, nombreApellidos:''});
+                    this.personas.push({codigo: undefined, nombreApellidos:''});
                     this.totalPersonas = this.personalService.personas.length;
                 })
                 .finally(() => {

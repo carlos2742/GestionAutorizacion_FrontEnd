@@ -36,7 +36,7 @@ export default angular.module('exportar-excel', [
             datos: '=',
             propiedades: '<',
             fnObtencionDatos: '&',
-            datosObtenidos: '='
+            datosObtenidos: '=?'
         },
         template: html,
         controller: ['$attrs', '$uibModal', ExportarExcelController]

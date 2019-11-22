@@ -12,7 +12,8 @@
                     </div>
                 </uib-accordion-heading>
 
-                <form id="busquedaPeticionesForm" name="busquedaPeticionesForm" novalidate>
+                <form id="busquedaPeticionesForm" name="busquedaPeticionesForm" novalidate
+                      ng-keyup="$event.keyCode == 13 && vm.buscar()">
                     <div class="form-row">
                         <div class="form-group form-row col-lg">
                             <label for="idBusqueda" class="col-sm-3 col-form-label pr-0">ID</label>

@@ -88,7 +88,7 @@ export default class ActividadesController {
             .then(procesos => {
                 /** @type {Proceso[]} */
                 this.procesos = [].concat(...procesos);
-                this.procesos.unshift({codigo: undefined, evento: ''});
+                this.procesos.push({codigo: undefined, evento: ''});
 
                 if ($location.search().proceso) {
                     this.paramsBusqueda.proceso = find(procesos, ['id', parseInt($location.search().proceso)]);

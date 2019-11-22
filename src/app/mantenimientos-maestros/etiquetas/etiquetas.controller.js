@@ -52,7 +52,7 @@ export default class EtiquetasController {
             .then(procesos => {
                 /** @type {Proceso[]} */
                 this.procesos = [].concat(...procesos);
-                this.procesos.unshift({codigo: undefined, evento: ''});
+                this.procesos.push({codigo: undefined, evento: ''});
             });
         ActividadesService.obtenerTodos(1, ['orden', 'asc'], null, 0)
             .then(actividades => {
