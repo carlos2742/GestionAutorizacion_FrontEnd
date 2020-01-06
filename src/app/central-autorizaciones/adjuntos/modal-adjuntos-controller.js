@@ -2,10 +2,14 @@ import map from 'lodash/map';
 import clone from 'lodash/clone';
 import get from 'lodash/get';
 import isNil from 'lodash/isNil';
-
-import './modal-adjuntos.scss';
-import {ADJUNTO_MUY_GRANDE, ELEMENTO_NO_ENCONTRADO, ERROR_GENERAL} from "../../common/constantes";
-
+import "./modal-adjuntos.scss";
+import {
+  ADJUNTO_MUY_GRANDE,
+  ELEMENTO_NO_ENCONTRADO,
+  ERROR_GENERAL,
+  AUTORIZACION_RECHAZADA,
+  PROPIEDAD_NO_EDITABLE
+} from "../../common/constantes";
 
 /* @ngInject */
 /**
@@ -42,6 +46,7 @@ export default class ModalAdjuntosController {
         this.peticionesService = PeticionesService;
         /** @private */
         this.peticion = peticion;
+        this.mostrarAdicionarAdjunto = true;
         if (isNil(this.peticion.mensajes)) {
             this.peticion.mensajes = [];
         }
@@ -87,13 +92,11 @@ export default class ModalAdjuntosController {
                 if (isNil(this.peticion.adjuntos)) {
                     this.peticion.adjuntos = [];
                 }
-
                 this.peticion.adjuntos.push(response.data);
                 this.peticion.cantidadAdjuntos = this.peticion.adjuntos.length;
                 let adjunto = this._procesarAdjunto(response.data);
                 this.adjuntos = this.adjuntos.concat(adjunto);
                 this.toastr.success(adjunto.nombre, 'Adjunto añadido');
-
                 // Se envía un mensaje a la conversación de la petición notificando que se ha subido un adjunto
                 this.mensajesService.enviarMensaje(`${this.mensajesService.MENSAJE_NUEVO_ADJUNTO} "${adjunto.nombre}"`, this.peticion)
                     .then(mensaje => {
@@ -110,6 +113,7 @@ export default class ModalAdjuntosController {
             },
             onErrorItem: (item, response, status) => {
                 let eliminarPeticion = false;
+                let actualizarPeticion = false;
                 if (status === 0) {
                     toastr.error('No se pudo establecer una conexión con el servidor', null, {
                         closeButton: true,
@@ -130,10 +134,16 @@ export default class ModalAdjuntosController {
                 } else if (get(response, 'errorCode') === ELEMENTO_NO_ENCONTRADO) {
                     this.toastr.error('Lo sentimos, no se encontró la petición asociada a este adjunto');
                     eliminarPeticion = true;
+                } else if(get(response, 'errorCode') === PROPIEDAD_NO_EDITABLE) {
+                    this.toastr.error('Lo sentimos, no se pudo añadir este adjunto porque la petición está rechazada');
+                    actualizarPeticion = true;
                 }
 
                 if (eliminarPeticion) {
                     this.peticionesService.eliminarEntidad(this.peticion);
+                    this.adjuntos = null;
+                    this.$uibModalInstance.close();
+                } else if(actualizarPeticion) {
                     this.adjuntos = null;
                     this.$uibModalInstance.close();
                 }
@@ -157,6 +167,9 @@ export default class ModalAdjuntosController {
             fnResolucion({adjuntos: this.adjuntos, mensajes: this.mensajes});
             deregister();
         });
+        if(get(this.peticion,'estadoInterno') === AUTORIZACION_RECHAZADA) {
+            this.mostrarAdicionarAdjunto = false;
+        }
     }
 
     /**

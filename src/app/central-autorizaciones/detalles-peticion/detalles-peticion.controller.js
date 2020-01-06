@@ -1,15 +1,17 @@
 import clone from 'lodash/clone';
 import get from 'lodash/get';
 import map from 'lodash/map';
-import isNil from 'lodash/isNil';
-
-import {ADJUNTO_MUY_GRANDE, ELEMENTO_NO_ENCONTRADO, ERROR_GENERAL} from '../../common/constantes';
-
+import isNil from "lodash/isNil";
+import {
+  ADJUNTO_MUY_GRANDE,
+  ELEMENTO_NO_ENCONTRADO,
+  ERROR_GENERAL,
+  AUTORIZACION_RECHAZADA,
+  PROPIEDAD_NO_EDITABLE
+} from "../../common/constantes";
 import './detalles-peticion.scss';
-
 const PATH_401 = '/acceso-denegado';
 const PATH_404 = '/no-encontrado';
-
 
 /* @ngInject */
 /**
@@ -42,6 +44,8 @@ export default class DetallesPeticionController {
         /** @private */
         this.adjuntosService = AdjuntosService;
 
+        this.mostrarAdicionarAdjuntoDetalles = true;
+
         this.presentacionAdjuntos = {
             entidad: 'Adjunto',
             atributoPrincipal: 'nombre',
@@ -72,7 +76,6 @@ export default class DetallesPeticionController {
         ]).then(resultado => {
             this.peticion = resultado[0];
             this.peticion.adjuntos = resultado[1];
-
             this.peticion.mensajes = map(resultado[2], mensaje => {
                 if (mensaje.enviadoPor.valor.nInterno === this.peticion.solicitante.valor.nInterno) {
                     mensaje.enviadoPor.display = `${mensaje.enviadoPor.display} (solicitante)`;
@@ -80,8 +83,10 @@ export default class DetallesPeticionController {
                 return mensaje;
             });
             this.mensajes = this.peticion.mensajes;
-
             this.historialAutorizaciones = this.peticion.actividades;
+            if(this.peticion.estadoInterno === AUTORIZACION_RECHAZADA) {
+                this.mostrarAdicionarAdjuntoDetalles = false;
+            }
         }).catch(response => {
             if (response.status === 404) {
                 this.$location.path(PATH_404);
@@ -125,6 +130,7 @@ export default class DetallesPeticionController {
             },
             onErrorItem: (item, response, status) => {
                 let eliminarPeticion = false;
+                let actualizarPeticion = false;
                 if (status === 0) {
                     toastr.error('No se pudo establecer una conexión con el servidor', null, {
                         closeButton: true,
@@ -145,15 +151,36 @@ export default class DetallesPeticionController {
                 } else if (get(response, 'errorCode') === ELEMENTO_NO_ENCONTRADO) {
                     eliminarPeticion = true;
                     this.$location.path(PATH_404);
+                } else if(get(response, 'errorCode') === PROPIEDAD_NO_EDITABLE) {
+                    toastr.error('No se pudo añadir este adjunto porque la petición está rechazada');
+                    actualizarPeticion = true;
                 }
-
                 if (eliminarPeticion) {
                     this.peticionesService.eliminarEntidad(this.peticion);
                     this.adjuntos = null;
+                } else if(actualizarPeticion) {
+                    this.$q.all([
+                        this.peticionesService.obtener(idPeticion),
+                        this._obtenerAdjuntos(idPeticion),
+                        this.mensajesService.obtenerTodos(idPeticion)
+                    ]).then(resultado => {
+                        this.peticion = resultado[0];
+                        this.peticion.adjuntos = resultado[1];
+                        this.peticion.mensajes = map(resultado[2], mensaje => {
+                            if (mensaje.enviadoPor.valor.nInterno === this.peticion.solicitante.valor.nInterno) {
+                                mensaje.enviadoPor.display = `${mensaje.enviadoPor.display} (solicitante)`;
+                            }
+                            return mensaje;
+                        });
+                        this.mensajes = this.peticion.mensajes;
+                        this.historialAutorizaciones = this.peticion.actividades;
+                        if(this.peticion.estadoInterno === AUTORIZACION_RECHAZADA) {
+                            this.mostrarAdicionarAdjuntoDetalles = false;
+                        }
+                    });
                 }
             }
         });
-
 
         // Esta variable está definida estáticamente en webpack.config. En producción toma el valor false, por lo que
         // esta sección del código no se añade al bundle.

@@ -7,7 +7,7 @@
 </div>
 <div class="modal-body adjuntos">
     <form id="adjuntoForm" name="adjuntoForm">
-        <label class="btn btn-primary">
+        <label class="btn btn-primary" ng-if="$modal.mostrarAdicionarAdjunto">
             <span class="icon-plus"></span> Añadir adjunto <input name="contenido" type="file" nv-file-select uploader="$modal.uploader" hidden>
         </label>
         <div class="progress" ng-show="$modal.uploader.isUploading">
@@ -16,7 +16,7 @@
         </div>
     </form>
 
-    <small class="text-muted d-block mt-2">* El archivo no debe sobrepasar los 10 MB</small>
+    <small class="text-muted d-block mt-2" ng-if="$modal.mostrarAdicionarAdjunto">* El archivo no debe sobrepasar los 10 MB</small>
 
     <div class="contenedor-tabla">
         <ge-tabla datos="$modal.adjuntos" presentacion=":: $modal.presentacion"
