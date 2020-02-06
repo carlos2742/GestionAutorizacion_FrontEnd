@@ -609,16 +609,15 @@ export default class PeticionesController {
      * Excel. Esta exportación respeta el ordenamiento activo y cualquier filtro seleccionado.
      */
     obtenerDatosAExportar() {
-        let totalPaginas = Math.ceil(this.datosAExportar.length / this.ITEMS_POR_PAGINA_EXCEL);
         let promesasObtencion = [];
-        for (let i=1; i <= totalPaginas; i++) {
-            promesasObtencion.push(this.peticionesService.obtenerTodos(!this.autorizador, i, undefined, undefined, this.ITEMS_POR_PAGINA_EXCEL, false, true)
-                .then(resultado => {
-                    this.datosObtenidos.total += resultado.length;
+        let pagina = this.datosObtenidos.activarRango ? this.datosObtenidos.rangoPagina : 1;
+        let elementosPorPagina = this.ITEMS_POR_PAGINA_EXCEL * 200;
+        promesasObtencion.push(this.peticionesService.obtenerTodos(!this.autorizador, pagina, undefined, { elementosExportar: elementosPorPagina }, this.ITEMS_POR_PAGINA_EXCEL, false, undefined)
+            .then(resultado => {
+                this.datosObtenidos.total = resultado.length;
                     return resultado;
-                })
-            );
-        }
+            })
+        );
         return this.$q.all(promesasObtencion)
             .then(resultado => {
                 this.$rootScope.$emit('GestionAutorizacionAPI:response');

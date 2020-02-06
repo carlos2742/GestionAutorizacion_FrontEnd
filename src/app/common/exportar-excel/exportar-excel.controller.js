@@ -6,6 +6,8 @@ import map from 'lodash/map';
 import isBoolean from 'lodash/isBoolean';
 import isNumber from 'lodash/isNumber';
 import isNil from 'lodash/isNil';
+import clone from 'lodash/clone';
+import slice from 'lodash/slice';
 import zipcelx from 'zipcelx';
 
 
@@ -63,6 +65,9 @@ export default class ExportarExcelController {
                 },
                 datosObtenidos: () => {
                     return this.datosObtenidos;
+                },
+                activarRango: () => {
+                    return this.activarRango;
                 }
             }
         }).result.catch(() => {
@@ -90,7 +95,7 @@ export class ModalExcelController {
      * @param fnObtencionDatos
      * @param datosObtenidos
      */
-    constructor($timeout, $rootScope, $scope, $uibModalInstance, toastr, AppConfig, datos, propiedades, fnObtencionDatos, datosObtenidos) {
+    constructor($timeout, $rootScope, $scope, $uibModalInstance, toastr, AppConfig, datos, propiedades, fnObtencionDatos, datosObtenidos, activarRango) {
         /** @private */
         this.ITEMS_POR_PAGINA_EXCEL = AppConfig.elementosPorPaginaParaExcel;
         /** @private */
@@ -109,6 +114,12 @@ export class ModalExcelController {
         this.fnObtencionDatos = fnObtencionDatos;
         /** @private */
         this.datosObtenidos = datosObtenidos;
+
+        this.activarRango = activarRango ? activarRango : false;
+        this.rangoPagina = 1;
+        this.ultimaPagina = Math.ceil(datos.length / AppConfig.elementosPorPagina);
+        this.elementosPorPagina = AppConfig.elementosPorPagina;
+        this.elementosExportar = AppConfig.elementosPorPaginaParaExcel * 200;
 
         this.excel = {};
         this.patronNombreArchivo = /^(?!\.)(?!com[0-9]$)(?!con$)(?!lpt[0-9]$)(?!nul$)(?!prn$)[^\|\*\?\\:<>/$"]*[^\.\|\*\?\\:<>/$"]+$/;
@@ -129,7 +140,8 @@ export class ModalExcelController {
         if (nombreExcelForm.$invalid || this.exportacionEnProgreso) {
             return;
         }
-
+        this.datosObtenidos.activarRango = this.activarRango;
+        this.datosObtenidos.rangoPagina = this.rangoPagina;
         this.exportacionEnProgreso = true;
         // Se simula una llamada al API para que la animación en el botón funcione
         this.$rootScope.$emit('GestionAutorizacionAPI:request', 'POST');
@@ -144,15 +156,18 @@ export class ModalExcelController {
             }).then(() => {
                 this.$rootScope.$emit('GestionAutorizacionAPI:response');
                 this.exportacionEnProgreso = false;
-                this.$uibModalInstance.close();
             }).catch(() => {
                 this.$rootScope.$emit('GestionAutorizacionAPI:responseError');
                 this.exportacionEnProgreso = false;
-                this.$uibModalInstance.close();
                 this.toastr.error('Se produjo un error mientras se exportaban los datos');
+            })
+            .finally(() => {
+                this.$timeout(() => {
+                    this.enProgreso = false;
+                    this.$uibModalInstance.close();
+                }, 500);
             });
         };
-
         // Si se pasa una función asíncrona para obtener los datos, se usa eso en vez del atributo 'datos' directamente
         if (!isNil(this.fnObtencionDatos)) {
             this.enProgreso = true;
@@ -162,9 +177,6 @@ export class ModalExcelController {
                 })
                 .catch(() => {
                     this.$timeout(() => { this.$uibModalInstance.close(); });
-                })
-                .finally(() => {
-                    this.enProgreso = false;
                 });
         } else if (!isNil(this.datos)) {
             return fnZipcelx(this.datos);
@@ -173,7 +185,20 @@ export class ModalExcelController {
     }
 
     get progresoObtencionDatos() {
-        return this.datosObtenidos.total / this.datos.length * 100;
+        return this.datosObtenidos.total / this.procesarDatosParticionar() * 100;
+    }
+
+    procesarDatosParticionar() {
+        if(this.activarRango) {
+            if(this.datos.length > this.elementosExportar) {
+                return this.elementosExportar;
+            } else if(this.rangoPagina > 1) {
+                let clon = clone(this.datos);
+                clon = slice(clon, 0, this.rangoPagina * this.elementosPorPagina);
+                return this.datos.length - clon.length;
+            }
+        }
+        return this.datos.length;
     }
 
     /**

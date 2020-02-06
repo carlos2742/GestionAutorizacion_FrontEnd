@@ -12,6 +12,7 @@
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
+
         <div class="modal-body" modal-async>
             <div uib-alert class="mb-4 alerta-filas" ng-class="'alert-warning'" ng-if="$modal.datos.length > 10 * $modal.ITEMS_POR_PAGINA_EXCEL">
                 ADVERTENCIA: Se van a exportar {{ $modal.datos.length }} filas de datos. Esta operación puede tardar varios minutos.
@@ -37,10 +38,34 @@
                     </div>
                 </div>
             </div>
+
+            <div class="form-group form-row" ng-if="$modal.activarRango">
+                <label for="rangoPagina" class="col-sm-3 col-form-label">Rango*</label>
+                <div class="col-sm-9">
+                    <input id="rangoPagina" name="rangoPagina" class="form-control" type="number" min="1" max="{{$modal.ultimaPagina}}" step="1"
+                           ng-required="{{$modal.activarRango}}"
+                           ng-model="$modal.rangoPagina"
+                           ng-class="{'is-invalid': (nombreExcelForm.$submitted || nombreExcelForm.rangoPagina.$touched) && nombreExcelForm.rangoPagina.$invalid}">
+
+                    <div class="invalid-feedback"
+                         ng-messages="nombreExcelForm.rangoPagina.$error"
+                         ng-show="nombreExcelForm.$submitted || nombreExcelForm.rangoPagina.$touched"
+                         role="alert">
+                        <span ng-message="required">Este campo es obligatorio</span>
+                        <span ng-message="min">Debe ser mayor o igual a 1</span>
+                        <span ng-message="max">Debe ser menor o igual a {{$modal.ultimaPagina}}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div uib-alert class="mb-4 alerta-filas" ng-class="'alert-info'" ng-if="$modal.activarRango">
+                INFORMACIÓN: El rango permite exportar hasta 200 páginas a partir del número especificado
+            </div>
         </div>
+
         <div class="modal-footer">
             <div class="w-100 mr-3" ng-show="$modal.enProgreso">
-                <small class="text-muted">Obteniendo {{$modal.datosObtenidos.total}}/{{$modal.datos.length}} filas</small>
+                <small class="text-muted">Obteniendo {{$modal.procesarDatosParticionar()}}/{{$modal.procesarDatosParticionar()}} filas</small>
                 <div class="progress w-100 mb-0">
                     <div class="progress-bar bg-success" role="progressbar" aria-valuenow="{{$modal.progresoObtencionDatos}}" aria-valuemin="0" aria-valuemax="100"
                          ng-style="{ 'width': $modal.progresoObtencionDatos + '%' }" style="width: 100%;"></div>

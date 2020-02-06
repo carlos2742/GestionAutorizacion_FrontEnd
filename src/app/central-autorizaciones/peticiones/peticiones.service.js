@@ -1,6 +1,5 @@
 import findIndex from 'lodash/findIndex';
 import find from 'lodash/find';
-import filter from 'lodash/filter';
 import includes from 'lodash/includes';
 import isNil from 'lodash/isNil';
 import isUndefined from 'lodash/isUndefined';
@@ -11,7 +10,6 @@ import join from 'lodash/join';
 import fill from 'lodash/fill';
 import map from 'lodash/map';
 import forEach from 'lodash/forEach';
-import remove from 'lodash/remove';
 import omit from 'lodash/omit';
 import get from 'lodash/get';
 import format from 'date-fns/format';
@@ -323,18 +321,22 @@ export default class PeticionesService {
     obtenerTodos(peticionesPropias, pagina, orden, filtro, elementosPorPagina, persistirResultado, batch) {
         let cambioOrden = false;
         const guardarCambios = isNil(persistirResultado) || persistirResultado;
-
         if (guardarCambios) {
             if (!isNil(orden) && (isNil(this.ordenActivo) || orden[0] !== this.ordenActivo[0] || orden[1] !== this.ordenActivo[1])) {
                 this.ordenActivo = orden;
                 cambioOrden = true;
             }
-
             if (!isUndefined(filtro)) {
                 this.filtrosBusqueda = filtro;
             }
         }
-
+        if(get(filtro, 'elementosExportar')) {
+            assign(this.filtrosBusqueda, { elementosExportar: filtro.elementosExportar });
+        } else {
+            if(get(this.filtrosBusqueda, 'elementosExportar')) {
+                delete this.filtrosBusqueda.elementosExportar;
+            }
+        }
         return this._obtenerServidor(peticionesPropias, pagina, cambioOrden, this.filtrosBusqueda, elementosPorPagina, persistirResultado, batch);
     }
 
