@@ -15,7 +15,7 @@
 
         <div class="modal-body" modal-async>
             <div uib-alert class="mb-4 alerta-filas" ng-class="'alert-warning'" ng-if="$modal.datos.length > 10 * $modal.ITEMS_POR_PAGINA_EXCEL">
-                ADVERTENCIA: Se van a exportar {{ $modal.datos.length }} filas de datos. Esta operación puede tardar varios minutos.
+                ADVERTENCIA: Se van a exportar {{ $modal.activarRango ? $modal.procesarDatosParticionar() : $modal.datos.length }} filas de datos. Esta operación puede tardar varios minutos.
             </div>
 
             <div class="form-group form-row">
