@@ -489,7 +489,6 @@ export default class PeticionesController {
                     if (!this.filaEsVisible(this.peticionSeleccionada)) {
                         this.peticionSeleccionada = null;
                     }
-
                     this.mostrarSoloLectura = !this.autorizador || filtroBusqueda.estadoInterno !== AUTORIZACION_PENDIENTE;
                 })
                 .finally(() => {

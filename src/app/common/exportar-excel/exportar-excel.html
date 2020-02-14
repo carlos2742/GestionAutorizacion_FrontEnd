@@ -40,8 +40,8 @@
             </div>
 
             <div class="form-group form-row" ng-if="$modal.activarRango">
-                <label for="rangoPagina" class="col-sm-3 col-form-label">Rango*</label>
-                <div class="col-sm-9">
+                <label for="rangoPagina" class="col-sm-6 col-form-label">Página Inicio Exportación*</label>
+                <div class="col-sm-6">
                     <input id="rangoPagina" name="rangoPagina" class="form-control" type="number" min="1" max="{{$modal.ultimaPagina}}" step="1"
                            ng-required="{{$modal.activarRango}}"
                            ng-model="$modal.rangoPagina"
@@ -59,7 +59,7 @@
             </div>
 
             <div uib-alert class="mb-4 alerta-filas" ng-class="'alert-info'" ng-if="$modal.activarRango">
-                INFORMACIÓN: El rango permite exportar hasta 200 páginas a partir del número especificado
+                INFORMACIÓN: Permite exportar hasta 200 páginas a partir del número especificado
             </div>
         </div>
 
