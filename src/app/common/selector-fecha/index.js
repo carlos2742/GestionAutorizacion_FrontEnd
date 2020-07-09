@@ -3,11 +3,12 @@ import isNil from 'lodash/isNil';
 import isSameDay from 'date-fns/isSameDay';
 import isBefore from 'date-fns/isBefore';
 import addMinutes from 'date-fns/addMinutes';
-import datepickerPopup from "ui-bootstrap4/src/datepickerPopup";
-import tooltip from "ui-bootstrap4/src/tooltip";
+import datepickerPopup from 'ui-bootstrap4/src/datepickerPopup';
+import tooltip from 'ui-bootstrap4/src/tooltip';
 
 import html from './selector-fecha.html';
 import './selector-fecha.scss';
+import {procesarFechaAEnviar} from '../utiles';
 
 
 /**
@@ -40,7 +41,9 @@ export default angular.module('selector-fecha', [datepickerPopup, tooltip])
             model: '=',
             requerido: '<',
             deshabilitado: '<',
-            minHoy: '<'
+            minHoy: '<',
+            opciones: '<',
+            clase: '@'
         },
         template: html,
         controller: function ($scope, $element) {
@@ -49,12 +52,26 @@ export default angular.module('selector-fecha', [datepickerPopup, tooltip])
             this.popupFechaAbierto = false;
 
             this.$postLink = function () {
+                this.opcionesSelectorFecha = this.opciones || { showWeeks: false };
+
                 const modelCtrl = $element.find('input').controller('ngModel');
+
+                modelCtrl.$validators.invalidDate = (modelValue) => {
+                    if (!modelValue || !this.opciones) {
+                        return true;
+                    }
+                    if (this.opciones.dateDisabled
+                        && this.opciones.dateDisabled({ date: procesarFechaAEnviar(new Date(modelValue.getTime())), mode: 'day' })) {
+                        return false;
+                    }
+                    return true;
+                };
                 if (this.minHoy) {
                     modelCtrl.$validators.fechaPasada = (valorModelo, valorVista) => {
-                            let valor = valorModelo || valorVista;
-                            return isSameDay(new Date(), valor) || isBefore(new Date(), valor);
-                        };
+                        const valor = valorModelo || valorVista;
+                        const valorProcesado = procesarFechaAEnviar(valor);
+                        return isSameDay(new Date(), valorProcesado) || isBefore(new Date(), valorProcesado);
+                    };
                 }
                 modelCtrl.$formatters.push(value => {
                     if (!isNil(value)) {

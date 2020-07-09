@@ -1,12 +1,15 @@
 @import "../../../style/variables";
 
-$borde-btn-calendario: $gray-900;
+$borde-btn-gasto: $gray-900;
 $fondo-btn-otros: $white;
 $fondo-btn-cerrar: $red;
 $borde-btn-cerrar: #c9302c;
 $dia-hoy: $cyan;
 $dia-activo: $green;
 
+.noeventos {
+    pointer-events: none;
+}
 
 .selector-fecha {
 
@@ -19,15 +22,15 @@ $dia-activo: $green;
     }
 
     button {
-        &.btn-calendario {
+        &.btn-gasto {
             border-radius: 0 4px 4px 0;
-            color: $borde-btn-calendario;
+            color: $borde-btn-gasto;
         }
 
-        &:not(.btn-calendario) {
+        &:not(.btn-gasto) {
             border-radius: 4px;
             background-color: $fondo-btn-otros;
-            color: $borde-btn-calendario;
+            color: $borde-btn-gasto;
         }
     }
 

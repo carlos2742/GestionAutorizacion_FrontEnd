@@ -1,7 +1,10 @@
 import orderBy from 'lodash/orderBy';
+import remove from 'lodash/remove';
 import isNil from 'lodash/isNil';
+import isArray from 'lodash/isArray';
 import find from 'lodash/find';
 import get from 'lodash/get';
+import isBoolean from 'lodash/isBoolean';
 
 import modalEliminarEntidad from './modal-eliminar-entidad.html';
 
@@ -63,9 +66,9 @@ export default class GETablaController {
             }
 
             /** @type {boolean} */
-            this.editable = find(this.datos, item => { return item.editable });
+            this.editable = find(this.datos, item => { return item.editable; });
             /** @type {boolean} */
-            this.eliminable = find(this.datos, item => { return item.eliminable });
+            this.eliminable = find(this.datos, item => { return item.eliminable; });
             if (this.ordenActivo) {
                 if (!this.ordenInicial && !get(this.datos, 'yaOrdenados')) {
                     this.ordenar({nombre: this.ordenActivo[0]}, this.ordenActivo[1]);
@@ -103,12 +106,32 @@ export default class GETablaController {
                 campo = columna.ordenable;
             }
 
-            this.datos = orderBy(this.datos,
+            let copiaDatos = [];
+            if (isArray(this.datos)) {
+                copiaDatos = copiaDatos.concat(...this.datos);
+            }
+
+            let valoresVacios = [];
+            let nulosSiempreAlFinal = false;
+            if (get(this.datos, 'nulosAlFinal')) {
+                valoresVacios = remove(copiaDatos, item => { return isNil( get(item, campo) ); });
+                nulosSiempreAlFinal = true;
+            }
+
+            const datosOrdenados = orderBy(copiaDatos,
                 [entidad => {
-                    const valor = get(entidad, campo);
-                    return typeof valor === 'string' ? valor.toLowerCase() : valor }],
+                    let valor = get(entidad, campo);
+                    return typeof valor === 'string' ? valor.toLowerCase() : valor; }],
                 [modo]);
+            this.datos = datosOrdenados.concat(...valoresVacios);
             this.ordenActivo = [campo, modo];
+
+            if (nulosSiempreAlFinal) {
+                Object.defineProperty(this.datos, 'nulosAlFinal', {
+                    enumerable: false,
+                    get: () => { return true; }
+                });
+            }
 
             if (solicitadoPorUsuario) {
                 this.fnCambioOrden({orden: this.ordenActivo});
@@ -130,10 +153,11 @@ export default class GETablaController {
             controller: 'ModalEliminarEntidadController',
             controllerAs: '$modal',
             resolve: {
-                nombre: () => { return `"${get(elemento, this.presentacion.atributoPrincipal)}"` },
-                elemento: () => { return elemento },
-                entidad: () => { return this.presentacion.entidad },
-                fnEliminacion: () => { return this.fnEliminacion }
+                nombre: () => { return `"${get(elemento, this.presentacion.atributoPrincipal)}"`; },
+                elemento: () => { return elemento; },
+                entidad: () => { return this.presentacion.entidad; },
+                fnEliminacion: () => { return this.fnEliminacion; },
+                incluirMotivo: () => { return isBoolean(this.incluirMotivoEliminacion) && !!this.incluirMotivoEliminacion; }
             }
         }).result.catch(() => {
             // Es necesario añadir este catch vacío para que la biblioteca 'ui-bootstrap4' no muestre la siguiente excepción en consola:

@@ -32,6 +32,10 @@ import EtiquetasService from './etiquetas/etiquetas.service';
 import EtiquetasController from './etiquetas/etiquetas.controller';
 import ModalEdicionEtiquetasController from './etiquetas/modal-edicion-etiquetas.controller';
 
+import NotificacionesGeneralesService from './notificaciones-generales/notificaciones-generales.service';
+import NotificacionesGeneralesController from './notificaciones-generales/notificaciones-generales.controller';
+import ModalEdicionNotificacionGeneralController from './notificaciones-generales/modal-edicion-notificacion-general.controller';
+
 import './mantenimientos-maestros.scss';
 
 
@@ -75,6 +79,10 @@ export default angular.module('mantimientos-maestros', [
     .service('ActividadesService', ActividadesService)
     .controller('ActividadesController', ActividadesController)
     .controller('ModalEdicionActividadesController', ModalEdicionActividadesController)
+
+    .service('NotificacionesGeneralesService', NotificacionesGeneralesService)
+    .controller('NotificacionesGeneralesController', NotificacionesGeneralesController)
+    .controller('ModalEdicionNotificacionGeneralController', ModalEdicionNotificacionGeneralController)
 
     .config(($provide, uiSelectConfig) => {
         uiSelectConfig.theme = 'selectize';

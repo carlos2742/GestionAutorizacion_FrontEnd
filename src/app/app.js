@@ -103,14 +103,19 @@ angular.module(MODULE_NAME, [
                 controller: 'PermisosAdminController',
                 controllerAs: 'vm'
             })
+            .when('/actividades', {
+                template: require('./mantenimientos-maestros/actividades/actividades.html'),
+                controller: 'ActividadesController',
+                controllerAs: 'vm'
+            })
             .when('/aplicaciones', {
                 template: require('./mantenimientos-maestros/aplicaciones/aplicaciones.html'),
                 controller: 'AplicacionesController',
                 controllerAs: 'vm'
             })
-            .when('/roles', {
-                template: require('./mantenimientos-maestros/roles/roles.html'),
-                controller: 'RolesController',
+            .when('/etiquetas', {
+                template: require('./mantenimientos-maestros/etiquetas/etiquetas.html'),
+                controller: 'EtiquetasController',
                 controllerAs: 'vm'
             })
             .when('/procesos', {
@@ -118,14 +123,14 @@ angular.module(MODULE_NAME, [
                 controller: 'ProcesosController',
                 controllerAs: 'vm'
             })
-            .when('/actividades', {
-                template: require('./mantenimientos-maestros/actividades/actividades.html'),
-                controller: 'ActividadesController',
+            .when('/roles', {
+                template: require('./mantenimientos-maestros/roles/roles.html'),
+                controller: 'RolesController',
                 controllerAs: 'vm'
             })
-            .when('/etiquetas', {
-                template: require('./mantenimientos-maestros/etiquetas/etiquetas.html'),
-                controller: 'EtiquetasController',
+            .when('/notificaciones-generales', {
+                template: require('./mantenimientos-maestros/notificaciones-generales/notificaciones-generales.html'),
+                controller: 'NotificacionesGeneralesController',
                 controllerAs: 'vm'
             })
             .when('/central-autorizaciones', {

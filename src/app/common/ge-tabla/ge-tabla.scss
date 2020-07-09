@@ -5,6 +5,20 @@
 
 $fondo-tabla-vacia: rgba(0, 0, 0, 0.03);
 
+.tabla-primaria,
+.tabla-primaria > th,
+.tabla-primaria > td {
+    background-color: #b8daff;
+}
+
+.table-hover .tabla-primaria:hover {
+    background-color: #9fcdff;
+}
+
+.table-hover .tabla-primaria:hover > td,
+.table-hover .tabla-primaria:hover > th {
+    background-color: #9fcdff;
+}
 
 ge-tabla > div {
     position: relative;
@@ -31,6 +45,10 @@ ge-tabla > div {
 
     tr.seleccionable {
         cursor: pointer;
+    }
+
+    tr {
+        text-align: center;
     }
 
     td {
@@ -100,7 +118,7 @@ ge-tabla > div {
 }
 
 .modal-body.confirmacion-eliminar p:nth-child(2) {
-    text-align: center;
+    text-align: left;
 }
 
 

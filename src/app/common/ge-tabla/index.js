@@ -53,7 +53,7 @@ import './ge-tabla.scss';
  *                                              necesario actualizar algo en el controlador padre cada vez que esto pasa.
  * @property {function} fnCambioOrden        -  Esta función se ejecuta cada vez que el usuario cambia el ordenamiento de la tabla.  Útil si es
  *                                              necesario actualizar algo en el controlador padre cada vez que esto pasa.
- *
+ * @property {boolean} incluirMotivoEliminacion - Si es verdadero, el modal de confirmar eliminación muestra un campo para que el usuario inserte el motivo de eliminar la entidad.
  * @example
  * <ge-tabla datos="vm.datos" presentacion="vm.presentacion"
  *          fila-seleccionada="vm.entidadSeleccionada"
@@ -83,7 +83,8 @@ export default angular.module('ge-tabla', [
             fnEliminacion: '&',
             fnAccion: '&',
             fnSeleccion: '&',
-            fnCambioOrden: '&'
+            fnCambioOrden: '&',
+            incluirMotivoEliminacion: '<'
         },
         template: html,
         controller: ['$attrs', '$uibModal', 'AppConfig', GETablaController]

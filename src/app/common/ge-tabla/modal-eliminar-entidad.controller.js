@@ -11,9 +11,9 @@ export default class ModalEliminarEntidadController {
      * @param elemento
      * @param entidad
      * @param fnEliminacion
-     *
+     * @param incluirMotivo
      */
-    constructor($uibModalInstance, toastr, nombre, elemento, entidad, fnEliminacion) {
+    constructor($uibModalInstance, toastr, nombre, elemento, entidad, fnEliminacion, incluirMotivo) {
         /** @private */
         this.$uibModalInstance = $uibModalInstance;
         /** @private */
@@ -26,6 +26,8 @@ export default class ModalEliminarEntidadController {
         this.entidad = entidad;
         /** @private */
         this.fnEliminacion = fnEliminacion;
+        /** @private */
+        this.incluirMotivo = incluirMotivo;
     }
 
     /**
@@ -33,14 +35,14 @@ export default class ModalEliminarEntidadController {
      */
     cancelar() {
         this.$uibModalInstance.close(false);
-    };
+    }
 
     /**
      * Ejecuta la función que se pasó como parámetro al modal para eliminar la entidad. La función de eliminación debe
      * devolver una promesa. El modal se cierra cuando la promesa se resuelve o se rechaza.
      */
     eliminar() {
-        this.fnEliminacion({entidad: this.elemento})
+        this.fnEliminacion({entidad: this.elemento, motivo: this.motivo})
             .then(() => {
                 this.$uibModalInstance.close(true);
                 this.toastr.info(`${this.entidad} ${this.nombre}`, 'Se ha eliminado');

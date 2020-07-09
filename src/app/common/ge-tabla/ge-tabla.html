@@ -50,19 +50,19 @@
             <tr ng-if="!$ctrl.mostrarLoader && $ctrl.datos.length > 0"
                 ng-repeat="elemento in $ctrl.datos track by elemento.codigo"
                 ng-click=":: $ctrl.seleccionarFila(elemento)"
-                ng-class="{'table-primary': elemento.codigo === $ctrl.filaSeleccionada.codigo, 'seleccionable': $ctrl.accionSeleccionDefinida}">
+                ng-class="{'tabla-primaria': elemento.codigo === $ctrl.filaSeleccionada.codigo, 'seleccionable': $ctrl.accionSeleccionDefinida}">
                 <td ng-repeat="columna in $ctrl.presentacion.columnas" data-th="{{:: columna.display}}" ng-class="::{'incluye-html': columna.html}">
                     <span ng-if=":: !columna.html" ng-bind="$ctrl.obtenerValor(elemento, columna.nombre)"></span>
                     <div class="contenedor-html" ng-if=":: columna.html" custom-compile="elemento[columna.nombre]"></div>
                 </td>
                 <td class="incluye-html" ng-if="elemento.editable" data-th="">
-                    <a href="" ng-click=":: $ctrl.fnEdicion({entidad: elemento})" uib-tooltip="Editar">
+                    <a href="" class="d-print-none nolinea" ng-click=":: $ctrl.fnEdicion({entidad: elemento})" uib-tooltip="Editar">
                         <span class="icon-pencil2"></span>
                     </a>
                 </td>
                 <td ng-if="!elemento.editable && $ctrl.editable"></td>
                 <td class="incluye-html" ng-if="elemento.eliminable" data-th="">
-                    <a href="" ng-click=":: $ctrl.confirmarEliminacion(elemento)" uib-tooltip="Eliminar">
+                    <a href="" class="d-print-none nolinea" ng-click=":: $ctrl.confirmarEliminacion(elemento)" uib-tooltip="Eliminar">
                         <span class="icon-bin"></span>
                     </a></td>
                 <td ng-if="!elemento.eliminable && $ctrl.eliminable"></td>

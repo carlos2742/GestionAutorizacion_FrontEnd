@@ -1,0 +1,140 @@
+<form id="edicionNotificacionGeneralForm" name="edicionNotificacionGeneralForm" ng-submit=":: $modal.editar(edicionNotificacionGeneralForm)">
+    <div class="modal-header mantenimiento-maestro">
+        <h5 class="modal-title" ng-bind=":: $modal.titulo"></h5>
+        <button type="reset" class="close" aria-label="Close" ng-click=":: $modal.cancelar()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+
+    <div class="modal-body mantenimiento-maestro" modal-async>
+        <fieldset class="pl-4">
+            <legend class="text-primary">Descripción*</legend>
+            <div class="form-group form-row mb-3">
+                <label for="mensaje" class="col-lg d-none col-form-label">Descripción</label>
+                <div class="col-lg">
+                    <textarea id="mensaje"
+                              name="mensaje"
+                              class="form-control"
+                              rows="2" maxlength="2500"
+                              ng-required="true"
+                              ng-model="$modal.entidad.mensaje">
+                    </textarea>
+
+                    <div class="invalid-feedback" ng-messages="edicionNotificacionGeneralForm.mensaje.$error"
+                         ng-show="edicionNotificacionGeneralForm.$submitted || edicionNotificacionGeneralForm.mensaje.$touched" role="alert">
+                        <span ng-message="required">Descripción obligatoria</span>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+
+        <div class="d-flex form-group ml-4 mt-2 mb-1" custom-compile="$modal.botonActivoModal">
+        </div>
+
+        <fieldset class="pl-4">
+            <legend class="text-primary mb-0">Rango de Fechas</legend>
+            <div class="form-row align-items-center mt-3 mb-3">
+                <div class="form-group form-row col-lg mb-0">
+                    <label for="fechaInicioBusqueda" class="col-lg-3 col-form-label">Inicio*</label>
+                    <div class="col-lg-9">
+                        <div class="selector-fecha input-group">
+                            <input id="fechaInicioBusqueda"
+                                   name="fechaInicio"
+                                   class="form-control noeventos"
+                                   type="text"
+                                   placeholder="Fecha"
+                                   ng-model="$modal.entidad.fechaInicio.valor"
+                                   is-open="$modal.popupFechaInicialAbierto"
+                                   ng-required="true"
+                                   uib-datepicker-popup="dd/MM/yyyy"
+                                   datepicker-options="{showWeeks: false, maxDate: $modal.entidad.fechaFin.valor}"
+                                   clear-text="Reiniciar"
+                                   close-text="Cerrar"
+                                   current-text="Hoy"
+                                   popup-placement="auto bottom-right">
+                            <div class="input-group-append">
+                                <button class="btn btn-calendario icon-calendar" type="button" ng-click="$modal.toggleSelectorFecha('Inicial')"
+                                        uib-tooltip="Seleccionar fecha"></button>
+                            </div>
+                        </div>
+                        <div class="invalid-feedback" ng-messages="edicionNotificacionGeneralForm.fechaInicio.$error"
+                             ng-show="edicionNotificacionGeneralForm.$submitted || edicionNotificacionGeneralForm.fechaInicio.$touched"
+                             role="alert">
+                            <span ng-message="required">Debe seleccionar una fecha inicio</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group form-row col-lg mb-0">
+                    <label for="fechaFinalBusqueda" class="col-sm-3 col-form-label">Fin*</label>
+                    <div class="col-lg-9">
+                        <div class="selector-fecha input-group">
+                            <input id="fechaFinalBusqueda"
+                                   name="fechaFin"
+                                   class="form-control noeventos"
+                                   type="text"
+                                   placeholder="Fecha"
+                                   ng-model="$modal.entidad.fechaFin.valor"
+                                   is-open="$modal.popupFechaFinalAbierto"
+                                   ng-required="true"
+                                   uib-datepicker-popup="dd/MM/yyyy"
+                                   datepicker-options="{showWeeks: false, minDate: $modal.entidad.fechaInicio.valor}"
+                                   clear-text="Reiniciar"
+                                   close-text="Cerrar"
+                                   current-text="Hoy"
+                                   popup-placement="auto bottom-right">
+                            <div class="input-group-append">
+                                <button class="btn btn-calendario icon-calendar" type="button" ng-click="$modal.toggleSelectorFecha('Final')"
+                                        uib-tooltip="Seleccionar fecha"></button>
+                            </div>
+                        </div>
+
+                        <div class="invalid-feedback" ng-messages="edicionNotificacionGeneralForm.fechaFin.$error"
+                             ng-show="edicionNotificacionGeneralForm.$submitted || edicionNotificacionGeneralForm.fechaFin.$touched"
+                             role="alert">
+                            <span ng-message="required">Debe seleccionar una fecha fin</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset class="pl-4">
+            <legend class="text-primary mb-0">Rango de Horas</legend>
+            <div class="form-row align-items-center mt-3 mb-3">
+                <div class="form-group form-row col-lg mb-0">
+                    <label for="horaInicio" class="col-lg-3 col-form-label pt-4 mt-3">Inicio*</label>
+                    <div class="col-lg-9">
+                        <div uib-timepicker id="horaInicio" name="horaInicio" ng-model="$modal.entidad.fechaInicio.valor"
+                             ng-required="$modal.entidad.fechaInicio.valor"
+                             minute-step="15">
+                        </div>
+
+                        <div class="invalid-feedback" role="alert" ng-if="$modal.mostrarMensajeErrorHoraInicio">
+                            <span>La hora inicio debe ser antes de la final</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group form-row col-lg mb-0">
+                    <label for="horaFin" class="col-lg-3 col-form-label pt-4 mt-3">Fin*</label>
+                    <div class="col-lg-9">
+                        <div uib-timepicker id="horaFin" name="horaFin" ng-model="$modal.entidad.fechaFin.valor"
+                             ng-required="$modal.entidad.fechaFin.valor"
+                             minute-step="15">
+                        </div>
+
+                        <div class="invalid-feedback" role="alert" ng-if="$modal.mostrarMensajeErrorHoraFin">
+                            <span>La hora fin debe ser posterior a la inicial</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+    </div>
+
+    <div class="modal-footer mantenimiento-maestro">
+        <button class="btn btn-success" type="submit" ng-bind=":: $modal.textoBoton" boton-async>
+        </button>
+    </div>
+</form>

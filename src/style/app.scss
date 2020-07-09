@@ -12,6 +12,11 @@
 
 
 /* Bootstrap overwrites */
+a.nolinea:link
+{
+    text-decoration:none;
+}
+
 select.form-control {
     &:not([size]):not([multiple]) {
         height: $input-height;
