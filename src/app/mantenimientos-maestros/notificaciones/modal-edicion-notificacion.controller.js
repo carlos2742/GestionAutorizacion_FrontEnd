@@ -6,16 +6,18 @@ import { procesarFechaAEnviar } from '../../common/utiles';
 
 /* @ngInject */
 /**
- * Esta clase representa un controlador de Angular que se utiliza en la vista del modal de creación/edición de una notificacion general.
+ * Esta clase representa un controlador de Angular que se utiliza en la vista del modal de creación/edición de una notificacion.
  */
-export default class ModalEdicionNotificacionGeneralController {
-    constructor($uibModalInstance, toastr, AppConfig, entidad, paginaActual, NotificacionesGeneralesService) {
+export default class ModalEdicionNotificacionController {
+    constructor($uibModalInstance, toastr, AppConfig, entidad, paginaActual, NotificacionesService,
+                esCrear, PeticionesService, peticiones) {
         this.$uibModalInstance = $uibModalInstance;
         this.toastr = toastr;
-        this.ITEMS_SELECT = AppConfig.elementosBusquedaSelect;
         this.entidad = entidad;
         this.paginaActual = paginaActual;
-        this.notificacionesGeneralesService = NotificacionesGeneralesService;
+        this.esCrear = esCrear;
+        this.notificacionesService = NotificacionesService;
+        this.peticionesService = PeticionesService;
 
         this.botonActivoModal = `<div class="form-row mr-3">
                 <toggle onstyle="btn-success" offstyle="btn-secondary"
@@ -27,19 +29,18 @@ export default class ModalEdicionNotificacionGeneralController {
                 <label class="form-check-label mt-1" for="activo">Activo</label>
             </div>`;
 
-        if(isNil(this.entidad)) {
+        if(isNil(this.entidad) || this.esCrear) {
             this.modoEdicion = false;
-            this.titulo = 'Adicionar notificación general';
+            this.titulo = 'Adicionar notificación';
             this.textoBoton = 'Crear';
         } else {
             this.modoEdicion = true;
-            this.titulo = 'Actualizar notificación general';
+            this.titulo = 'Actualizar notificación';
             this.textoBoton = 'Actualizar';
         }
 
         this.popupFechaInicialAbierto = false;
         this.popupFechaFinalAbierto = false;
-
         this.mensajeErrorHoraInicio = false;
         this.mensajeErrorHoraFin = false;
     }
@@ -72,8 +73,8 @@ export default class ModalEdicionNotificacionGeneralController {
         }
     }
 
-    editar(edicionNotificacionGeneralForm) {
-        if (edicionNotificacionGeneralForm.$invalid) {
+    editar(edicionNotificacionForm) {
+        if (edicionNotificacionForm.$invalid) {
             return;
         } else if(this.entidad.fechaInicio.valor >= this.entidad.fechaFin.valor) {
             return;
@@ -81,15 +82,16 @@ export default class ModalEdicionNotificacionGeneralController {
             return;
         }
 
-        if (!this.modoEdicion) {
+        if (!this.modoEdicion || this.esCrear) {
             //Crear notificacion
             const datosNotificacionCrear = {
                 mensaje: this.entidad.mensaje,
                 activo: get(this.entidad, 'activo') ? get(this.entidad, 'activo') : false,
                 fechaInicio: procesarFechaAEnviar(this.entidad.fechaInicio.valor),
-                fechaFin: procesarFechaAEnviar(this.entidad.fechaFin.valor)
+                fechaFin: procesarFechaAEnviar(this.entidad.fechaFin.valor),
+                idPeticion: get(this.entidad, 'idPeticion') ? this.entidad.idPeticion : undefined
             };
-            this.notificacionesGeneralesService.crear(datosNotificacionCrear)
+            this.notificacionesService.crear(datosNotificacionCrear)
                 .then((respuesta) => {
                     this.toastr.success(`Notificación "${this.entidad.mensaje}"`, TITULO_CAMBIOS_GUARDADOS);
                     this.$uibModalInstance.close(null);
@@ -105,7 +107,7 @@ export default class ModalEdicionNotificacionGeneralController {
                 });
         } else {
             //Editar notificacion
-            this.notificacionesGeneralesService.editar(this.entidad, this.paginaActual)
+            this.notificacionesService.editar(this.entidad, this.paginaActual)
                 .then(resultado => {
                     this.$uibModalInstance.close(resultado);
                     this.toastr.success(`Notificación "${resultado['notificacion'].mensaje}"`, TITULO_CAMBIOS_GUARDADOS);

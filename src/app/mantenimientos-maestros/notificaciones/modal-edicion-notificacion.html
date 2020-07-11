@@ -1,4 +1,4 @@
-<form id="edicionNotificacionGeneralForm" name="edicionNotificacionGeneralForm" ng-submit=":: $modal.editar(edicionNotificacionGeneralForm)">
+<form id="edicionNotificacionForm" name="edicionNotificacionForm" ng-submit=":: $modal.editar(edicionNotificacionForm)">
     <div class="modal-header mantenimiento-maestro">
         <h5 class="modal-title" ng-bind=":: $modal.titulo"></h5>
         <button type="reset" class="close" aria-label="Close" ng-click=":: $modal.cancelar()">
@@ -7,6 +7,19 @@
     </div>
 
     <div class="modal-body mantenimiento-maestro" modal-async>
+        <fieldset class="pl-4" ng-if="$modal.entidad.peticion">
+            <legend class="text-primary mb-0">Autorizaciones</legend>
+            <div class="form-group form-row mt-2">
+                <div class="col-sm">
+                    <p class="izquierda">Código: {{ $modal.entidad.peticion.id }}</p>
+                </div>
+
+                <div class="col-sm">
+                    <p class="izquierda">Solicitante: {{ $modal.entidad.solicitante.display }}</p>
+                </div>
+            </div>
+        </fieldset>
+
         <fieldset class="pl-4">
             <legend class="text-primary">Descripción*</legend>
             <div class="form-group form-row mb-3">
@@ -20,8 +33,8 @@
                               ng-model="$modal.entidad.mensaje">
                     </textarea>
 
-                    <div class="invalid-feedback" ng-messages="edicionNotificacionGeneralForm.mensaje.$error"
-                         ng-show="edicionNotificacionGeneralForm.$submitted || edicionNotificacionGeneralForm.mensaje.$touched" role="alert">
+                    <div class="invalid-feedback" ng-messages="edicionNotificacionForm.mensaje.$error"
+                         ng-show="edicionNotificacionForm.$submitted || edicionNotificacionForm.mensaje.$touched" role="alert">
                         <span ng-message="required">Descripción obligatoria</span>
                     </div>
                 </div>
@@ -57,8 +70,8 @@
                                         uib-tooltip="Seleccionar fecha"></button>
                             </div>
                         </div>
-                        <div class="invalid-feedback" ng-messages="edicionNotificacionGeneralForm.fechaInicio.$error"
-                             ng-show="edicionNotificacionGeneralForm.$submitted || edicionNotificacionGeneralForm.fechaInicio.$touched"
+                        <div class="invalid-feedback" ng-messages="edicionNotificacionForm.fechaInicio.$error"
+                             ng-show="edicionNotificacionForm.$submitted || edicionNotificacionForm.fechaInicio.$touched"
                              role="alert">
                             <span ng-message="required">Debe seleccionar una fecha inicio</span>
                         </div>
@@ -89,8 +102,8 @@
                             </div>
                         </div>
 
-                        <div class="invalid-feedback" ng-messages="edicionNotificacionGeneralForm.fechaFin.$error"
-                             ng-show="edicionNotificacionGeneralForm.$submitted || edicionNotificacionGeneralForm.fechaFin.$touched"
+                        <div class="invalid-feedback" ng-messages="edicionNotificacionForm.fechaFin.$error"
+                             ng-show="edicionNotificacionForm.$submitted || edicionNotificacionForm.fechaFin.$touched"
                              role="alert">
                             <span ng-message="required">Debe seleccionar una fecha fin</span>
                         </div>

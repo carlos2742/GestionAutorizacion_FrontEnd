@@ -128,10 +128,23 @@ angular.module(MODULE_NAME, [
                 controller: 'RolesController',
                 controllerAs: 'vm'
             })
-            .when('/notificaciones-generales', {
-                template: require('./mantenimientos-maestros/notificaciones-generales/notificaciones-generales.html'),
-                controller: 'NotificacionesGeneralesController',
-                controllerAs: 'vm'
+            .when('/notificaciones', {
+                template: require('./mantenimientos-maestros/notificaciones/notificaciones.html'),
+                controller: 'NotificacionesController',
+                controllerAs: 'vm',
+                resolve: {
+                    esGeneral: () => { return true; },
+                    titulo: () => { return 'Notificaciones Generales'; }
+                }
+            })
+            .when('/notificaciones-especificas', {
+                template: require('./mantenimientos-maestros/notificaciones/notificaciones.html'),
+                controller: 'NotificacionesController',
+                controllerAs: 'vm',
+                resolve: {
+                    esGeneral: () => { return false; },
+                    titulo: () => { return 'Notificaciones Autorizaciones'; }
+                }
             })
             .when('/central-autorizaciones', {
                 template: require('./central-autorizaciones/peticiones/peticiones.html'),

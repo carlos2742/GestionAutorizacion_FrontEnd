@@ -2,6 +2,7 @@ import isNil from 'lodash/isNil';
 import isUndefined from 'lodash/isUndefined';
 import isEqual from 'lodash/isEqual';
 import clone from 'lodash/clone';
+import get from 'lodash/get';
 import map from 'lodash/map';
 import fill from 'lodash/fill';
 import forEach from 'lodash/forEach';
@@ -15,9 +16,9 @@ import { procesarFechaAEnviar } from '../../common/utiles';
 
 /* @ngInject */
 /**
- * Esta clase es un servicio de Angular donde se almacena la lista de todas las notificaciones generales disponibles.
+ * Esta clase es un servicio de Angular donde se almacena la lista de todas las notificaciones disponibles.
  */
-export default class NotificacionesGeneralesService {
+export default class NotificacionesService {
     constructor($q, $http, ErroresValidacionMaestros, AppConfig) {
         this.ENDPOINT = '/notificaciones';
         this.$q = $q;
@@ -25,13 +26,21 @@ export default class NotificacionesGeneralesService {
         this.erroresValidacionMaestros = ErroresValidacionMaestros;
         this.appConfig = AppConfig;
 
-        this.notificacionesGenerales = [];
+        this.notificaciones = [];
         this.ordenActivo = null;
         this.filtrosBusqueda = null;
     }
 
+    obtenerEstados() {
+        return [
+            {id: 1, nombre: 'Activo', valor: true},
+            {id: 2, nombre: 'Inactivo', valor: false},
+            {id: 3, nombre: '', valor: undefined}
+        ];
+    }
+
     reset() {
-        this.notificacionesGenerales = [];
+        this.notificaciones = [];
         this.ordenActivo = null;
         this.filtrosBusqueda = null;
     }
@@ -45,6 +54,8 @@ export default class NotificacionesGeneralesService {
         notificacionAProcesar['id'] = entidad['id'];
         notificacionAProcesar['activo'] = entidad['activo'];
         notificacionAProcesar['mensaje'] = entidad['mensaje'];
+        notificacionAProcesar['idPeticion'] = entidad['idPeticion'];
+        notificacionAProcesar['peticion'] = entidad['peticion'];
 
         if(entidad.hasOwnProperty('fechaInicio')) {
             const fechaInicio = entidad.fechaInicio ? new Date(Date.parse(entidad.fechaInicio)) : null;
@@ -76,18 +87,22 @@ export default class NotificacionesGeneralesService {
                 displayHoraFin: horaFin ? horaFin : ''
             };
         }
-        if(entidad.hasOwnProperty('peticion')) {
-            notificacionAProcesar['idPeticion'] = entidad['idPeticion'];
-            notificacionAProcesar['peticion'] = entidad['peticion'];
+        if(entidad.hasOwnProperty('solicitante')) {
+            if(!isNil(entidad.solicitante)) {
+                notificacionAProcesar['solicitante'] = {
+                    valor: entidad.solicitante,
+                    display: `${entidad.solicitante.nombre} ${entidad.solicitante.apellidos}`
+                };
+            }
         }
         return notificacionAProcesar;
     }
 
     _procesarResultadosPaginados(resultados, total, inicio) {
-        this.notificacionesGenerales = [];
-        this.notificacionesGenerales.push(... fill(Array(total), undefined));
+        this.notificaciones = [];
+        this.notificaciones.push(... fill(Array(total), undefined));
         forEach(resultados, (notificacion, indice) => {
-            this.notificacionesGenerales[indice + inicio] = notificacion;
+            this.notificaciones[indice + inicio] = notificacion;
         });
     }
 
@@ -98,7 +113,7 @@ export default class NotificacionesGeneralesService {
         const inicio = fin - this.appConfig.elementosPorPagina;
         const guardarCambios = isNil(persistirResultado) || persistirResultado;
         if (guardarCambios && !isNil(orden) && (isNil(this.ordenActivo) || orden[0] !== this.ordenActivo[0] || orden[1] !== this.ordenActivo[1])) {
-            this.notificacionesGenerales = [];
+            this.notificaciones = [];
             this.ordenActivo = orden;
         }
         let ordenarPor;
@@ -154,15 +169,15 @@ export default class NotificacionesGeneralesService {
             })
             .then(response => {
                 let nuevaNotificacion = this.procesarEntidadRecibida(response.data);
-                this.notificacionesGenerales.push(nuevaNotificacion);
+                this.notificaciones.push(nuevaNotificacion);
                 return nuevaNotificacion;
             });
     }
 
     _indiceEntidadCambiada(notificacionProcesada) {
         if (isNil(notificacionProcesada)) { return -1; }
-        let indiceExistente = findIndex(this.notificacionesGenerales, ['id', notificacionProcesada.id]);
-        let iguales = isMatchWith(this.notificacionesGenerales[indiceExistente], notificacionProcesada, (objValue, srcValue, key) => {
+        let indiceExistente = findIndex(this.notificaciones, ['id', notificacionProcesada.id]);
+        let iguales = isMatchWith(this.notificaciones[indiceExistente], notificacionProcesada, (objValue, srcValue, key) => {
             if(key === 'mensaje') {
                 return objValue === srcValue;
             } else if(key === 'activo') {
@@ -188,9 +203,9 @@ export default class NotificacionesGeneralesService {
     }
 
     _eliminarEntidad(notificacion) {
-        let indiceExistente = findIndex(this.notificacionesGenerales, ['id', notificacion.id]);
+        let indiceExistente = findIndex(this.notificaciones, ['id', notificacion.id]);
         if (indiceExistente > -1) {
-            this.notificacionesGenerales.splice(indiceExistente, 1);
+            this.notificaciones.splice(indiceExistente, 1);
         }
     }
 
@@ -201,7 +216,7 @@ export default class NotificacionesGeneralesService {
             activo: entidad.activo,
             fechaInicio: procesarFechaAEnviar(entidad.fechaInicio.valor),
             fechaFin: procesarFechaAEnviar(entidad.fechaFin.valor),
-            idPeticion: null
+            idPeticion: get(entidad, 'idPeticion') ? entidad.idPeticion : undefined
         };
         let notificacionEditada;
         return this._validarEntidad(datosNotificacionEditar)
@@ -232,7 +247,7 @@ export default class NotificacionesGeneralesService {
     }
 
     eliminar(notificacion) {
-        let indiceExistente = findIndex(this.notificacionesGenerales, ['id', notificacion.id]);
+        let indiceExistente = findIndex(this.notificaciones, ['id', notificacion.id]);
         if (indiceExistente < 0 ){ return this.$q.reject(); }
         return this.$http.delete(`${this.ENDPOINT}/${notificacion.id}`)
             .then(() => {

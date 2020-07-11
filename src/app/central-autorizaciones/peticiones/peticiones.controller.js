@@ -10,8 +10,8 @@ import filter from 'lodash/filter';
 import includes from 'lodash/includes';
 import get from 'lodash/get';
 import reduce from 'lodash/reduce';
-import format from 'date-fns/format';
 import differenceBy from 'lodash/differenceBy';
+import format from 'date-fns/format';
 
 import './peticiones.scss';
 import {
@@ -25,6 +25,9 @@ import {
     TEXTO_CAMBIOS_GUARDADOS
 } from "../../common/constantes";
 import {procesarFechaAEnviar} from "../../common/utiles";
+import angular from "angular";
+import modalEdicionNotificacion
+    from "../../mantenimientos-maestros/notificaciones/modal-edicion-notificacion.html";
 
 /* @ngInject */
 /**
@@ -170,6 +173,8 @@ export default class PeticionesController {
                 {nombre: 'estado.display', display: 'Etiqueta', ordenable: false},
                 {nombre: 'accionMensajes', display: 'Chat', html: true, ancho: '40px', ordenable: 'fechaUltimoMensaje.valor'},
                 {nombre: 'accionAdjuntos', display: '', html: true, ancho: '40px'},
+                {nombre: 'accionCrearNotificacion', display: '', html: true, ancho: '40px'},
+                {nombre: 'accionVerNotificaciones', display: '', html: true, ancho: '40px'},
                 {nombre: 'enlaceDetalles', display: '', html: true, ancho: '40px'}
             ]
         };
@@ -270,6 +275,15 @@ export default class PeticionesController {
         clon.enlaceDetalles = `<a href target="_blank" class="icon-view-show d-print-none" ng-href="#/peticion/${entidad.id}" uib-tooltip="Ver Detalles"></a>`;
 
         if (this.autorizador && entidad.estadoInterno === AUTORIZACION_PENDIENTE) {
+            clon.accionCrearNotificacion = `<a href ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'notificaciones'})"
+                                   class="icon-notification nolinea" uib-tooltip="Añadir notificación">
+                                </a>`;
+            clon.accionVerNotificaciones = `<a href class="icon-file-text d-print-none nolinea" 
+                                                ng-href="#/notificaciones-especificas?idPeticion=${entidad.id}"
+                                                uib-tooltip="Ver notificaciones">                                                
+                                            </a>`;
+            sessionStorage.setItem('urlOrigen', '#/central-autorizaciones');
+
             clon.checkbox = `<input type="checkbox" class="checkbox-visible" ng-model="elemento.seleccionada" uib-tooltip="Seleccionar">`;
             clon.accionAprobar = `<a href="" ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'aprobar'})" uib-tooltip="Aprobar">
                                 <span class="icon-checkmark text-success"></span>
@@ -298,6 +312,20 @@ export default class PeticionesController {
         }
 
         return clon;
+    }
+
+    manejarAccion(entidad, accion) {
+        if (accion === 'aprobar' || accion === 'rechazar') {
+            return this._cambiarEstado([entidad], accion);
+        } else if (accion === 'adjuntos') {
+            return this.mostrarPopupAdjuntos(entidad);
+        } else if (accion === 'mensajes') {
+            return this.mostrarPopupMensajes(entidad);
+        } else if (accion === 'actualizar') {
+            return this.guardarCambiosObservaciones(entidad);
+        } else if (accion === 'notificaciones') {
+            return this.mostrarModalNotificaciones(entidad);
+        }
     }
 
     get datosAExportar() {
@@ -656,18 +684,6 @@ export default class PeticionesController {
         });
     }
 
-    manejarAccion(entidad, accion) {
-        if (accion === 'aprobar' || accion === 'rechazar') {
-            return this._cambiarEstado([entidad], accion);
-        } else if (accion === 'adjuntos') {
-            return this.mostrarPopupAdjuntos(entidad);
-        } else if (accion === 'mensajes') {
-            return this.mostrarPopupMensajes(entidad);
-        } else if (accion === 'actualizar') {
-            return this.guardarCambiosObservaciones(entidad);
-        }
-    }
-
      _cambiarEstado(peticiones, accion) {
         return this.$q((resolve, reject) => {
             const contenedor = angular.element(document.getElementById("modalConfirmacionAutorizacion"));
@@ -946,6 +962,29 @@ export default class PeticionesController {
                     });
             }
         }
+    }
 
+    mostrarModalNotificaciones(peticion) {
+        const entidad = {
+            peticion,
+            solicitante: { display: peticion.solicitante.display },
+            idPeticion: peticion.id
+        };
+        const contenedor = angular.element(document.getElementById('modalCrearNotificacion'));
+        const modal = this.$uibModal.open({
+            template: modalEdicionNotificacion,
+            appendTo: contenedor,
+            size: 'lg dialog-centered',
+            controller: 'ModalEdicionNotificacionController',
+            controllerAs: '$modal',
+            resolve: {
+                entidad: () => { return entidad; },
+                paginaActual: () => { return this.paginaActual; },
+                esCrear: () => { return true; },
+                peticiones: () => { return [peticion]; }
+            }
+        });
+        modal.result.then((resultado) => { });
+        modal.result.catch(response => { throw response; });
     }
 }

@@ -1,0 +1,121 @@
+<div id="notificacion" class="notificacion">
+    <h1 class="titulo-centrado" ng-bind="vm.titulo"></h1>
+
+    <div class="contenedor-busqueda mx-auto">
+        <a ng-if="vm.idPeticion" href class="icon-undo2 d-print-none nolinea" ng-href="{{ vm.urlRedireccionar }}"> Ir a Central Autorizaciones</a>
+        <uib-accordion>
+            <div uib-accordion-group class="mt-1 acordeon-evaluaciones" is-open="vm.busquedaVisible">
+                <uib-accordion-heading>Búsqueda
+                    <div class="chevron-container" uib-tooltip="{{ vm.busquedaVisible ? 'Ocultar' : 'Mostrar' }}"
+                         tooltip-placement="bottom-left">
+                        <span class="chevron down" ng-class="{'up': vm.busquedaVisible}"></span>
+                        <span class="chevron down" ng-class="{'up': vm.busquedaVisible}"></span>
+                    </div>
+                </uib-accordion-heading>
+
+                <form id="busquedaNotificacionesForm" name="busquedaNotificacionesForm" novalidate ng-keyup="$event.keyCode == 13 && vm.buscar()">
+                    <div class="form-row">
+                        <div class="form-group form-row col-sm-8">
+                            <label for="mensajeBusqueda" class="col-sm-3 col-form-label">Descripción</label>
+                            <div class="col-sm-9">
+                                <input id="mensajeBusqueda" name="mensajeBusqueda" class="form-control" type="text"
+                                       placeholder="Descripción"
+                                       ng-model="vm.paramsBusqueda.mensajeBusqueda"
+                                >
+                            </div>
+                        </div>
+
+                        <div class="form-group form-row col-sm-4">
+                            <label for="estadoBusqueda" class="col-sm-3 col-form-label">Estado</label>
+                            <div class="col-sm-9">
+                                <ui-select ng-model="vm.paramsBusqueda.estado" name="estado" input-id="estadoBusqueda" ng-animate-children="false">
+                                    <ui-select-match placeholder="Estado">
+                                        <span ng-bind="$select.selected.nombre"></span>
+                                    </ui-select-match>
+
+                                    <ui-select-choices repeat="estado in vm.estados track by estado.id"
+                                                       refresh="vm.filtrarEstado($select.search)" refresh-delay="1000">
+                                        <span ng-bind-html="estado.nombre | highlight: $select.search"></span>
+                                    </ui-select-choices>
+
+                                    <ui-select-footer class="text-muted" >
+                                        <span ng-show="vm.mostrandoResultadosParcialesEstados">Demasiados resultados, debe refinar la búsqueda</span>
+                                    </ui-select-footer>
+                                </ui-select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row" ng-if="!vm.esGeneral">
+                        <div class="form-group form-row col-sm-8">
+                            <label for="solicitanteParaBusqueda" class="col-sm-3 col-form-label">Solicitante</label>
+                            <div class="col-sm-9">
+                                <ui-select ng-model="vm.paramsBusqueda.solicitante" name="solicitante"
+                                           input-id="solicitanteParaBusqueda" ng-animate-children="false">
+                                    <ui-select-match placeholder="Seleccione o busque una persona">
+                                        <span ng-bind="$select.selected.apellidosNombre"></span>
+                                    </ui-select-match>
+
+                                    <ui-select-choices repeat="persona in vm.personas track by persona.codigo"
+                                                       refresh="vm.filtrarPersonas($select.search)" refresh-delay="1000">
+                                        <span ng-bind-html="persona.apellidosNombre | highlight: $select.search"></span>
+                                    </ui-select-choices>
+
+                                    <ui-select-footer class="text-muted" >
+                                        <span ng-show="vm.mostrandoResultadosParcialesPersonas">Demasiados resultados, debe refinar la búsqueda</span>
+                                        <span ng-show="vm.obteniendoPersonas">Buscando...</span>
+                                    </ui-select-footer>
+                                </ui-select>
+                            </div>
+                        </div>
+
+                        <div class="form-group form-row col-sm-4">
+                            <label for="codigoPeticionBusqueda" class="col-sm-3 col-form-label">Código</label>
+                            <div class="col-sm-9">
+                                <input id="codigoPeticionBusqueda" name="codigoPeticionBusqueda" class="form-control" type="text"
+                                       placeholder="Código"
+                                       ng-model="vm.paramsBusqueda.codigoPeticionBusqueda"
+                                >
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row contenedor-botones">
+                        <button type="button" class="btn btn-primary" ng-click="vm.buscar()">
+                            <span class="icon-search"></span> Buscar
+                        </button>
+                        <button type="button" class="btn btn-secondary" ng-click="vm.mostrarTodos(busquedaNotificacionesForm)">
+                            Limpiar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </uib-accordion>
+    </div>
+
+    <div class="contenedor-tabla mx-auto">
+        <button type="button" class="btn btn-primary" ng-if="vm.esGeneral" ng-click="vm.mostrarModalNotificacion()">
+            <span class="icon-plus"></span> Añadir notificación
+        </button>
+
+        <ge-tabla datos="vm.datos" presentacion="vm.presentacion"
+                  fn-edicion="vm.editarNotificacion(entidad)"
+                  fn-eliminacion="vm.eliminarNotificacion(entidad)"
+                  fn-cambio-orden="vm.actualizarOrden(orden)">
+        </ge-tabla>
+
+        <ul uib-pagination class="justify-content-center"
+            items-per-page=":: vm.ITEMS_POR_PAGINA"
+            total-items="vm.totalItems"
+            previous-text="&lsaquo;" next-text="&rsaquo;"
+            boundary-link-numbers="true"
+            max-size="5"
+            ng-model="vm.paginaActual"
+            ng-change=":: vm.actualizarPagina()"
+            ng-show="vm.totalItems > vm.ITEMS_POR_PAGINA">
+        </ul>
+    </div>
+
+    <div id="modalEdicionNotificacion">
+    </div>
+</div>
