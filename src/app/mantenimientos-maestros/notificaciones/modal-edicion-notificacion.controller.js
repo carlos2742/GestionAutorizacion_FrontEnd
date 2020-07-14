@@ -115,11 +115,14 @@ export default class ModalEdicionNotificacionController {
                 .catch(response => {
                     if (isNil(response)) {
                         this.$uibModalInstance.close();
-                        return;
-                    } else if (get(response, 'error.errorCode')) {
+                    } else if (get(response, 'error.errorCode') === NOTIFICACION_YA_EXISTE) {
                         this.toastr.error(response.error.message);
+                    }  else if (get(response, 'error.errorCode')) {
+                        this.toastr.error(response.error.message);
+                        this.$uibModalInstance.close(null);
+                    } else {
+                        this.$uibModalInstance.close(null);
                     }
-                    this.$uibModalInstance.close(null);
                 });
         }
     }
