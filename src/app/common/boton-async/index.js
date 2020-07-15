@@ -1,5 +1,6 @@
 import angular from 'angular';
 import isNil from 'lodash/isNil';
+import includes from 'lodash/includes';
 
 import loaderHtml from './boton-async.html';
 import './boton-async.scss';
@@ -26,9 +27,11 @@ export default angular.module('boton-async', [])
 
                 const listenerRequest = $rootScope.$on('GestionAutorizacionAPI:request', (event, method) => {
                     if (!isNil(method) && method !== 'GET') {
-                        contenidoBoton  = element.html();
-                        element.html(loaderHtml);
-                        element.prop('disabled', true);
+                        if (!includes(element.html(), 'btn-async-loader')) {
+                            contenidoBoton  = element.html();
+                            element.html(loaderHtml);
+                            element.prop('disabled', true);
+                        }
                     }
                 });
                 const listenerResponse = $rootScope.$on('GestionAutorizacionAPI:response', (event, method) => {
