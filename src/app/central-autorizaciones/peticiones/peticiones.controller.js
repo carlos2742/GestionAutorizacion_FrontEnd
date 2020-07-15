@@ -1,3 +1,4 @@
+import angular from "angular";
 import isNil from 'lodash/isNil';
 import find from 'lodash/find';
 import findIndex from 'lodash/findIndex';
@@ -13,19 +14,11 @@ import reduce from 'lodash/reduce';
 import differenceBy from 'lodash/differenceBy';
 import format from 'date-fns/format';
 
-import './peticiones.scss';
-import {
-    AUTORIZACION_ANULADA,
-    AUTORIZACION_APROBADA,
-    AUTORIZACION_PENDIENTE, AUTORIZACION_RECHAZADA,
-    ETIQUETA_ANULADO,
-    ETIQUETA_NOK, ETIQUETA_NOK_DESC, ETIQUETA_OK_DESC,
-    ETIQUETA_PENDIENTE,
-    PROPIEDAD_NO_EDITABLE,
-    TEXTO_CAMBIOS_GUARDADOS
+import { AUTORIZACION_ANULADA, AUTORIZACION_APROBADA, AUTORIZACION_PENDIENTE, AUTORIZACION_RECHAZADA, ETIQUETA_ANULADO,
+    ETIQUETA_NOK, ETIQUETA_NOK_DESC, ETIQUETA_OK_DESC, ETIQUETA_PENDIENTE, PROPIEDAD_NO_EDITABLE, TEXTO_CAMBIOS_GUARDADOS
 } from "../../common/constantes";
-import {procesarFechaAEnviar} from "../../common/utiles";
-import angular from "angular";
+import { procesarFechaAEnviar } from "../../common/utiles";
+import './peticiones.scss';
 import modalEdicionNotificacion
     from "../../mantenimientos-maestros/notificaciones/modal-edicion-notificacion.html";
 
@@ -310,7 +303,6 @@ export default class PeticionesController {
                                             style="width: 100%;">${!isNil(entidad.observaciones) ? entidad.observaciones : ''}</textarea>`;
 
         }
-
         return clon;
     }
 
@@ -452,7 +444,6 @@ export default class PeticionesController {
         if (isNil(peticion)) {
             return false;
         }
-
         return !!find(this.datos, (item) => {
             return item.codigo === peticion.codigo;
         });
@@ -460,17 +451,14 @@ export default class PeticionesController {
 
     _generarStringEstados() {
         let resultado = '';
-
         forEach([['pendiente', AUTORIZACION_PENDIENTE], ['aprobada', AUTORIZACION_APROBADA], ['rechazada', AUTORIZACION_RECHAZADA], ['anulada', AUTORIZACION_ANULADA]], item => {
             if (this.paramsBusqueda[item[0]]) {
                 resultado += `${resultado ? '_' : ''}${item[1]}`;
             }
         });
-
         if (!resultado) {
             return undefined;
         }
-
         return resultado;
     }
 
@@ -491,14 +479,11 @@ export default class PeticionesController {
                 fechaInicial: get(this.paramsBusqueda, 'fechaInicial') ? procesarFechaAEnviar(this.paramsBusqueda.fechaInicial) : undefined,
                 fechaFinal: get(this.paramsBusqueda, 'fechaFinal') ? procesarFechaAEnviar(this.paramsBusqueda.fechaFinal) : undefined
             };
-
             this.paramsAnteriores = cloneDeep(this.paramsBusqueda);
-
             if (this.totalItems > this.ITEMS_POR_PAGINA) {
                 this.seleccionarTodos = false;
                 this.cambiarSeleccion();
             }
-
             this.busquedaActiva = true;
             this.actualizacionEnProgreso = true;
             const idsSeleccionados = map(this.peticionesSeleccionadas, peticion => { return peticion.id });
@@ -538,19 +523,16 @@ export default class PeticionesController {
         };
         busquedaForm.$setPristine();
         busquedaForm.$setUntouched();
-
         // Si justo antes ya se había mandado a mostrar todos los resultados, no se hace nada. Comprobando esto se
         // ahorran llamadas innecesarias al API.
         if (Object.getOwnPropertyNames(this.paramsAnteriores).length > 1 || !this.paramsAnteriores.pendiente) {
             this.paramsAnteriores = {
                 pendiente: true
             };
-
             if (this.totalItems > this.ITEMS_POR_PAGINA) {
                 this.seleccionarTodos = false;
                 this.cambiarSeleccion();
             }
-
             this.actualizacionEnProgreso = true;
             const idsSeleccionados = map(this.peticionesSeleccionadas, peticion => { return peticion.id });
             this.datos = null;
@@ -564,11 +546,9 @@ export default class PeticionesController {
                         enumerable: false,
                         get: () => { return true; }
                     });
-
                     if (!this.filaEsVisible(this.peticionSeleccionada)) {
                         this.peticionSeleccionada = null;
                     }
-
                     this.mostrarSoloLectura = !this.autorizador;
                 })
                 .finally(() => {
@@ -592,7 +572,6 @@ export default class PeticionesController {
             this.seleccionarTodos = false;
             this.cambiarSeleccion();
         }
-
         const idsSeleccionados = map(this.peticionesSeleccionadas, peticion => { return peticion.id });
         this.datos = null;
         this.procesando = true;
@@ -693,18 +672,15 @@ export default class PeticionesController {
                 size: 'dialog-centered',    // hack para que el modal salga centrado verticalmente
                 controller: ($scope) => {
                     'ngInject';
-
                     $scope.peticiones = peticiones;
                     $scope.accion = accion;
                     $scope.usuarioEsGestor = this.usuarioEsGestor;
                     $scope.estado = {};
                     $scope.alternarBotonConfirmacion = false;
-
                     $scope.actualizarPeticion = () => {
                         this.seleccionarTodos = false;
                         $scope.alternarBotonConfirmacion = true;
                         this.cambiarSeleccion();
-
                         const fnActualizarTabla = (datos, peticionesConError) => {
                             const idsSeleccionados = map(this.peticionesSeleccionadas, peticion => { return peticion.id });
                             this.datos = map(datos, peticion => {
@@ -745,19 +721,16 @@ export default class PeticionesController {
                                     iconClass: 'toast-info alerta-peticiones'
                                 });
                             }
-
                             this.$timeout(() => {
                                 this.actualizacionEnProgreso = false;
                             }, 500);
                         };
-
                         let promesa;
                         if (accion === 'aprobar') {
                             promesa = this.peticionesService.aprobar(peticiones, this.paginaActual);
                         } else if (accion === 'rechazar') {
                             promesa = this.peticionesService.rechazar(peticiones, this.paginaActual);
                         }
-
                         this.actualizacionEnProgreso = true;
                         return promesa.then(resultado => {
                             let message = '';
@@ -806,13 +779,12 @@ export default class PeticionesController {
                                 this.actualizacionEnProgreso = false;
                             }
                         }).finally(() => {
-                            $scope.alternarBotonConfirmacion = false;
                             $scope.$close();
+                            $scope.alternarBotonConfirmacion = false;
                         });
                     };
                 }
             });
-
             modal.result.catch(() => {
                 reject();
             });
@@ -836,7 +808,6 @@ export default class PeticionesController {
             .catch(response => {
                 if (response) {
                     let actualizar = false;
-
                     if (response.status === 401) {
                         actualizar = true;
                         this.peticionSeleccionada = null;
@@ -848,18 +819,15 @@ export default class PeticionesController {
                         actualizar = true;
                         this.toastr.error('Lo sentimos, no se pudieron guardar los cambios porque la petición estaba desactualizada. Por favor, inténtelo de nuevo.');
                     }
-
                     if (actualizar) {
                         const fin = this.paginaActual * this.ITEMS_POR_PAGINA;
                         const inicio = fin - this.ITEMS_POR_PAGINA;
                         let forzarActualizacion = false;
-
                         // Si es la última página y ya no tiene elementos, hay que cambiar de página
                         if (this.paginaActual > 1 && inicio >= this.peticionesService.peticiones.length) {
                             this.paginaActual -= 1;
                             forzarActualizacion = true;
                         }
-
                         this.actualizacionEnProgreso = false;
                         this.actualizarPagina(undefined, forzarActualizacion)
                             .then(() => {
@@ -892,7 +860,6 @@ export default class PeticionesController {
                             display: format(resultado.mensajes[0].fechaEnvio.valor, `${this.AppConfig.formatoFechas} HH:mm:ss`)
                         };
                     }
-
                     const indiceEntidadCambiada = findIndex(this.datos, ['codigo', entidad.codigo]);
                     if (indiceEntidadCambiada > -1) {
                         const idsSeleccionados = map(this.peticionesSeleccionadas, peticion => { return peticion.id; });
@@ -946,7 +913,6 @@ export default class PeticionesController {
 
     obtenerSolicitantePeticionRelacionada(peticionAnulacion) {
         const path = peticionAnulacion ? 'peticionAnulacion' : 'peticionQueAnula';
-
         const idSolicitante = get(this.peticionSeleccionada, `${path}.solicitante`);
         if (!isNil(idSolicitante)) {
             if (idSolicitante === this.peticionSeleccionada.solicitante.valor.nInterno) {
