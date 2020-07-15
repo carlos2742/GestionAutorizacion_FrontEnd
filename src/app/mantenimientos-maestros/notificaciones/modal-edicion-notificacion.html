@@ -11,11 +11,11 @@
             <legend class="text-primary mb-0">Autorizaciones</legend>
             <div class="form-group form-row mt-2">
                 <div class="col-sm">
-                    <p class="izquierda">Código: {{ $modal.entidad.peticion.id }}</p>
+                    <p>Código: {{ $modal.entidad.peticion.id }}</p>
                 </div>
 
                 <div class="col-sm">
-                    <p class="izquierda">Solicitante: {{ $modal.entidad.solicitante.display }}</p>
+                    <p>Solicitante: {{ $modal.entidad.solicitante.display }}</p>
                 </div>
             </div>
         </fieldset>
@@ -66,7 +66,7 @@
                                    current-text="Hoy"
                                    popup-placement="auto bottom-right">
                             <div class="input-group-append">
-                                <button class="btn btn-calendario icon-calendar" type="button" ng-click="$modal.toggleSelectorFecha('Inicial')"
+                                <button class="btn btn-autorizacion icon-calendar" type="button" ng-click="$modal.toggleSelectorFecha('Inicial')"
                                         uib-tooltip="Seleccionar fecha"></button>
                             </div>
                         </div>
@@ -97,7 +97,7 @@
                                    current-text="Hoy"
                                    popup-placement="auto bottom-right">
                             <div class="input-group-append">
-                                <button class="btn btn-calendario icon-calendar" type="button" ng-click="$modal.toggleSelectorFecha('Final')"
+                                <button class="btn btn-autorizacion icon-calendar" type="button" ng-click="$modal.toggleSelectorFecha('Final')"
                                         uib-tooltip="Seleccionar fecha"></button>
                             </div>
                         </div>
