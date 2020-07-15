@@ -342,6 +342,7 @@
     </div>
     <div class="modal-footer confirmacion-eliminar">
         <button class="btn btn-secondary" type="button" ng-click="$dismiss()">No</button>
-        <button class="btn btn-primary" type="button" ng-click="actualizarPeticion()" boton-async>Sí</button>
+        <button class="btn btn-primary" type="button" ng-click="actualizarPeticion()"
+                ng-disabled="alternarBotonConfirmacion" boton-async>Sí</button>
     </div>
 </script>

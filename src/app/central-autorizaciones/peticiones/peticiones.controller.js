@@ -698,9 +698,11 @@ export default class PeticionesController {
                     $scope.accion = accion;
                     $scope.usuarioEsGestor = this.usuarioEsGestor;
                     $scope.estado = {};
+                    $scope.alternarBotonConfirmacion = false;
 
                     $scope.actualizarPeticion = () => {
                         this.seleccionarTodos = false;
+                        $scope.alternarBotonConfirmacion = true;
                         this.cambiarSeleccion();
 
                         const fnActualizarTabla = (datos, peticionesConError) => {
@@ -804,6 +806,7 @@ export default class PeticionesController {
                                 this.actualizacionEnProgreso = false;
                             }
                         }).finally(() => {
+                            $scope.alternarBotonConfirmacion = false;
                             $scope.$close();
                         });
                     };
