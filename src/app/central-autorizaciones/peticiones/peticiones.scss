@@ -5,6 +5,11 @@
 
 .peticiones {
 
+    .async-deshabilitar[disabled=disabled], .async-deshabilitar:disabled {
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+
     @include media-breakpoint-up(md) {
         padding: 0 50px;
     }

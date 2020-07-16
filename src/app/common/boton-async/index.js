@@ -23,6 +23,12 @@ export default angular.module('boton-async', [])
                 const reiniciarEstado = () => {
                     element.html(contenidoBoton);
                     element.prop('disabled', false);
+                    //Clase usada como indicador para alternar el btn habilitar/deshabiitar
+                    if (!includes(element.html(), 'async-deshabilitar')) {
+                        element.prop('disabled', true);
+                    } else {
+                        element.prop('disabled', false);
+                    }
                 };
 
                 const listenerRequest = $rootScope.$on('GestionAutorizacionAPI:request', (event, method) => {

@@ -332,6 +332,7 @@
     <div class="modal-header confirmacion-estado">
         <h5 class="modal-title">Confirmación</h5>
     </div>
+
     <div class="modal-body confirmacion-estado" modal-async>
         <p ng-if="peticiones.length === 1">
             ¿Está seguro de que desea <strong ng-bind="accion"></strong> esta petición?
@@ -340,9 +341,11 @@
             ¿Está seguro de que desea <strong ng-bind="accion"></strong> estas peticiones?
         </p>
     </div>
+
     <div class="modal-footer confirmacion-eliminar">
         <button class="btn btn-secondary" type="button" ng-click="$dismiss()">No</button>
-        <button class="btn btn-primary" type="button" ng-click="actualizarPeticion()"
+
+        <button class="btn btn-primary async-deshabilitar" type="button" ng-click="actualizarPeticion()"
                 ng-disabled="alternarBotonConfirmacion" boton-async>Sí</button>
     </div>
 </script>
