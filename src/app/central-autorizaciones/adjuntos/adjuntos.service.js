@@ -170,6 +170,9 @@ export default class AdjuntosService {
                     entidad: () => {
                         return 'Adjunto'
                     },
+                    incluirMotivo: () => {
+                        return false;
+                    },
                     fnEliminacion: () => {
                         return () => {
                             return this.eliminar(adjunto, peticion)

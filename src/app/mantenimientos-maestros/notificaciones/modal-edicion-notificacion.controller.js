@@ -1,5 +1,6 @@
 import isNil from 'lodash/isNil';
 import get from 'lodash/get';
+import isDate from 'lodash/isDate';
 
 import { TITULO_CAMBIOS_GUARDADOS, ERROR_GENERAL } from '../../common/constantes';
 import { procesarFechaAEnviar } from '../../common/utiles';
@@ -13,6 +14,7 @@ export default class ModalEdicionNotificacionController {
                 esCrear, PeticionesService, peticiones) {
         this.$uibModalInstance = $uibModalInstance;
         this.toastr = toastr;
+        this.appConfig = AppConfig;
         this.entidad = entidad;
         this.paginaActual = paginaActual;
         this.esCrear = esCrear;
@@ -43,10 +45,24 @@ export default class ModalEdicionNotificacionController {
         this.popupFechaFinalAbierto = false;
         this.mensajeErrorHoraInicio = false;
         this.mensajeErrorHoraFin = false;
+        this.fechaActual = new Date();
     }
 
     toggleSelectorFecha(nombre) {
         this[`popupFecha${nombre}Abierto`] = !this[`popupFecha${nombre}Abierto`];
+    }
+
+    cambioFechaInicio() {
+        if(!isNil(get(this.entidad, 'fechaInicio.valor')) && isDate(this.entidad.fechaInicio.valor)) {
+            if(!isNil(get(this.entidad, 'fechaFin.valor')) && isDate(this.entidad.fechaFin.valor)) {
+                if(this.entidad.fechaInicio.valor > this.entidad.fechaFin.valor) {
+                    let clon = new Date(this.entidad.fechaInicio.valor.valueOf());
+                    clon.setDate(clon.getDate() + 1);
+                    const fechaUTC = new Date(procesarFechaAEnviar(new Date(clon.getTime())));
+                    this.entidad.fechaFin.valor = fechaUTC;
+                }
+            }
+        }
     }
 
     get mostrarMensajeErrorHoraInicio() {

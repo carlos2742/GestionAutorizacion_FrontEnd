@@ -8,7 +8,6 @@ import fill from 'lodash/fill';
 import forEach from 'lodash/forEach';
 import findIndex from 'lodash/findIndex';
 import assign from 'lodash/assign';
-import isMatchWith from 'lodash/isMatchWith';
 import format from "date-fns/format";
 
 import { elementoRequeridoEsNulo } from '../../common/validadores';
@@ -176,20 +175,24 @@ export default class NotificacionesService {
 
     _indiceEntidadCambiada(notificacionProcesada) {
         if (isNil(notificacionProcesada)) { return -1; }
+        let iguales = true;
         let indiceExistente = findIndex(this.notificaciones, ['id', notificacionProcesada.id]);
-        let iguales = isMatchWith(this.notificaciones[indiceExistente], notificacionProcesada, (objValue, srcValue, key) => {
-            if(key === 'mensaje') {
-                return objValue === srcValue;
-            } else if(key === 'activo') {
-                return objValue === srcValue;
-            } else if(key === 'fechaInicio') {
-                return objValue.display === srcValue.display;
-            } else if(key === 'fechaFin') {
-                return objValue.display === srcValue.display;
+        if(indiceExistente >= 0) {
+            const noticia = this.notificaciones[indiceExistente];
+            if(get(notificacionProcesada, 'mensaje') !== get(noticia, 'mensaje')) {
+                iguales = false;
+            } else if(get(notificacionProcesada, 'activo') !== get(noticia, 'activo')) {
+                iguales = false;
+            } else if(get(notificacionProcesada, 'fechaInicio.display') !== get(noticia, 'fechaInicio.display')) {
+                iguales = false;
+            } else if(get(notificacionProcesada, 'fechaFin.display') !== get(noticia, 'fechaFin.display')) {
+                iguales = false;
+            } else if(get(notificacionProcesada, 'fechaInicio.displayHoraInicio') !== get(noticia, 'fechaInicio.displayHoraInicio')) {
+                iguales = false;
+            } else if(get(notificacionProcesada, 'fechaFin.displayHoraFin') !== get(noticia, 'fechaFin.displayHoraFin')) {
+                iguales = false;
             }
-            //Cuando se devuelve undefined la comparación la hace internamente
-            return undefined;
-        });
+        }
         return iguales ? -1 : indiceExistente;
     }
 
@@ -218,10 +221,14 @@ export default class NotificacionesService {
             fechaFin: procesarFechaAEnviar(entidad.fechaFin.valor),
             idPeticion: get(entidad, 'idPeticion') ? entidad.idPeticion : undefined
         };
+        const entidadAProcesar = clone(datosNotificacionEditar);
+        entidadAProcesar['fechaInicio'] = entidad.fechaInicio.valor;
+        entidadAProcesar['fechaFin'] = entidad.fechaFin.valor;
+        entidadAProcesar['solicitante'] = get(entidad, 'solicitante.valor') ? entidad.solicitante.valor : undefined;
         let notificacionEditada;
         return this._validarEntidad(datosNotificacionEditar)
             .then(() => {
-                const notificacionProcesada = this.procesarEntidadRecibida(entidad);
+                const notificacionProcesada = this.procesarEntidadRecibida(entidadAProcesar);
                 let indiceExistente = this._indiceEntidadCambiada(notificacionProcesada);
                 // Si los datos no han cambiado se rechaza la edición
                 if (indiceExistente >= 0) {
