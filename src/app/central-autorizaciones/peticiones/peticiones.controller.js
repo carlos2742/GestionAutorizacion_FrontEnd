@@ -26,8 +26,8 @@ import {
 } from "../../common/constantes";
 import {procesarFechaAEnviar} from "../../common/utiles";
 import angular from "angular";
-import modalEdicionNotificacion
-    from "../../mantenimientos-maestros/notificaciones/modal-edicion-notificacion.html";
+import modalEdicionNotificacion from "../../mantenimientos-maestros/notificaciones/modal-edicion-notificacion.html";
+import modalAprobarAnticipo from "./modal-aprobar-anticipo.html";
 
 /* @ngInject */
 /**
@@ -171,6 +171,7 @@ export default class PeticionesController {
                 {nombre: 'proceso.display', display: 'Proceso', ordenable: 'proceso'},
                 {nombre: 'displayOrden', display: 'Autorizaciones Completadas', ordenable: false},
                 {nombre: 'estado.display', display: 'Etiqueta', ordenable: false},
+                {nombre: 'accionAnticipos', display: '', html: true, ancho: '40px'},
                 {nombre: 'accionMensajes', display: 'Chat', html: true, ancho: '40px', ordenable: 'fechaUltimoMensaje.valor'},
                 {nombre: 'accionAdjuntos', display: '', html: true, ancho: '40px'},
                 {nombre: 'accionCrearNotificacion', display: '', html: true, ancho: '40px'},
@@ -260,19 +261,19 @@ export default class PeticionesController {
 
         clon.seleccionada = includes(idsSeleccionados, clon.id) && entidad.estadoInterno === AUTORIZACION_PENDIENTE;
         clon.accionAdjuntos =  `<a href ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'adjuntos'})"
-                                   class="icon-attachment" uib-tooltip="Adjuntos">
+                                   class="icon-attachment nolinea" uib-tooltip="Adjuntos">
                                 </a><small class="ml-1 ${entidad.cantidadAdjuntos > 0 ? 'font-weight-bold' : 'text-muted'}">(${entidad.cantidadAdjuntos})</small>`;
         clon.accionMensajes =  `<div class="d-flex flex-column">
                                     <div>
                                         <a href ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'mensajes'})"
-                                            class="icon-bubbles4" uib-tooltip="Conversación">
+                                            class="icon-bubbles4 nolinea" uib-tooltip="Conversación">
                                         </a>
                                         <small class="ml-1 ${entidad.cantidadMensajes > 0 ? 'font-weight-bold' : 'text-muted'}">(${entidad.cantidadMensajes})</small>
                                     </div>
                                     <small class="text-muted">${entidad.cantidadMensajes > 0 ? entidad.fechaUltimoMensaje.display : ''}</small>
                                 </div>`;
 
-        clon.enlaceDetalles = `<a href target="_blank" class="icon-view-show d-print-none" ng-href="#/peticion/${entidad.id}" uib-tooltip="Ver Detalles"></a>`;
+        clon.enlaceDetalles = `<a href target="_blank" class="icon-view-show d-print-none nolinea" ng-href="#/peticion/${entidad.id}" uib-tooltip="Ver Detalles"></a>`;
 
         if (this.autorizador && entidad.estadoInterno === AUTORIZACION_PENDIENTE) {
             clon.accionCrearNotificacion = `<a href ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'notificaciones'})"
@@ -284,14 +285,20 @@ export default class PeticionesController {
                                             </a>`;
             sessionStorage.setItem('urlOrigen', '#/central-autorizaciones');
 
-            clon.checkbox = `<input type="checkbox" class="checkbox-visible" ng-model="elemento.seleccionada" uib-tooltip="Seleccionar">`;
-            clon.accionAprobar = `<a href="" ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'aprobar'})" uib-tooltip="Aprobar">
-                                <span class="icon-checkmark text-success"></span>
-                              </a>`;
-            clon.accionRechazar = `<a href="" ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'rechazar'})" uib-tooltip="Rechazar">
-                                <span class="icon-cross text-danger"></span>
-                               </a>`;
+            if(includes(entidad.tipoSolicitud1.toLowerCase(), 'anticipo')) {
+                clon.accionAnticipos = `<a href class="icon-file-plus nolinea" ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'anticipo'})" 
+                                            uib-tooltip="Autorizar anticipo">                                            
+                                        </a>`;
 
+            } else {
+                clon.checkbox = `<input type="checkbox" class="checkbox-visible" ng-model="elemento.seleccionada" uib-tooltip="Seleccionar">`;
+                clon.accionAprobar = `<a href="" class="nolinea" ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'aprobar'})" uib-tooltip="Aprobar">
+                                <span class="icon-checkmark text-success nolinea"></span>
+                              </a>`;
+                clon.accionRechazar = `<a href="" class="nolinea" ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'rechazar'})" uib-tooltip="Rechazar">
+                                <span class="icon-cross text-danger nolinea"></span>
+                               </a>`;
+            }
             clon.observacionesInput = `<textarea
                                           name="observaciones"
                                           class="form-control"
@@ -310,7 +317,6 @@ export default class PeticionesController {
                                             style="width: 100%;">${!isNil(entidad.observaciones) ? entidad.observaciones : ''}</textarea>`;
 
         }
-
         return clon;
     }
 
@@ -325,6 +331,8 @@ export default class PeticionesController {
             return this.guardarCambiosObservaciones(entidad);
         } else if (accion === 'notificaciones') {
             return this.mostrarModalNotificaciones(entidad);
+        } else if(accion === 'anticipo') {
+            return this.mostrarModalAnticipo(entidad);
         }
     }
 
@@ -985,6 +993,75 @@ export default class PeticionesController {
             }
         });
         modal.result.then((resultado) => { });
+        modal.result.catch(response => { throw response; });
+    }
+
+    mostrarModalAnticipo(entidad) {
+        const contenedor = angular.element(document.getElementById('modalAprobarAnticipo'));
+        const modal = this.$uibModal.open({
+            template: modalAprobarAnticipo,
+            appendTo: contenedor,
+            size: 'dialog-centered',
+            controller: 'ModalAprobarAnticipoController',
+            controllerAs: '$modal',
+            resolve: {
+                entidad: () => { return cloneDeep(entidad); },
+                paginaActual: () => { return cloneDeep(this.paginaActual); },
+            }
+        });
+        const actualizarFn = (datos, peticionesConError) => {
+            const idsSeleccionados = map(this.peticionesSeleccionadas, peticion => { return peticion.id });
+            this.datos = map(datos, peticion => {
+                return this._procesarEntidadVisualizacion(peticion, idsSeleccionados);
+            });
+
+            Object.defineProperty(this.datos, 'yaOrdenados', {
+                enumerable: false,
+                get: () => { return true; }
+            });
+
+            if (!this.filaEsVisible(this.peticionSeleccionada)) {
+                this.peticionSeleccionada = null;
+            } else {
+                this.peticionSeleccionada = find(this.datos, ['id', this.peticionSeleccionada.id]);
+            }
+
+            const listaPeticionesTodaviaVisibles = reduce([entidad], (resultado, peticion) => {
+                const indiceCorrespondiente = findIndex(this.datos, ['id', peticion.id]);
+                if (indiceCorrespondiente > -1) {
+                    const indiceError = findIndex(peticionesConError, ['id', peticion.id]);
+                    if (this.datos[indiceCorrespondiente].estadoInterno === AUTORIZACION_PENDIENTE && indiceError < 0) {
+                        resultado += `<li>
+                                        <strong>${peticion.id}</strong>
+                                      </li>`;
+                    }
+                }
+                return resultado;
+            }, '');
+
+
+            if (listaPeticionesTodaviaVisibles !== '') {
+                const mensaje = `La petición requiere de otras aprobaciones:
+                                     <ul>${listaPeticionesTodaviaVisibles}</ul>`;
+                this.toastr.info(mensaje, null, {
+                    allowHtml: true,
+                    closeButton: true,
+                    tapToDismiss: false,
+                    timeOut: 0,
+                    extendedTimeOut: 0,
+                    iconClass: 'toast-info alerta-peticiones'
+                });
+            }
+
+            this.$timeout(() => {
+                this.actualizacionEnProgreso = false;
+            }, 500);
+        };
+        modal.result.then((resultado) => {
+            if(!isNil(resultado)) {
+                actualizarFn(resultado.datos, resultado.peticionesConError);
+            }
+        });
         modal.result.catch(response => { throw response; });
     }
 }

@@ -194,7 +194,7 @@ export class ModalExcelController {
                 return this.elementosExportar;
             } else if(this.rangoPagina > 1) {
                 let clon = clone(this.datos);
-                clon = slice(clon, 0, this.rangoPagina * this.elementosPorPagina);
+                clon = slice(clon, 0, (this.rangoPagina - 1) * this.elementosPorPagina);
                 return this.datos.length - clon.length;
             }
         }

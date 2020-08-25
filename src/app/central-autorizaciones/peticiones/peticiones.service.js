@@ -231,27 +231,30 @@ export default class PeticionesService {
     _procesarInformacionExtra(info) {
         let resultado = Object.keys(info).length > 0 ? {} : null;
         for (let key in info) {
+            //Obtener palabras y capitalizar letra inicial
             const arregloPalabras = lowerCase(key).split(' ');
             forEach(arregloPalabras, (palabra, indice) => {
                 arregloPalabras[indice] = capitalize(palabra);
             });
-
+            //Obtener valor del campo
             let valorProcesado = info[key];
-            const fecha = toDate(info[key]);
-            if (!isNaN(fecha)) {
-                let formato = this.AppConfig.formatoFechas;
-                if ( !(fecha.getHours() === 0 && fecha.getMinutes() === 0) && !(fecha.getHours() === 23 && fecha.getMinutes() === 59) ) {
-                    formato = `${formato} HH:mm`;
+            //Los campos tipo fecha deben tener contenido en su nombre clave el fragmento fecha
+            if(includes(key, 'fecha')) {
+                //Procesar fecha
+                const fecha = toDate(info[key]);
+                if (!isNaN(fecha)) {
+                    let formato = this.AppConfig.formatoFechas;
+                    if ( !(fecha.getHours() === 0 && fecha.getMinutes() === 0) && !(fecha.getHours() === 23 && fecha.getMinutes() === 59) ) {
+                        formato = `${formato} HH:mm`;
+                    }
+                    valorProcesado = format(info[key], formato);
                 }
-                valorProcesado = format(info[key], formato);
             }
-
             resultado[key] = {
                 valor: valorProcesado,
                 label: join(arregloPalabras, ' ')
             };
         }
-
         return resultado;
     }
 
