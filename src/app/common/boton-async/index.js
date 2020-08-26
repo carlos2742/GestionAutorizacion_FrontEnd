@@ -4,7 +4,6 @@ import isNil from 'lodash/isNil';
 import loaderHtml from './boton-async.html';
 import './boton-async.scss';
 
-
 /**
  * Contiene la directiva <boton-async>, que al añadirla a un <button> muestra una animación mientras se está haciendo
  * un request al API.
@@ -17,18 +16,25 @@ export default angular.module('boton-async', [])
         return {
             restrict: 'A',
             link: (scope, element, attrs) => {
-                let contenidoBoton;
-
+                let contenidoBoton, progreso;
+                element.bind('click', function() {
+                    //Cambiar contenido del boton para simular animacion
+                    progreso = true;
+                    contenidoBoton  = element.html();
+                    element.html(loaderHtml);
+                });
+                //Restablecer el contenido del boton y habilitar el mismo
                 const reiniciarEstado = () => {
-                    element.html(contenidoBoton);
+                    if(progreso) {
+                        element.html(contenidoBoton);
+                        progreso = false;
+                    }
                     element.prop('disabled', false);
                 };
-
                 const listenerRequest = $rootScope.$on('GestionAutorizacionAPI:request', (event, method) => {
                     if (!isNil(method) && method !== 'GET') {
-                        contenidoBoton  = element.html();
-                        element.html(loaderHtml);
                         element.prop('disabled', true);
+
                     }
                 });
                 const listenerResponse = $rootScope.$on('GestionAutorizacionAPI:response', (event, method) => {
@@ -39,13 +45,11 @@ export default angular.module('boton-async', [])
                 const listenerResponseError = $rootScope.$on('GestionAutorizacionAPI:responseError', () => {
                     reiniciarEstado();
                 });
-
                 scope.$on('$destroy', () => {
                     listenerRequest();
                     listenerResponse();
                     listenerResponseError();
                 });
-
             }
         };
     });

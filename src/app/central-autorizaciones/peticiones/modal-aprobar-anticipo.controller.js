@@ -2,6 +2,7 @@ import reduce from 'lodash/reduce';
 import isNil from "lodash/isNil";
 
 import { TITULO_CAMBIOS_GUARDADOS } from '../../common/constantes';
+
 /* @ngInject */
 /**
  * Esta clase representa un controlador de Angular correspondiente a la vista de detalles de un anticipo.
@@ -27,7 +28,6 @@ export default class ModalAprobarAnticipoController {
         } else if (accion === 'rechazar') {
             promesa = this.peticionesService.rechazar([this.entidad], this.paginaActual);
         }
-
         return promesa
             .then(resultado => {
                 let mensaje = '';
@@ -59,7 +59,7 @@ export default class ModalAprobarAnticipoController {
                     });
                 }
                 this.$uibModalInstance.close({datos: error.peticiones, error: error.peticionesConError });
-            })
+            });
 
     }
 }
