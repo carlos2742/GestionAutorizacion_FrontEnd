@@ -1,4 +1,3 @@
-import angular from "angular";
 import isNil from 'lodash/isNil';
 import find from 'lodash/find';
 import findIndex from 'lodash/findIndex';
@@ -14,13 +13,21 @@ import reduce from 'lodash/reduce';
 import differenceBy from 'lodash/differenceBy';
 import format from 'date-fns/format';
 
-import { AUTORIZACION_ANULADA, AUTORIZACION_APROBADA, AUTORIZACION_PENDIENTE, AUTORIZACION_RECHAZADA, ETIQUETA_ANULADO,
-    ETIQUETA_NOK, ETIQUETA_NOK_DESC, ETIQUETA_OK_DESC, ETIQUETA_PENDIENTE, PROPIEDAD_NO_EDITABLE, TEXTO_CAMBIOS_GUARDADOS
-} from "../../common/constantes";
-import { procesarFechaAEnviar } from "../../common/utiles";
 import './peticiones.scss';
-import modalEdicionNotificacion
-    from "../../mantenimientos-maestros/notificaciones/modal-edicion-notificacion.html";
+import {
+    AUTORIZACION_ANULADA,
+    AUTORIZACION_APROBADA,
+    AUTORIZACION_PENDIENTE, AUTORIZACION_RECHAZADA,
+    ETIQUETA_ANULADO,
+    ETIQUETA_NOK, ETIQUETA_NOK_DESC, ETIQUETA_OK_DESC,
+    ETIQUETA_PENDIENTE,
+    PROPIEDAD_NO_EDITABLE,
+    TEXTO_CAMBIOS_GUARDADOS
+} from "../../common/constantes";
+import {procesarFechaAEnviar} from "../../common/utiles";
+import angular from "angular";
+import modalEdicionNotificacion from "../../mantenimientos-maestros/notificaciones/modal-edicion-notificacion.html";
+import modalAprobarAnticipo from "./modal-aprobar-anticipo.html";
 
 /* @ngInject */
 /**
@@ -164,6 +171,7 @@ export default class PeticionesController {
                 {nombre: 'proceso.display', display: 'Proceso', ordenable: 'proceso'},
                 {nombre: 'displayOrden', display: 'Autorizaciones Completadas', ordenable: false},
                 {nombre: 'estado.display', display: 'Etiqueta', ordenable: false},
+                {nombre: 'accionAnticipos', display: '', html: true, ancho: '40px'},
                 {nombre: 'accionMensajes', display: 'Chat', html: true, ancho: '40px', ordenable: 'fechaUltimoMensaje.valor'},
                 {nombre: 'accionAdjuntos', display: '', html: true, ancho: '40px'},
                 {nombre: 'accionCrearNotificacion', display: '', html: true, ancho: '40px'},
@@ -253,19 +261,19 @@ export default class PeticionesController {
 
         clon.seleccionada = includes(idsSeleccionados, clon.id) && entidad.estadoInterno === AUTORIZACION_PENDIENTE;
         clon.accionAdjuntos =  `<a href ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'adjuntos'})"
-                                   class="icon-attachment" uib-tooltip="Adjuntos">
+                                   class="icon-attachment nolinea" uib-tooltip="Adjuntos">
                                 </a><small class="ml-1 ${entidad.cantidadAdjuntos > 0 ? 'font-weight-bold' : 'text-muted'}">(${entidad.cantidadAdjuntos})</small>`;
         clon.accionMensajes =  `<div class="d-flex flex-column">
                                     <div>
                                         <a href ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'mensajes'})"
-                                            class="icon-bubbles4" uib-tooltip="Conversación">
+                                            class="icon-bubbles4 nolinea" uib-tooltip="Conversación">
                                         </a>
                                         <small class="ml-1 ${entidad.cantidadMensajes > 0 ? 'font-weight-bold' : 'text-muted'}">(${entidad.cantidadMensajes})</small>
                                     </div>
                                     <small class="text-muted">${entidad.cantidadMensajes > 0 ? entidad.fechaUltimoMensaje.display : ''}</small>
                                 </div>`;
 
-        clon.enlaceDetalles = `<a href target="_blank" class="icon-view-show d-print-none" ng-href="#/peticion/${entidad.id}" uib-tooltip="Ver Detalles"></a>`;
+        clon.enlaceDetalles = `<a href target="_blank" class="icon-view-show d-print-none nolinea" ng-href="#/peticion/${entidad.id}" uib-tooltip="Ver Detalles"></a>`;
 
         if (this.autorizador && entidad.estadoInterno === AUTORIZACION_PENDIENTE) {
             clon.accionCrearNotificacion = `<a href ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'notificaciones'})"
@@ -277,14 +285,20 @@ export default class PeticionesController {
                                             </a>`;
             sessionStorage.setItem('urlOrigen', '#/central-autorizaciones');
 
-            clon.checkbox = `<input type="checkbox" class="checkbox-visible" ng-model="elemento.seleccionada" uib-tooltip="Seleccionar">`;
-            clon.accionAprobar = `<a href="" ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'aprobar'})" uib-tooltip="Aprobar">
-                                <span class="icon-checkmark text-success"></span>
-                              </a>`;
-            clon.accionRechazar = `<a href="" ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'rechazar'})" uib-tooltip="Rechazar">
-                                <span class="icon-cross text-danger"></span>
-                               </a>`;
+            if(includes(entidad.tipoSolicitud1.toLowerCase(), 'anticipo')) {
+                clon.accionAnticipos = `<a href class="icon-file-plus nolinea" ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'anticipo'})" 
+                                            uib-tooltip="Autorizar anticipo">                                            
+                                        </a>`;
 
+            } else {
+                clon.checkbox = `<input type="checkbox" class="checkbox-visible" ng-model="elemento.seleccionada" uib-tooltip="Seleccionar">`;
+                clon.accionAprobar = `<a href="" class="nolinea" ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'aprobar'})" uib-tooltip="Aprobar">
+                                <span class="icon-checkmark text-success nolinea"></span>
+                              </a>`;
+                clon.accionRechazar = `<a href="" class="nolinea" ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'rechazar'})" uib-tooltip="Rechazar">
+                                <span class="icon-cross text-danger nolinea"></span>
+                               </a>`;
+            }
             clon.observacionesInput = `<textarea
                                           name="observaciones"
                                           class="form-control"
@@ -317,6 +331,8 @@ export default class PeticionesController {
             return this.guardarCambiosObservaciones(entidad);
         } else if (accion === 'notificaciones') {
             return this.mostrarModalNotificaciones(entidad);
+        } else if(accion === 'anticipo') {
+            return this.mostrarModalAnticipo(entidad);
         }
     }
 
@@ -444,6 +460,7 @@ export default class PeticionesController {
         if (isNil(peticion)) {
             return false;
         }
+
         return !!find(this.datos, (item) => {
             return item.codigo === peticion.codigo;
         });
@@ -451,14 +468,17 @@ export default class PeticionesController {
 
     _generarStringEstados() {
         let resultado = '';
+
         forEach([['pendiente', AUTORIZACION_PENDIENTE], ['aprobada', AUTORIZACION_APROBADA], ['rechazada', AUTORIZACION_RECHAZADA], ['anulada', AUTORIZACION_ANULADA]], item => {
             if (this.paramsBusqueda[item[0]]) {
                 resultado += `${resultado ? '_' : ''}${item[1]}`;
             }
         });
+
         if (!resultado) {
             return undefined;
         }
+
         return resultado;
     }
 
@@ -479,11 +499,14 @@ export default class PeticionesController {
                 fechaInicial: get(this.paramsBusqueda, 'fechaInicial') ? procesarFechaAEnviar(this.paramsBusqueda.fechaInicial) : undefined,
                 fechaFinal: get(this.paramsBusqueda, 'fechaFinal') ? procesarFechaAEnviar(this.paramsBusqueda.fechaFinal) : undefined
             };
+
             this.paramsAnteriores = cloneDeep(this.paramsBusqueda);
+
             if (this.totalItems > this.ITEMS_POR_PAGINA) {
                 this.seleccionarTodos = false;
                 this.cambiarSeleccion();
             }
+
             this.busquedaActiva = true;
             this.actualizacionEnProgreso = true;
             const idsSeleccionados = map(this.peticionesSeleccionadas, peticion => { return peticion.id });
@@ -523,16 +546,19 @@ export default class PeticionesController {
         };
         busquedaForm.$setPristine();
         busquedaForm.$setUntouched();
+
         // Si justo antes ya se había mandado a mostrar todos los resultados, no se hace nada. Comprobando esto se
         // ahorran llamadas innecesarias al API.
         if (Object.getOwnPropertyNames(this.paramsAnteriores).length > 1 || !this.paramsAnteriores.pendiente) {
             this.paramsAnteriores = {
                 pendiente: true
             };
+
             if (this.totalItems > this.ITEMS_POR_PAGINA) {
                 this.seleccionarTodos = false;
                 this.cambiarSeleccion();
             }
+
             this.actualizacionEnProgreso = true;
             const idsSeleccionados = map(this.peticionesSeleccionadas, peticion => { return peticion.id });
             this.datos = null;
@@ -546,9 +572,11 @@ export default class PeticionesController {
                         enumerable: false,
                         get: () => { return true; }
                     });
+
                     if (!this.filaEsVisible(this.peticionSeleccionada)) {
                         this.peticionSeleccionada = null;
                     }
+
                     this.mostrarSoloLectura = !this.autorizador;
                 })
                 .finally(() => {
@@ -572,6 +600,7 @@ export default class PeticionesController {
             this.seleccionarTodos = false;
             this.cambiarSeleccion();
         }
+
         const idsSeleccionados = map(this.peticionesSeleccionadas, peticion => { return peticion.id });
         this.datos = null;
         this.procesando = true;
@@ -672,6 +701,7 @@ export default class PeticionesController {
                 size: 'dialog-centered',    // hack para que el modal salga centrado verticalmente
                 controller: ($scope) => {
                     'ngInject';
+
                     $scope.peticiones = peticiones;
                     $scope.accion = accion;
                     $scope.usuarioEsGestor = this.usuarioEsGestor;
@@ -681,6 +711,7 @@ export default class PeticionesController {
                         this.seleccionarTodos = false;
                         $scope.alternarBotonConfirmacion = true;
                         this.cambiarSeleccion();
+
                         const fnActualizarTabla = (datos, peticionesConError) => {
                             const idsSeleccionados = map(this.peticionesSeleccionadas, peticion => { return peticion.id });
                             this.datos = map(datos, peticion => {
@@ -721,16 +752,19 @@ export default class PeticionesController {
                                     iconClass: 'toast-info alerta-peticiones'
                                 });
                             }
+
                             this.$timeout(() => {
                                 this.actualizacionEnProgreso = false;
                             }, 500);
                         };
+
                         let promesa;
                         if (accion === 'aprobar') {
                             promesa = this.peticionesService.aprobar(peticiones, this.paginaActual);
                         } else if (accion === 'rechazar') {
                             promesa = this.peticionesService.rechazar(peticiones, this.paginaActual);
                         }
+
                         this.actualizacionEnProgreso = true;
                         return promesa.then(resultado => {
                             let message = '';
@@ -785,6 +819,7 @@ export default class PeticionesController {
                     };
                 }
             });
+
             modal.result.catch(() => {
                 reject();
             });
@@ -808,6 +843,7 @@ export default class PeticionesController {
             .catch(response => {
                 if (response) {
                     let actualizar = false;
+
                     if (response.status === 401) {
                         actualizar = true;
                         this.peticionSeleccionada = null;
@@ -819,15 +855,18 @@ export default class PeticionesController {
                         actualizar = true;
                         this.toastr.error('Lo sentimos, no se pudieron guardar los cambios porque la petición estaba desactualizada. Por favor, inténtelo de nuevo.');
                     }
+
                     if (actualizar) {
                         const fin = this.paginaActual * this.ITEMS_POR_PAGINA;
                         const inicio = fin - this.ITEMS_POR_PAGINA;
                         let forzarActualizacion = false;
+
                         // Si es la última página y ya no tiene elementos, hay que cambiar de página
                         if (this.paginaActual > 1 && inicio >= this.peticionesService.peticiones.length) {
                             this.paginaActual -= 1;
                             forzarActualizacion = true;
                         }
+
                         this.actualizacionEnProgreso = false;
                         this.actualizarPagina(undefined, forzarActualizacion)
                             .then(() => {
@@ -860,6 +899,7 @@ export default class PeticionesController {
                             display: format(resultado.mensajes[0].fechaEnvio.valor, `${this.AppConfig.formatoFechas} HH:mm:ss`)
                         };
                     }
+
                     const indiceEntidadCambiada = findIndex(this.datos, ['codigo', entidad.codigo]);
                     if (indiceEntidadCambiada > -1) {
                         const idsSeleccionados = map(this.peticionesSeleccionadas, peticion => { return peticion.id; });
@@ -913,6 +953,7 @@ export default class PeticionesController {
 
     obtenerSolicitantePeticionRelacionada(peticionAnulacion) {
         const path = peticionAnulacion ? 'peticionAnulacion' : 'peticionQueAnula';
+
         const idSolicitante = get(this.peticionSeleccionada, `${path}.solicitante`);
         if (!isNil(idSolicitante)) {
             if (idSolicitante === this.peticionSeleccionada.solicitante.valor.nInterno) {
@@ -954,6 +995,75 @@ export default class PeticionesController {
             }
         });
         modal.result.then((resultado) => { });
+        modal.result.catch(response => { throw response; });
+    }
+
+    mostrarModalAnticipo(entidad) {
+        const contenedor = angular.element(document.getElementById('modalAprobarAnticipo'));
+        const modal = this.$uibModal.open({
+            template: modalAprobarAnticipo,
+            appendTo: contenedor,
+            size: 'dialog-centered',
+            controller: 'ModalAprobarAnticipoController',
+            controllerAs: '$modal',
+            resolve: {
+                entidad: () => { return cloneDeep(entidad); },
+                paginaActual: () => { return cloneDeep(this.paginaActual); },
+            }
+        });
+        const actualizarFn = (datos, peticionesConError) => {
+            const idsSeleccionados = map(this.peticionesSeleccionadas, peticion => { return peticion.id });
+            this.datos = map(datos, peticion => {
+                return this._procesarEntidadVisualizacion(peticion, idsSeleccionados);
+            });
+
+            Object.defineProperty(this.datos, 'yaOrdenados', {
+                enumerable: false,
+                get: () => { return true; }
+            });
+
+            if (!this.filaEsVisible(this.peticionSeleccionada)) {
+                this.peticionSeleccionada = null;
+            } else {
+                this.peticionSeleccionada = find(this.datos, ['id', this.peticionSeleccionada.id]);
+            }
+
+            const listaPeticionesTodaviaVisibles = reduce([entidad], (resultado, peticion) => {
+                const indiceCorrespondiente = findIndex(this.datos, ['id', peticion.id]);
+                if (indiceCorrespondiente > -1) {
+                    const indiceError = findIndex(peticionesConError, ['id', peticion.id]);
+                    if (this.datos[indiceCorrespondiente].estadoInterno === AUTORIZACION_PENDIENTE && indiceError < 0) {
+                        resultado += `<li>
+                                        <strong>${peticion.id}</strong>
+                                      </li>`;
+                    }
+                }
+                return resultado;
+            }, '');
+
+
+            if (listaPeticionesTodaviaVisibles !== '') {
+                const mensaje = `La petición requiere de otras aprobaciones:
+                                     <ul>${listaPeticionesTodaviaVisibles}</ul>`;
+                this.toastr.info(mensaje, null, {
+                    allowHtml: true,
+                    closeButton: true,
+                    tapToDismiss: false,
+                    timeOut: 0,
+                    extendedTimeOut: 0,
+                    iconClass: 'toast-info alerta-peticiones'
+                });
+            }
+
+            this.$timeout(() => {
+                this.actualizacionEnProgreso = false;
+            }, 500);
+        };
+        modal.result.then((resultado) => {
+            if(!isNil(resultado)) {
+                actualizarFn(resultado.datos, resultado.peticionesConError);
+            }
+        });
         modal.result.catch(response => { throw response; });
     }
 }

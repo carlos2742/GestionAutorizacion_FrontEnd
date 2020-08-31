@@ -1,0 +1,70 @@
+<form id="aprobarAnticipoForm" name="aprobarAnticipoForm">
+    <div class="modal-header mantenimiento-maestro">
+        <h5 class="modal-title" ng-bind=":: $modal.titulo"></h5>
+        <button type="reset" class="close" aria-label="Close" ng-click=":: $modal.cancelar()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+
+    <div class="modal-body mantenimiento-maestro" modal-async>
+        <section class="">
+            <h5 class="text-info">Detalles</h5>
+            <div class="row">
+                <label class="col-sm-4 font-weight-bold text-md-right">ID</label>
+                <p class="col-sm-8 espaciado" ng-bind="$modal.entidad.id"></p>
+            </div>
+            <div class="row">
+                <label class="col-md-4 font-weight-bold text-md-right">Fecha Necesaria</label>
+                <p class="col-md-8 espaciado" ng-bind="$modal.entidad.fechaNecesaria.display"></p>
+            </div>
+            <div class="row">
+                <label class="col-md-4 font-weight-bold text-md-right">Solicitante</label>
+                <p class="col-md-8 espaciado" ng-bind="$modal.entidad.solicitante.display"></p>
+            </div>
+            <div class="row">
+                <label class="col-md-4 font-weight-bold text-md-right">Tipo Solicitud 1</label>
+                <p class="col-md-8 espaciado" ng-bind="$modal.entidad.tipoSolicitud1"></p>
+            </div>
+            <div class="row">
+                <label class="col-md-4 font-weight-bold text-md-right">Tipo Solicitud 2</label>
+                <p class="col-md-8 espaciado" ng-bind="$modal.entidad.tipoSolicitud2"></p>
+            </div>
+            <div class="row">
+                <label class="col-md-4 font-weight-bold text-md-right">Proceso</label>
+                <p class="col-md-8 espaciado" ng-bind="$modal.entidad.proceso.display"></p>
+            </div>
+            <div class="row">
+                <label class="col-md-4 font-weight-bold text-md-right">Etiqueta</label>
+                <p class="col-md-8 espaciado" ng-bind="$modal.entidad.estado.display"></p>
+            </div>
+        </section>
+
+        <section class="info-extra mt-4" ng-if=":: $modal.entidad.informacionExtra">
+            <h5 class="text-info">Información Extra</h5>
+
+            <div class="row" ng-repeat="item in :: $modal.entidad.informacionExtra">
+                <label class="col-md-4 font-weight-bold text-md-right" ng-bind="item.label"></label>
+                <div class="col-md-8 espaciado contenedor-texto-truncado">
+                    <hm-read-more
+                            hm-text="{{ item.valor }}"
+                            hm-limit="170"
+                            hm-more-text="Leer más"
+                            hm-less-text="Leer menos"
+                            hm-dots-class="dots"
+                            hm-link-class="enlaceLeerMas">
+                    </hm-read-more>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="modal-footer mantenimiento-maestro">
+        <button type="button" class="btn btn-success" ng-click="$modal.cambiarEstadoPeticion('aprobar')" boton-async>
+            <span class="icon-checkmark"></span> Aprobar
+        </button>
+
+        <button type="button" class="btn btn-danger" ng-click="$modal.cambiarEstadoPeticion('rechazar')" boton-async>
+            <span class="icon-cross"></span> Rechazar
+        </button>
+    </div>
+</form>
