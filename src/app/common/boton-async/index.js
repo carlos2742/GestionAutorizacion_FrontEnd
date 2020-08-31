@@ -30,12 +30,18 @@ export default angular.module('boton-async', [])
                         element.html(contenidoBoton);
                         progreso = false;
                     }
-                    element.prop('disabled', false);
+                    //Clase usada como indicador para alternar el btn habilitar/deshabiitar
+                    if (!includes(element.html(), 'async-deshabilitar')) {
+                        element.prop('disabled', true);
+                    } else {
+                        element.prop('disabled', false);
+                    }
                 };
                 const listenerRequest = $rootScope.$on('GestionAutorizacionAPI:request', (event, method) => {
                     if (!isNil(method) && method !== 'GET') {
-                        element.prop('disabled', true);
-
+                        if (!includes(element.html(), 'btn-async-loader')) {
+                            element.prop('disabled', true);
+                        }
                     }
                 });
                 const listenerResponse = $rootScope.$on('GestionAutorizacionAPI:response', (event, method) => {
