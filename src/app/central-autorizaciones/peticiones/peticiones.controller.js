@@ -1,3 +1,4 @@
+import get from 'lodash/get';
 import isNil from 'lodash/isNil';
 import find from 'lodash/find';
 import findIndex from 'lodash/findIndex';
@@ -8,7 +9,6 @@ import map from 'lodash/map';
 import isMatch from 'lodash/isMatch';
 import filter from 'lodash/filter';
 import includes from 'lodash/includes';
-import get from 'lodash/get';
 import reduce from 'lodash/reduce';
 import differenceBy from 'lodash/differenceBy';
 import format from 'date-fns/format';
@@ -285,12 +285,23 @@ export default class PeticionesController {
                                             </a>`;
             sessionStorage.setItem('urlOrigen', '#/central-autorizaciones');
 
-            if(includes(entidad.tipoSolicitud1.toLowerCase(), 'anticipo')) {
-                clon.accionAnticipos = `<a href class="icon-file-plus nolinea" ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'anticipo'})" 
+            const tipoSolicitud1 = get(entidad, 'tipoSolicitud1');
+            if(!isNil(tipoSolicitud1)) {
+                if(includes(tipoSolicitud1.toLowerCase(), 'anticipo')) {
+                    clon.accionAnticipos = `<a href class="icon-file-plus nolinea" ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'anticipo'})" 
                                             uib-tooltip="Autorizar anticipo">                                            
                                         </a>`;
-
+                } else {
+                    clon.checkbox = `<input type="checkbox" class="checkbox-visible" ng-model="elemento.seleccionada" uib-tooltip="Seleccionar">`;
+                    clon.accionAprobar = `<a href="" class="nolinea" ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'aprobar'})" uib-tooltip="Aprobar">
+                                <span class="icon-checkmark text-success nolinea"></span>
+                              </a>`;
+                    clon.accionRechazar = `<a href="" class="nolinea" ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'rechazar'})" uib-tooltip="Rechazar">
+                                <span class="icon-cross text-danger nolinea"></span>
+                               </a>`;
+                }
             } else {
+                //Parche para las entidades con tipoSolicitud1 = null
                 clon.checkbox = `<input type="checkbox" class="checkbox-visible" ng-model="elemento.seleccionada" uib-tooltip="Seleccionar">`;
                 clon.accionAprobar = `<a href="" class="nolinea" ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'aprobar'})" uib-tooltip="Aprobar">
                                 <span class="icon-checkmark text-success nolinea"></span>
@@ -299,6 +310,7 @@ export default class PeticionesController {
                                 <span class="icon-cross text-danger nolinea"></span>
                                </a>`;
             }
+
             clon.observacionesInput = `<textarea
                                           name="observaciones"
                                           class="form-control"
