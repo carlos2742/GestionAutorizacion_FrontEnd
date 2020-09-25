@@ -25,6 +25,7 @@ import ModalAdjuntosController from './adjuntos/modal-adjuntos-controller';
 import MensajesService from './mensajes/mensajes.service';
 import ModalMensajesController from './mensajes/modal-mensajes.controller';
 import ModalAprobarAnticipoController from './peticiones/modal-aprobar-anticipo.controller'
+import ModalAprobarGastoController from './peticiones/modal-aprobar-gasto.controller';
 
 
 export default angular.module('central-autorizacion', [
@@ -54,6 +55,7 @@ export default angular.module('central-autorizacion', [
     .service('MensajesService', MensajesService)
     .controller('ModalMensajesController', ModalMensajesController)
     .controller('ModalAprobarAnticipoController', ModalAprobarAnticipoController)
+    .controller('ModalAprobarGastoController', ModalAprobarGastoController)
 
     .config(($provide) => {
         // Esto es necesario para que lo siguiente funcione:

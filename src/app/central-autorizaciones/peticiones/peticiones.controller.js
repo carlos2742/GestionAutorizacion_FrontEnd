@@ -28,6 +28,7 @@ import {procesarFechaAEnviar} from "../../common/utiles";
 import angular from "angular";
 import modalEdicionNotificacion from "../../mantenimientos-maestros/notificaciones/modal-edicion-notificacion.html";
 import modalAprobarAnticipo from "./modal-aprobar-anticipo.html";
+import modalAprobarGasto from './modal-aprobar-gasto.html';
 
 /* @ngInject */
 /**
@@ -291,6 +292,10 @@ export default class PeticionesController {
                     clon.accionAnticipos = `<a href class="icon-file-plus nolinea" ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'anticipo'})" 
                                             uib-tooltip="Autorizar anticipo">                                            
                                         </a>`;
+                } else if(includes(tipoSolicitud1.toLowerCase(), 'gasto')) {
+                    clon.accionAnticipos = `<a href class="icon-file-plus nolinea" ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'gasto'})" 
+                                            uib-tooltip="Autorizar gasto">                                            
+                                        </a>`;
                 } else {
                     clon.checkbox = `<input type="checkbox" class="checkbox-visible" ng-model="elemento.seleccionada" uib-tooltip="Seleccionar">`;
                     clon.accionAprobar = `<a href="" class="nolinea" ng-click="$ctrl.fnAccion({entidad: elemento, accion: 'aprobar'})" uib-tooltip="Aprobar">
@@ -345,6 +350,8 @@ export default class PeticionesController {
             return this.mostrarModalNotificaciones(entidad);
         } else if(accion === 'anticipo') {
             return this.mostrarModalAnticipo(entidad);
+        } else if(accion === 'gasto') {
+            return this.mostrarModalGasto(entidad);
         }
     }
 
@@ -1015,6 +1022,75 @@ export default class PeticionesController {
             appendTo: contenedor,
             size: 'dialog-centered',
             controller: 'ModalAprobarAnticipoController',
+            controllerAs: '$modal',
+            resolve: {
+                entidad: () => { return cloneDeep(entidad); },
+                paginaActual: () => { return cloneDeep(this.paginaActual); },
+            }
+        });
+        const actualizarFn = (datos, peticionesConError) => {
+            const idsSeleccionados = map(this.peticionesSeleccionadas, peticion => { return peticion.id });
+            this.datos = map(datos, peticion => {
+                return this._procesarEntidadVisualizacion(peticion, idsSeleccionados);
+            });
+
+            Object.defineProperty(this.datos, 'yaOrdenados', {
+                enumerable: false,
+                get: () => { return true; }
+            });
+
+            if (!this.filaEsVisible(this.peticionSeleccionada)) {
+                this.peticionSeleccionada = null;
+            } else {
+                this.peticionSeleccionada = find(this.datos, ['id', this.peticionSeleccionada.id]);
+            }
+
+            const listaPeticionesTodaviaVisibles = reduce([entidad], (resultado, peticion) => {
+                const indiceCorrespondiente = findIndex(this.datos, ['id', peticion.id]);
+                if (indiceCorrespondiente > -1) {
+                    const indiceError = findIndex(peticionesConError, ['id', peticion.id]);
+                    if (this.datos[indiceCorrespondiente].estadoInterno === AUTORIZACION_PENDIENTE && indiceError < 0) {
+                        resultado += `<li>
+                                        <strong>${peticion.id}</strong>
+                                      </li>`;
+                    }
+                }
+                return resultado;
+            }, '');
+
+
+            if (listaPeticionesTodaviaVisibles !== '') {
+                const mensaje = `La petición requiere de otras aprobaciones:
+                                     <ul>${listaPeticionesTodaviaVisibles}</ul>`;
+                this.toastr.info(mensaje, null, {
+                    allowHtml: true,
+                    closeButton: true,
+                    tapToDismiss: false,
+                    timeOut: 0,
+                    extendedTimeOut: 0,
+                    iconClass: 'toast-info alerta-peticiones'
+                });
+            }
+
+            this.$timeout(() => {
+                this.actualizacionEnProgreso = false;
+            }, 500);
+        };
+        modal.result.then((resultado) => {
+            if(!isNil(resultado)) {
+                actualizarFn(resultado.datos, resultado.peticionesConError);
+            }
+        });
+        modal.result.catch(response => { throw response; });
+    }
+
+    mostrarModalGasto(entidad) {
+        const contenedor = angular.element(document.getElementById('modalAprobarGasto'));
+        const modal = this.$uibModal.open({
+            template: modalAprobarGasto,
+            appendTo: contenedor,
+            size: 'dialog-centered',
+            controller: 'ModalAprobarGastoController',
             controllerAs: '$modal',
             resolve: {
                 entidad: () => { return cloneDeep(entidad); },
