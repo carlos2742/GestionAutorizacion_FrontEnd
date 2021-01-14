@@ -22,7 +22,7 @@ import {
     ETIQUETA_NOK, ETIQUETA_NOK_DESC, ETIQUETA_OK_DESC,
     ETIQUETA_PENDIENTE,
     PROPIEDAD_NO_EDITABLE,
-    TEXTO_CAMBIOS_GUARDADOS
+    TEXTO_CAMBIOS_GUARDADOS, TITULO_CAMBIOS_GUARDADOS
 } from "../../common/constantes";
 import {procesarFechaAEnviar} from "../../common/utiles";
 import angular from "angular";
@@ -35,28 +35,8 @@ import modalAprobarGasto from './modal-aprobar-gasto.html';
  * Esta clase representa un controlador de Angular usado en la vista de la lista de peticiones activas asociadas a un autorizador.
  */
 export default class PeticionesController {
-
-    /**
-     * @param $rootScope
-     * @param $scope
-     * @param $q
-     * @param $timeout
-     * @param $location
-     * @param $uibModal
-     * @param toastr
-     * @param {PeticionesService} PeticionesService
-     * @param {AdjuntosService} AdjuntosService
-     * @param {MensajesService} MensajesService
-     * @param {AplicacionesService} AplicacionesService
-     * @param {RolesService} RolesService
-     * @param EtiquetasService
-     * @param {PersonalService} PersonalService
-     * @param SesionService
-     * @param AppConfig
-     * @param autorizador
-     **/
     constructor($rootScope, $scope, $q, $timeout, $location, $uibModal, toastr, PeticionesService, AdjuntosService, MensajesService,
-                AplicacionesService, RolesService, EtiquetasService, PersonalService, SesionService, AppConfig, autorizador) {
+                AplicacionesService, RolesService, EtiquetasService, PersonalService, SesionService, AppConfig, autorizador, NotificacionesService) {
         /** @type {number} */
         this.ITEMS_POR_PAGINA = AppConfig.elementosPorPagina;
         /** @private */
@@ -129,6 +109,7 @@ export default class PeticionesController {
         this.mensajesService = MensajesService;
         /** @private */
         this.personalService = PersonalService;
+        this.notificacionesService = NotificacionesService;
 
         /** @private */
         this.totalRoles = 0;
@@ -711,6 +692,95 @@ export default class PeticionesController {
         });
     }
 
+    _deshabilitarNotificaciones(notificacionesEspecificasActivas) {
+        let aciertos = [], errores = [];
+        const promesasEdicion = reduce(notificacionesEspecificasActivas, (resultados, notificacion) => {
+            //Desactivando notificaciones
+            notificacion['activo'] = false;
+            resultados.push(
+                this.notificacionesService.editarExterno(notificacion)
+                    .then(response => {
+                        aciertos.push({ notificacion, response });
+                    })
+                    .catch(response => {
+                        errores.push({ notificacion, response });
+                    })
+            );
+            return resultados;
+        }, []);
+        if(promesasEdicion.length > 0) {
+            this.$q.all(promesasEdicion)
+                .finally(() => {
+                    if(aciertos.length > 0) {
+                        this.toastr.success(`Notificaciones desactivadas`, TITULO_CAMBIOS_GUARDADOS);
+                    }
+                    if(errores.length > 0) {
+                        const listaErrores = reduce(errores, (resultado, error) => {
+                            resultado.push(get(error, 'notificacion.codigo'));
+                            return resultado;
+                        }, []);
+                        const mensaje = `Lo sentimos, las siguientes notificaciones no se pudieron desactivar:
+                                        <ul>${listaErrores.join(', ')}</ul>`;
+                        this.toastr.warning(mensaje, null, {
+                            target: '#contenedor-toasts-extensos',
+                            allowHtml: true,
+                            closeButton: true,
+                            tapToDismiss: false,
+                            timeOut: 0,
+                            extendedTimeOut: 0,
+                            iconClass: 'toast-warning alerta-peticiones'
+                        });
+                        document.getElementById('contenedor-toasts-extensos').scrollIntoView();
+                    }
+                });
+        }
+    }
+
+    deshabilitarNotificacionesEspecificas(peticiones) {
+        forEach(peticiones, peticion => {
+            let filtro = {
+                activo: true,
+                notificacionEspecifica: true,
+                idPeticion: peticion.codigo
+            };
+            //Buscar notificaciones activas
+            let notificacionesEspecificasActivas = [];
+            this.notificacionesService.obtenerTodos(1 , ['id', 'desc'], filtro)
+                .then(resultado => {
+                    forEach(resultado, item => {
+                        item['paginaActual'] = 1;
+                        notificacionesEspecificasActivas.push(item);
+                    });
+                    return this.notificacionesService.datosPaginador;
+                })
+                .then(datosPaginador => {
+                    if(!isNil(datosPaginador) && datosPaginador['totalDePaginas'] > 1) {
+                        let promesasNotificaciones = [];
+                        for(let pagina = 2; pagina <= datosPaginador['totalDePaginas']; pagina++) {
+                            promesasNotificaciones.push(this.notificacionesService.obtenerTodos(pagina , ['id', 'desc'], filtro)
+                                .then(resultados => {
+                                    let notificacionesPorPagina = [];
+                                    forEach(resultados, item => {
+                                        item['paginaActual'] = pagina;
+                                        notificacionesPorPagina.push(item);
+                                    });
+                                    return notificacionesPorPagina;
+                                }));
+                        }
+                        this.$q.all(promesasNotificaciones)
+                            .then(notificaciones => {
+                                forEach(notificaciones, elementos => {
+                                    notificacionesEspecificasActivas.push(...elementos);
+                                });
+                                this._deshabilitarNotificaciones(notificacionesEspecificasActivas);
+                            });
+                    } else {
+                        this._deshabilitarNotificaciones(notificacionesEspecificasActivas);
+                    }
+                });
+        });
+    }
+
      _cambiarEstado(peticiones, accion) {
         return this.$q((resolve, reject) => {
             const contenedor = angular.element(document.getElementById("modalConfirmacionAutorizacion"));
@@ -720,16 +790,13 @@ export default class PeticionesController {
                 size: 'dialog-centered',    // hack para que el modal salga centrado verticalmente
                 controller: ($scope) => {
                     'ngInject';
-
                     $scope.peticiones = peticiones;
                     $scope.accion = accion;
                     $scope.usuarioEsGestor = this.usuarioEsGestor;
                     $scope.estado = {};
-
                     $scope.actualizarPeticion = () => {
                         this.seleccionarTodos = false;
                         this.cambiarSeleccion();
-
                         const fnActualizarTabla = (datos, peticionesConError) => {
                             const idsSeleccionados = map(this.peticionesSeleccionadas, peticion => { return peticion.id });
                             this.datos = map(datos, peticion => {
@@ -792,8 +859,8 @@ export default class PeticionesController {
                                 message = accion === 'aprobar' ? 'Se aprobaron las peticiones' : 'Se rechazaron las peticiones';
                             }
                             this.toastr.success(message);
-
                             this.paginaActual = resultado.pagina;
+                            this.deshabilitarNotificacionesEspecificas(peticiones);
                             fnActualizarTabla(resultado.peticiones, []);
                             resolve();
                         }).catch(error => {

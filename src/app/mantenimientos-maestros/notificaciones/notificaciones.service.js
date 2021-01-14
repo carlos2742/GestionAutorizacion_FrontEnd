@@ -28,6 +28,7 @@ export default class NotificacionesService {
         this.notificaciones = [];
         this.ordenActivo = null;
         this.filtrosBusqueda = null;
+        this.datosPaginador = null;
     }
 
     obtenerEstados() {
@@ -42,6 +43,7 @@ export default class NotificacionesService {
         this.notificaciones = [];
         this.ordenActivo = null;
         this.filtrosBusqueda = null;
+        this.datosPaginador = null;
     }
 
     procesarEntidadRecibida(entidad) {
@@ -138,7 +140,8 @@ export default class NotificacionesService {
         }, filtroSeleccionado);
         return this.$http.get(this.ENDPOINT, { params: parametrosEnviar })
             .then(response => {
-                totalnotificaciones = response.metadata.cantidadTotal;
+                this.datosPaginador = clone(response.metadata);
+                totalnotificaciones = this.datosPaginador['cantidadTotal'];
                 const notificaciones = map(response.data, notificacion => { return this.procesarEntidadRecibida(notificacion); });
                 if (guardarCambios) {
                     this._procesarResultadosPaginados(notificaciones, totalnotificaciones, inicio);
@@ -268,6 +271,27 @@ export default class NotificacionesService {
                 } else {
                     throw response;
                 }
+            });
+    }
+
+    editarExterno(entidad) {
+        const datosNotificacionEditar = {
+            id: entidad.id,
+            mensaje: entidad.mensaje,
+            activo: entidad.activo,
+            fechaInicio: procesarFechaAEnviar(entidad.fechaInicio.valor),
+            fechaFin: procesarFechaAEnviar(entidad.fechaFin.valor),
+            idPeticion: get(entidad, 'idPeticion') ? entidad.idPeticion : undefined
+        };
+        return this.$http.put(`${this.ENDPOINT}/${datosNotificacionEditar.id}`, datosNotificacionEditar)
+            .then(resultado => {
+                return resultado.data;
+            })
+            .catch(response => {
+                if (response && response.status === 404) {
+                    this._eliminarEntidad(entidad);
+                }
+                throw response;
             });
     }
 }
